@@ -1,3 +1,4 @@
+# pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 """
 Security issues in running an open python interpreter:
 
@@ -693,7 +694,8 @@ class VirtualMachine:
             self.pop()
             self.frame().f_lasti = jump
 
-trialCode = """
+if __name__ == "__main__":
+    trialCode = """
 from __future__ import generators
 import os
 assert os
@@ -748,46 +750,46 @@ finally:
 assert f == 2
 """
 
-codeObject = compile(trialCode, '<input>', 'exec')
-vm = VirtualMachine()
-vm.loadCode(codeObject)
-vm.run()
+    codeObject = compile(trialCode, '<input>', 'exec')
+    vm = VirtualMachine()
+    vm.loadCode(codeObject)
+    vm.run()
 
-def inputCodeObject():
-    c = ''
-    i = raw_input('>>> ')
-    try:
-        codeObject = compile(i, '<input>', 'eval')
-        return codeObject
-    except:
+    def inputCodeObject():
+        c = ''
+        i = raw_input('>>> ')
         try:
-            codeObject = compile(i, '<input>', 'exec')
+            codeObject = compile(i, '<input>', 'eval')
             return codeObject
-        except SyntaxError, e:
-            if not c and str(e).startswith('unexpected EOF'):
-                c = i+'\n'
+        except:
+            try:
+                codeObject = compile(i, '<input>', 'exec')
+                return codeObject
+            except SyntaxError, e:
+                if not c and str(e).startswith('unexpected EOF'):
+                    c = i+'\n'
+                else:
+                    raise
+        while 1:
+            i = raw_input('... ')
+            if i:
+                c += '%s\n' % i
             else:
-                raise
+                break
+        return compile(c, '<input>', 'exec')
+            
+    
     while 1:
-        i = raw_input('... ')
-        if i:
-            c += '%s\n' % i
-        else:
+        try:
+            codeObject = inputCodeObject()
+            vm.loadCode(codeObject)
+            val = vm.run()
+            if val != None:
+                print val
+        except EOFError:
             break
-    return compile(c, '<input>', 'exec')
-        
- 
-while 1:
-    try:
-        codeObject = inputCodeObject()
-        vm.loadCode(codeObject)
-        val = vm.run()
-        if val != None:
-            print val
-    except EOFError:
-        break
-    except KeyboardInterrupt:
-        print "KeyboardInterrupt"
-    except:
-        import traceback
-        traceback.print_exc()
+        except KeyboardInterrupt:
+            print "KeyboardInterrupt"
+        except:
+            import traceback
+            traceback.print_exc()
