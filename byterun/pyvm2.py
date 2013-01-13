@@ -239,9 +239,14 @@ COMPARE_OPERATORS = [
     lambda x,y: x not in y,
     lambda x,y: x is y,
     lambda x,y: x is not y,
-    lambda x,y: issubclass(x, Exception) and (x is y)
+    lambda x,y: issubclass(x, Exception) and issubclass(x, y)
 ]
     
+
+class VirtualMachineError(Exception):
+    """For raising errors in the operation of the VM."""
+    pass
+
 class VirtualMachine:
     def __init__(self):
         self._frames = [] # list of current stack frames
@@ -257,7 +262,7 @@ class VirtualMachine:
     def push(self, thing):
         self._stack.append(thing)
 
-    def loadCode(self, code, args = [], kw = {}, f_globals = None, f_locals = None):
+    def loadCode(self, code, args=[], kw={}, f_globals=None, f_locals=None):
         if f_globals:
             f_globals = f_globals
             if not f_locals:
@@ -329,7 +334,7 @@ class VirtualMachine:
                     # dispatch
                     func = getattr(self, 'byte_%s' % byteName, None)
                     if not func:
-                        raise ValueError, "unknown bytecode type: %s" % byteName
+                        raise VirtualMachineError("unknown bytecode type: %s" % byteName)
                     if byteCode >= dis.HAVE_ARGUMENT:
                         arguments = [arg]
                     else:
@@ -463,12 +468,14 @@ class VirtualMachine:
 
     def byte_RETURN_VALUE(self):
         self._returnValue = self.pop()
-        func = self.pop()
-        self.push(func)
-        if isinstance(func, Object):
-            self._frames.pop()
-        else:
-            return 1
+        return 1
+        if 0: # This makes one-line code fail. Part of aborted generator implementation?
+            func = self.pop()
+            self.push(func)
+            if isinstance(func, Object):
+                self._frames.pop()
+            else:
+                return 1
 
     def byte_YIELD_VALUE(self):
         value = self.pop() # since we're running in a different VM
@@ -585,12 +592,14 @@ class VirtualMachine:
         self.push(val)
         if val:
             self.frame().f_lasti = jump
+    byte_POP_JUMP_IF_TRUE = byte_JUMP_IF_TRUE
 
     def byte_JUMP_IF_FALSE(self, jump):
         val = self.pop()
         self.push(val)
         if not val:
             self.frame().f_lasti = jump
+    byte_POP_JUMP_IF_FALSE = byte_JUMP_IF_FALSE
 
     def byte_JUMP_FORWARD(self, jump):
         self.frame().f_lasti = jump
@@ -654,7 +663,7 @@ class VirtualMachine:
         if hasattr(func, 'func_code'):
             self.loadCode(func.func_code, args, kw)
             if func.func_code.co_flags & CO_GENERATOR:
-                raise NotImplementedError, "cannot do generators ATM"
+                raise VirtualMachineError("cannot do generators ATM")
                 gen = Generator(self.frame(), self)
                 self._frames.pop()._generator = gen
                 self.push(gen)
