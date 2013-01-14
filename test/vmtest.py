@@ -46,6 +46,10 @@ class VmTestCase(unittest.TestCase):
 
         sys.stdout = old_stdout
 
+        self.assert_same_exception(vm_exc, py_exc)
         self.assertEqual(vm_stdout.getvalue(), py_stdout.getvalue())
         self.assertEqual(vm_value, py_value)
-        self.assertEqual(vm_exc, py_exc)
+
+    def assert_same_exception(self, e1, e2):
+        self.assertEqual(str(e1), str(e2))
+        self.assertIs(type(e1), type(e2))

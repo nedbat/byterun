@@ -300,9 +300,7 @@ class VirtualMachine:
                 arg = frame.f_code.co_code[frame.f_lasti:frame.f_lasti+2]
                 frame.f_lasti += 2
                 intArg = ord(arg[0]) + (ord(arg[1])<<8)
-                if byteName == 'CALL_FUNCTION':
-                    arg = map(ord, arg)
-                elif byteCode in dis.hasconst:
+                if byteCode in dis.hasconst:
                     arg = frame.f_code.co_consts[intArg]
                 elif byteCode in dis.hasfree:
                     if intArg < len(frame.f_code.co_cellvars):
@@ -365,9 +363,15 @@ class VirtualMachine:
                         break
                     while not self.frame()._blockStack:
                         self._frames.pop()
-                        if not self._frames():
+                        if not self._frames:
                             break
                 
+        # Check some supposed invariants
+        if self._frames:
+            raise VirtualMachineError("Frames left over!")
+        if self._stack:
+            raise VirtualMachineError("Data left on stack! %r" % self._stack)
+
         if self._lastException[0]:
             e1, e2, e3 = self._lastException
             raise e1, e2, e3
@@ -426,6 +430,7 @@ class VirtualMachine:
         l = self.pop()
         item = self.pop()
         l[ind] = item
+        # TODO: I don't think these should be pushed back on.
         self.push(item)
         self.push(l)
         self.push(ind)
@@ -434,6 +439,7 @@ class VirtualMachine:
         ind = self.pop()
         l = self.pop()
         del l[ind]
+        # TODO: I don't think these should be pushed back on.
         self.push(l)
         self.push(ind)
 
@@ -453,6 +459,7 @@ class VirtualMachine:
         print
 
     def byte_PRINT_ITEM_TO(self):
+        # TODO: looks like PRINT_NEWLINE_TO to me...
         to = self.pop()
         print >>to , ''
         self.push(to)
@@ -469,7 +476,7 @@ class VirtualMachine:
     def byte_RETURN_VALUE(self):
         self._returnValue = self.pop()
         return 1
-        if 0: # This makes one-line code fail. Part of aborted generator implementation?
+        if 0: # TODO: This makes one-line code fail. Part of aborted generator implementation?
             func = self.pop()
             self.push(func)
             if isinstance(func, Object):
@@ -483,6 +490,7 @@ class VirtualMachine:
         return 1
 
     def byte_IMPORT_STAR(self):
+        # TODO: this doesn't use __all__ properly.
         mod = self.pop()
         for attr in mod:
             if attr[0] != '_':
@@ -545,11 +553,7 @@ class VirtualMachine:
         elif frame.f_builtins.has_key(name):
             item = frame.f_builtins[name]
         else:
-            self.lastException = (NameError, NameError("name '%s' not found" % name),
-                                  None) # can't do tb object yet
-                                  
-            self.raiseException()
-            return
+            raise NameError("name '%s' is not defined" % name)
         self.push(item)
 
     def byte_BUILD_TUPLE(self, count):
@@ -614,10 +618,7 @@ class VirtualMachine:
         elif f.f_builtins.has_key(name):
             self.push(f.f_builtins[name])
         else:
-            self.lastException = (NameError, NameError("name '%s' is not defined" % name),
-                                  None)
-            self.raiseException()
-        
+            raise NameError("global name '%s' is not defined" % name)
 
     def byte_SETUP_LOOP(self, dest):
         self.frame()._blockStack.append(('loop', dest))
@@ -643,7 +644,8 @@ class VirtualMachine:
     def byte_SET_LINENO(self, lineno):
         self.frame().f_lineno = lineno
 
-    def byte_CALL_FUNCTION(self, (lenPos, lenKw)):
+    def byte_CALL_FUNCTION(self, arg):
+        lenKw, lenPos = divmod(arg, 256)
         kw = {}
         for i in xrange(lenKw):
             value = self.pop()
@@ -687,6 +689,16 @@ class VirtualMachine:
             for i in code.co_freevars:
                 closure.insert(0, self.pop())
         self.push(Function(code, None, defaults, closure, self))
+
+    def byte_RAISE_VARARGS(self, argc):
+        if argc == 0:
+            raise VirtualMachineError("Not implemented: re-raise")
+        elif argc == 1:
+            raise self.pop()
+        elif argc == 2:
+            raise self.pop(), self.pop()
+        elif argc == 3:
+            raise self.pop(), self.pop(), self.pop()
 
     def byte_GET_ITER(self):
         self.push(iter(self.pop()))
