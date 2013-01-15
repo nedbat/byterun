@@ -53,8 +53,8 @@ class TestIt(vmtest.VmTestCase):
             """)
 
     def test_raising_exceptions(self):
-        #self.assert_ok("print ValueError('oops')")
-        #self.assert_ok("raise Exception('oops')")
+        self.assert_ok("print ValueError('oops')")
+        self.assert_ok("raise Exception('oops')")
         self.assert_ok("""\
             try:
                 raise ValueError("oops")
@@ -96,4 +96,20 @@ class TestIt(vmtest.VmTestCase):
                 except NameError:
                     print "No fooey"
             fn()
+            """)
+
+    def test_for_loop(self):
+        self.assert_ok("""\
+            out = ""
+            for i in range(5):
+                out = out + str(i)
+            print out
+            """)
+
+    def test_inplace_operators(self):
+        self.assert_ok("""\
+            text = "one"
+            text += "two"
+            text += "three"
+            print text
             """)

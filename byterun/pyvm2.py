@@ -335,11 +335,11 @@ class VirtualMachine:
             finished = False
             try:
                 if byteName.startswith('UNARY_'):
-                    self.unaryOperation(byteName)
+                    self.unaryOperator(byteName[6:])
                 elif byteName.startswith('BINARY_'):
-                    self.binaryOperator(byteName)
+                    self.binaryOperator(byteName[7:])
                 elif byteName.startswith('INPLACE_'):
-                    self.inplaceOperator(byteName)
+                    self.inplaceOperator(byteName[8:])
                 elif byteName.find('SLICE') != -1:
                     self.sliceOperator(byteName)
                 else:
@@ -391,21 +391,21 @@ class VirtualMachine:
         return self._returnValue
 
     def unaryOperator(self, op):
-        op = op[6:]
         one = self.pop()
         self.push(UNARY_OPERATORS[op](one))
 
     def binaryOperator(self, op):
-        op = op[7:]
         one = self.pop()
         two = self.pop()
         self.push(BINARY_OPERATORS[op](two, one))
 
     def inplaceOperator(self, op):
-        op = op[9:]
-        one = self.pop()
-        two = self.pop()
-        exec INPLACE_OPERATORS[op] in {'x':two, 'y':one}
+        y = self.pop()
+        x = self.pop()
+        # Isn't there a better way than exec?? :(
+        vars = {'x':x, 'y':y}
+        exec INPLACE_OPERATORS[op] in vars
+        self.push(vars['x'])
 
     def sliceOperator(self, op):
         start = 0
