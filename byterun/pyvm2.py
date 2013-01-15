@@ -113,8 +113,9 @@ class Function:
                     argCount = 'exactly 1 argument'
                 else:
                     argCount = 'exactly %i arguments' % self.func_code.co_argcount
-                raise TypeError, '%s() takes %s (%s given)' % (self.func_name,
-                                                               argCount, len(args))
+                raise TypeError(
+                    '%s() takes %s (%s given)' % (self.func_name, argCount, len(args))
+                )
             else:
                 defArgCount = len(self.func_defaults)
                 args.extend(self.func_defaults[-(self.func_code.co_argcount - len(args)):])
@@ -280,14 +281,14 @@ class VirtualMachine:
             name = code.co_varnames[i]
             if i < len(args):
                 if kw.has_key(name):
-                    raise TypeError, "got multiple values for keyword argument '%s'" % name
+                    raise TypeError("got multiple values for keyword argument '%s'" % name)
                 else:
                     f_locals[name] = args[i]
             else:
                 if kw.has_key(name):
                     locals[name] = kw[name]
                 else:
-                    raise TypeError, "did not get value for argument '%s'" % name
+                    raise TypeError("did not get value for argument '%s'" % name)
         frame = Frame(code, f_globals, f_locals, self)
         self._frames.append(frame)
 
@@ -680,7 +681,10 @@ class VirtualMachine:
             if func.im_self:
                 args.insert(0, func.im_self)
             if not func.im_class.isparent(args[0]):
-                raise TypeError, 'unbound method %s() must be called with %s instance as first argument (got %s instead)' % (func.im_func.func_name, func.im_class._name, type(args[0]))
+                raise TypeError(
+                    'unbound method %s() must be called with %s instance as first argument (got %s instead)' % 
+                    (func.im_func.func_name, func.im_class._name, type(args[0]))
+                )
             func = func.im_func
         if hasattr(func, 'func_code'):
             self.loadCode(func.func_code, args, kw)
@@ -734,103 +738,3 @@ class VirtualMachine:
         except StopIteration:
             self.pop()
             self.frame().f_lasti = jump
-
-if __name__ == "__main__":
-    trialCode = """
-from __future__ import generators
-import os
-assert os
-print os.getcwd()
-
-def generator():
-    for i in xrange(5):
-        yield (i*2)
-
-#for i in generator():
-#    print i
-
-def makeAdder(base):
-    def adder(x):
-        return base + x
-    return adder
-
-add5 = makeAdder(5)
-assert add5(6) == 11
-
-class Foo:
-    x = 1
-    def __init__(self, y):
-        self.y = y
-    def add(self, z):
-        return self.x + self.y + z
-
-f = Foo(2)
-assert f.add(3) == 6
-assert Foo.add(f, 4) == 7
-
-try:
-    [][1]
-    assert 0, "should have raised index error"
-except IndexError:
-    pass
-
-try:
-    try:
-        [][1]
-        assert 0, "should have hit finally"
-    finally:
-        pass
-    assert 0, "should have hit except"
-except:
-    pass
-
-try:
-    f = 1
-finally:
-    f = 2
-assert f == 2
-"""
-
-    codeObject = compile(trialCode, '<input>', 'exec')
-    vm = VirtualMachine()
-    vm.loadCode(codeObject)
-    vm.run()
-
-    def inputCodeObject():
-        c = ''
-        i = raw_input('>>> ')
-        try:
-            codeObject = compile(i, '<input>', 'eval')
-            return codeObject
-        except:
-            try:
-                codeObject = compile(i, '<input>', 'exec')
-                return codeObject
-            except SyntaxError, e:
-                if not c and str(e).startswith('unexpected EOF'):
-                    c = i+'\n'
-                else:
-                    raise
-        while 1:
-            i = raw_input('... ')
-            if i:
-                c += '%s\n' % i
-            else:
-                break
-        return compile(c, '<input>', 'exec')
-            
-    
-    while 1:
-        try:
-            codeObject = inputCodeObject()
-            vm.loadCode(codeObject)
-            val = vm.run()
-            if val != None:
-                print val
-        except EOFError:
-            break
-        except KeyboardInterrupt:
-            print "KeyboardInterrupt"
-        except:
-            import traceback
-            traceback.print_exc()
