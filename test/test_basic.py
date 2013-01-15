@@ -1,6 +1,9 @@
 import vmtest
 
 class TestIt(vmtest.VmTestCase):
+    def test_constant(self):
+        self.assert_ok("17")
+
     def test_printing(self):
         self.assert_ok("print 'hello'")
         self.assert_ok("a = 3; print a+4")
@@ -11,6 +14,16 @@ class TestIt(vmtest.VmTestCase):
                 print "hello"
             fn()
             print "bye"
+            """)
+
+    def test_recursive_functions(self):
+        self.assert_ok("""\
+            def pow(b, e):
+                if e == 0:
+                    return 1
+                else:
+                    return b*pow(b, e-1)
+            print "2**6 is %d" % pow(2, 6)
             """)
 
     def test_catching_exceptions(self):

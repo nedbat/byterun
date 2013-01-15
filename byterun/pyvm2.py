@@ -155,12 +155,12 @@ class Class:
     __repr__ = __str__
     def isparent(self, obj):
         if not isinstance(obj, Object):
-            return 0
+            return False
         if obj._class is self:
-            return 1
+            return True
         if self in obj._bases:
-            return 1
-        return 0
+            return True
+        return False
 
 class Object:
     def __init__(self, _class, name, bases, methods, args, kw):
@@ -253,6 +253,7 @@ class VirtualMachine:
         self._stack = [] # current stack
         self._returnValue = None
         self._lastException = (None, None, None)
+        self._log = []
 
     def frame(self):
         return self._frames and self._frames[-1] or None
@@ -261,6 +262,9 @@ class VirtualMachine:
         return self._stack.pop()
     def push(self, thing):
         self._stack.append(thing)
+
+    def log(self, msg):
+        self._log.append(msg)
 
     def loadCode(self, code, args=[], kw={}, f_globals=None, f_locals=None):
         if f_globals:
@@ -291,11 +295,13 @@ class VirtualMachine:
         while self._frames:
             # pre will go here
             frame = self.frame()
-            byte = frame.f_code.co_code[frame.f_lasti]
+            opoffset = frame.f_lasti
+            byte = frame.f_code.co_code[opoffset]
             frame.f_lasti += 1
             byteCode = ord(byte)
             byteName = dis.opname[byteCode]
             arg = None
+            arguments = []
             if byteCode >= dis.HAVE_ARGUMENT:
                 arg = frame.f_code.co_code[frame.f_lasti:frame.f_lasti+2]
                 frame.f_lasti += 2
@@ -317,8 +323,15 @@ class VirtualMachine:
                     arg = frame.f_code.co_varnames[intArg]
                 else:
                     arg = intArg
-            #print len(self._frames), byteName, arg
-            finished = 0
+                arguments = [arg]
+
+            if 0:
+                op = "%d: %s" % (opoffset, byteName)
+                if arguments:
+                    op += " %r" % arguments[0]
+                self.log("%s%40s %r" % ("  "*(len(self._frames)-1), op, self._stack))
+
+            finished = False
             try:
                 if byteName.startswith('UNARY_'):
                     self.unaryOperation(byteName)
@@ -333,11 +346,7 @@ class VirtualMachine:
                     func = getattr(self, 'byte_%s' % byteName, None)
                     if not func:
                         raise VirtualMachineError("unknown bytecode type: %s" % byteName)
-                    if byteCode >= dis.HAVE_ARGUMENT:
-                        arguments = [arg]
-                    else:
-                        arguments = []
-                    finished =  func(*arguments)
+                    finished = func(*arguments)
                 #print len(self._frames), self._stack
                 if finished:
                     self._frames.pop()
@@ -350,7 +359,7 @@ class VirtualMachine:
                 if not self._frames:
                     raise
                 self._lastException = sys.exc_info()[:2] + (None,)
-                while 1:
+                while True:
                     if not self._frames:
                         raise
                     block = self.frame()._blockStack.pop()
@@ -365,8 +374,11 @@ class VirtualMachine:
                         self._frames.pop()
                         if not self._frames:
                             break
-                
-        # Check some supposed invariants
+
+        # Get rid of the last returned value??
+        self.pop()
+
+        # Check some invariants
         if self._frames:
             raise VirtualMachineError("Frames left over!")
         if self._stack:
@@ -475,19 +487,19 @@ class VirtualMachine:
 
     def byte_RETURN_VALUE(self):
         self._returnValue = self.pop()
-        return 1
+        return True
         if 0: # TODO: This makes one-line code fail. Part of aborted generator implementation?
             func = self.pop()
             self.push(func)
             if isinstance(func, Object):
                 self._frames.pop()
             else:
-                return 1
+                return True
 
     def byte_YIELD_VALUE(self):
         value = self.pop() # since we're running in a different VM
         self._returnValue = value
-        return 1
+        return True
 
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.
@@ -509,7 +521,7 @@ class VirtualMachine:
         if self._lastException[0]:
             raise self._lastException[0], self._lastException[1], self._lastException[2]
         else:
-            return 1
+            return True
 
     def byte_BUILD_CLASS(self):
         methods = self.pop()
@@ -596,14 +608,22 @@ class VirtualMachine:
         self.push(val)
         if val:
             self.frame().f_lasti = jump
-    byte_POP_JUMP_IF_TRUE = byte_JUMP_IF_TRUE
+
+    def byte_POP_JUMP_IF_TRUE(self, jump):
+        val = self.pop()
+        if val:
+            self.frame().f_lasti = jump
 
     def byte_JUMP_IF_FALSE(self, jump):
         val = self.pop()
         self.push(val)
         if not val:
             self.frame().f_lasti = jump
-    byte_POP_JUMP_IF_FALSE = byte_JUMP_IF_FALSE
+
+    def byte_POP_JUMP_IF_FALSE(self, jump):
+        val = self.pop()
+        if not val:
+            self.frame().f_lasti = jump
 
     def byte_JUMP_FORWARD(self, jump):
         self.frame().f_lasti = jump

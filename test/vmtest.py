@@ -34,6 +34,8 @@ class VmTestCase(unittest.TestCase):
             raise
         except Exception, vm_exc:
             pass
+        finally:
+            old_stdout.write("\n".join(vm._log))
 
         py_stdout = StringIO()
         sys.stdout = py_stdout
