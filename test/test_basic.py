@@ -205,7 +205,22 @@ class TestIt(vmtest.VmTestCase):
             print -x, `s`, not x
             """)
 
-    def test_classes(self):
+    def test_functions(self):
+        self.assert_ok("""\
+            def fn(a, b=17, c="Hello", d=[]):
+                d.append(99)
+                print a, b, c, d
+            fn(1)
+            fn(2, 3)
+            fn(3, c="Bye")
+            fn(4, d=["What?"])
+            fn(5, "b", "c")
+            # For later...
+            #fn(*[6, 77, 88])
+            #fn(**{'c': 23, 'a': 7})
+            """)
+
+    def xxxtest_classes(self):
         self.assert_ok("""\
             class Thing(object):
                 def __init__(self, x):

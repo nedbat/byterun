@@ -30,7 +30,7 @@ Ideas for a Python VM written in Python:
 2.  faked threading.  run a set number of byte codes, then switch to a second 'Thread' and run the byte codes, repeat.
 """
 
-import operator, dis, new, inspect, copy, sys
+import operator, dis, new, inspect, copy, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
 class Cell:
@@ -83,42 +83,6 @@ class Frame:
 
     def __str__(self):
         return '<frame object at 0x%08X>' % id(self)
-
-class Function:
-    readOnly = ['func_name', 'func_globals', 'func_closure']
-    dontAccess = ['_vm']
-
-    def __init__(self, func_code, func_doc, func_defaults, func_closure, vm):
-        self._vm = vm
-        self.func_code = func_code
-        self.func_name = func_code.co_name
-        self.func_doc = func_doc
-        self.func_defaults = func_defaults
-        self.func_globals = vm.frame().f_globals
-        self.func_dict = vm.frame().f_locals
-        self.func_closure = func_closure
-
-    def __str__(self):
-        return '<function %s at 0x%08X>' % (self.func_name, id(self))
-
-    __repr__ = __str__
-
-    def __call__(self, *args, **kw):
-        if len(args) < self.func_code.co_argcount:
-            if not self.func_defaults:
-                if self.func_code.co_argcount == 0:
-                    argCount = 'no arguments'
-                elif self.func_code.co_argcount == 1:
-                    argCount = 'exactly 1 argument'
-                else:
-                    argCount = 'exactly %i arguments' % self.func_code.co_argcount
-                raise TypeError(
-                    '%s() takes %s (%s given)' % (self.func_name, argCount, len(args))
-                )
-            else:
-                defArgCount = len(self.func_defaults)
-                args.extend(self.func_defaults[-(self.func_code.co_argcount - len(args)):])
-        self._vm.loadCode(self.func_code, args, kw, self.func_globals, self.func_dict)
 
 class Generator:
     readOnly = ['gi_frame', 'gi_running']
@@ -265,6 +229,7 @@ class VirtualMachine:
         self._log.append(msg)
 
     def loadCode(self, code, args=[], kw={}, f_globals=None, f_locals=None):
+        self.log("loadCode: code=%r, args=%r, kw=%r, f_globals=%r, f_locals=%r" % (code, args, kw, f_globals, f_locals))
         if f_globals:
             f_globals = f_globals
             if not f_locals:
@@ -283,7 +248,7 @@ class VirtualMachine:
                     f_locals[name] = args[i]
             else:
                 if kw.has_key(name):
-                    locals[name] = kw[name]
+                    f_locals[name] = kw[name]
                 else:
                     raise TypeError("did not get value for argument '%s'" % name)
         frame = Frame(code, f_globals, f_locals, self)
@@ -671,6 +636,7 @@ class VirtualMachine:
             value = self.pop()
             key = self.pop()
             kw[key] = value
+        # TODO: Make a helper method for this
         args = []
         for i in xrange(lenPos):
             args.insert(0, self.pop())
@@ -686,7 +652,8 @@ class VirtualMachine:
                 )
             func = func.im_func
         if hasattr(func, 'func_code'):
-            self.loadCode(func.func_code, args, kw)
+            callargs = inspect.getcallargs(func, *args, **kw)
+            self.loadCode(func.func_code, [], callargs)
             if func.func_code.co_flags & CO_GENERATOR:
                 raise VirtualMachineError("cannot do generators ATM")
                 gen = Generator(self.frame(), self)
@@ -696,11 +663,13 @@ class VirtualMachine:
             self.push(func(*args, **kw))
 
     def byte_MAKE_FUNCTION(self, argc):
+        code = self.pop()
         defaults = []
         for i in xrange(argc):
             defaults.insert(0, self.pop())
-        code = self.pop()
-        self.push(Function(code, None, defaults, None, self))
+        globs = self.frame().f_globals
+        fn = types.FunctionType(code, globs, argdefs=tuple(defaults))
+        self.push(fn)
 
     def byte_MAKE_CLOSURE(self, argc):
         code = self.pop()
