@@ -198,3 +198,20 @@ class TestIt(vmtest.VmTestCase):
             del l[5]
             print l
             """)
+
+    def test_unary_operators(self):
+        self.assert_ok("""\
+            x, s = 8, "Hello\\n"
+            print -x, `s`, not x
+            """)
+
+    def test_classes(self):
+        self.assert_ok("""\
+            class Thing(object):
+                def __init__(self, x):
+                    self.x = x
+
+            thing1 = Thing(1)
+            thing2 = Thing(2)
+            print thing1.x, thing2.x
+            """)

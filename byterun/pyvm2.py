@@ -82,7 +82,7 @@ class Frame:
         self._blockStack = []
 
     def __str__(self):
-        return '<frame object at 0x%s>' % hex(id(self))[2:].upper().zfill(8)
+        return '<frame object at 0x%08X>' % id(self)
 
 class Function:
     readOnly = ['func_name', 'func_globals', 'func_closure']
@@ -99,8 +99,7 @@ class Function:
         self.func_closure = func_closure
 
     def __str__(self):
-        return '<function %s at 0x%s>' % (self.func_name,
-                                          hex(id(self))[2:].upper().zfill(8))
+        return '<function %s at 0x%08X>' % (self.func_name, id(self))
 
     __repr__ = __str__
 
@@ -151,8 +150,7 @@ class Class:
     def __call__(self, *args, **kw):
         return Object(self, self._name, self._bases, self._locals, args, kw)
     def __str__(self):
-        return '<class %s at %s>' % (self._name, 
-                                     hex(id(self))[2:].upper().zfill(8))
+        return '<class %s at 0x%08X>' % (self._name, id(self))
     __repr__ = __str__
     def isparent(self, obj):
         if not isinstance(obj, Object):
@@ -172,8 +170,7 @@ class Object:
         if methods.has_key('__init__'):
             methods['__init__'](self, *args, **kw)
     def __str__(self):
-        return '<%s instance at %s>' % (self._name,
-                                        hex(id(self))[2:].upper().zfill(8))
+        return '<%s instance at 0x%08X>' % (self._name, id(self))
     __repr__ = __str__
         
 class Method:
@@ -196,7 +193,7 @@ UNARY_OPERATORS = {
     'POSITIVE': operator.pos,
     'NEGATIVE': operator.neg,
     'NOT':      operator.not_,
-    'CONVERT':  (lambda x: `x`),
+    'CONVERT':  repr,
     'INVERT':   operator.invert,
 }
 
@@ -326,10 +323,10 @@ class VirtualMachine:
                     arg = intArg
                 arguments = [arg]
 
-            if 0:
+            if 1:
                 op = "%d: %s" % (opoffset, byteName)
                 if arguments:
-                    op += " %r" % arguments[0]
+                    op += " %r" % (arguments[0],)
                 self.log("%s%40s %r" % ("  "*(len(self._frames)-1), op, self._stack))
 
             finished = False
@@ -529,7 +526,7 @@ class VirtualMachine:
 
     def byte_UNPACK_SEQUENCE(self, count):
         l = self.pop()
-        for i in range(len(l)-1, 0, -1):
+        for i in range(len(l)-1, -1, -1):
             self.push(l[i])
 
     def byte_DUP_TOPX(self, count):
