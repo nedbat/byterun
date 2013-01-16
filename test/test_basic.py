@@ -113,3 +113,88 @@ class TestIt(vmtest.VmTestCase):
             text += "three"
             print text
             """)
+
+    def test_slice(self):
+        self.assert_ok("""\
+            print "hello, world"[3:8]
+            """)
+        self.assert_ok("""\
+            print "hello, world"[:8]
+            """)
+        self.assert_ok("""\
+            print "hello, world"[3:]
+            """)
+        self.assert_ok("""\
+            print "hello, world"[:]
+            """)
+
+    def test_slice_assignment(self):
+        self.assert_ok("""\
+            l = range(10)
+            l[3:8] = ["x"]
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            l[:8] = ["x"]
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            l[3:] = ["x"]
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            l[:] = ["x"]
+            print l
+            """)
+
+    def test_slice_deletion(self):
+        self.assert_ok("""\
+            l = range(10)
+            del l[3:8]
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            del l[:8]
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            del l[3:]
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            del l[:]
+            print l
+            """)
+
+    def test_building_stuff(self):
+        self.assert_ok("""\
+            print (1+1, 2+2, 3+3)
+            """)
+        self.assert_ok("""\
+            print [1+1, 2+2, 3+3]
+            """)
+        self.assert_ok("""\
+            print {1:1+1, 2:2+2, 3:3+3}
+            """)
+
+    def test_subscripting(self):
+        self.assert_ok("""\
+            l = range(10)
+            print "%s %s %s" % (l[0], l[3], l[9])
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            l[5] = 17
+            print l
+            """)
+        self.assert_ok("""\
+            l = range(10)
+            del l[5]
+            print l
+            """)

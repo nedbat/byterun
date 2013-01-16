@@ -18,6 +18,7 @@ class VmTestCase(unittest.TestCase):
         code = compile(code, "<string>", "exec")
 
         if 1:   # Make this "if 1" to see disassembly on failure.
+            print
             dis.dis(code)
 
         old_stdout = sys.stdout

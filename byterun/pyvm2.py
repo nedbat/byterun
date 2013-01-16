@@ -423,10 +423,8 @@ class VirtualMachine:
             end = len(l)
         if op.startswith('STORE_'):
             l[start:end] = self.pop()
-            self.push(l)
         elif op.startswith('DELETE_'):
             del l[start:end]
-            self.push(l)
         else:
             self.push(l[start:end])
 
@@ -443,18 +441,11 @@ class VirtualMachine:
         l = self.pop()
         item = self.pop()
         l[ind] = item
-        # TODO: I don't think these should be pushed back on.
-        self.push(item)
-        self.push(l)
-        self.push(ind)
 
     def byte_DELETE_SUBSCR(self):
         ind = self.pop()
         l = self.pop()
         del l[ind]
-        # TODO: I don't think these should be pushed back on.
-        self.push(l)
-        self.push(ind)
 
     def byte_PRINT_EXPR(self):
         print self.pop()
@@ -570,14 +561,25 @@ class VirtualMachine:
         self.push(item)
 
     def byte_BUILD_TUPLE(self, count):
-        self.push(tuple([self.pop() for i in xrange(count)]))
+        elts = [self.pop() for i in xrange(count)]
+        elts.reverse()
+        self.push(tuple(elts))
 
     def byte_BUILD_LIST(self, count):
-        self.push([self.pop() for i in xrange(count)])
+        elts = [self.pop() for i in xrange(count)]
+        elts.reverse()
+        self.push(elts)
 
-    def byte_BUILD_MAP(self, zero):
-        assert zero == 0
+    def byte_BUILD_MAP(self, size):
+        # size is ignored.
         self.push({})
+
+    def byte_STORE_MAP(self):
+        key = self.pop()
+        value = self.pop()
+        the_map = self.pop()
+        the_map[key] = value
+        self.push(the_map)
 
     def byte_LOAD_ATTR(self, attr):
         obj = self.pop()
