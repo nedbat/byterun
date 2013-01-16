@@ -630,29 +630,48 @@ class VirtualMachine:
         self.frame().f_lineno = lineno
 
     def byte_CALL_FUNCTION(self, arg):
+        return self.call_function(arg, [], {})
+
+    def byte_CALL_FUNCTION_VAR(self, arg):
+        args = self.pop()
+        return self.call_function(arg, args, {})
+
+    def byte_CALL_FUNCTION_KW(self, arg):
+        kwargs = self.pop()
+        return self.call_function(arg, [], kwargs)
+
+    def byte_CALL_FUNCTION_VAR_KW(self, arg):
+        kwargs = self.pop()
+        args = self.pop()
+        return self.call_function(arg, args, kwargs)
+
+    def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
-        kw = {}
+        namedargs = {}
         for i in xrange(lenKw):
             value = self.pop()
             key = self.pop()
-            kw[key] = value
+            namedargs[key] = value
+        namedargs.update(kwargs)
         # TODO: Make a helper method for this
-        args = []
+        posargs = []
         for i in xrange(lenPos):
-            args.insert(0, self.pop())
+            posargs.insert(0, self.pop())
+        posargs.extend(args)
+
         func = self.pop()
         frame = self.frame()
         if hasattr(func, 'im_func'): # method
             if func.im_self:
-                args.insert(0, func.im_self)
-            if not func.im_class.isparent(args[0]):
+                posargs.insert(0, func.im_self)
+            if not func.im_class.isparent(posargs[0]):
                 raise TypeError(
                     'unbound method %s() must be called with %s instance as first argument (got %s instead)' % 
-                    (func.im_func.func_name, func.im_class._name, type(args[0]))
+                    (func.im_func.func_name, func.im_class._name, type(posargs[0]))
                 )
             func = func.im_func
         if hasattr(func, 'func_code'):
-            callargs = inspect.getcallargs(func, *args, **kw)
+            callargs = inspect.getcallargs(func, *posargs, **namedargs)
             self.loadCode(func.func_code, [], callargs)
             if func.func_code.co_flags & CO_GENERATOR:
                 raise VirtualMachineError("cannot do generators ATM")
@@ -660,7 +679,7 @@ class VirtualMachine:
                 self._frames.pop()._generator = gen
                 self.push(gen)
         else:
-            self.push(func(*args, **kw))
+            self.push(func(*posargs, **namedargs))
 
     def byte_MAKE_FUNCTION(self, argc):
         code = self.pop()

@@ -215,9 +215,16 @@ class TestIt(vmtest.VmTestCase):
             fn(3, c="Bye")
             fn(4, d=["What?"])
             fn(5, "b", "c")
-            # For later...
-            #fn(*[6, 77, 88])
-            #fn(**{'c': 23, 'a': 7})
+            """)
+
+    def test_args_kwargs_functions(self):
+        self.assert_ok("""\
+            def fn(a, b=17, c="Hello", d=[]):
+                d.append(99)
+                print a, b, c, d
+            fn(6, *[77, 88])
+            fn(**{'c': 23, 'a': 7})
+            fn(6, *[77], **{'c': 23, 'd': [123]})
             """)
 
     def xxxtest_classes(self):
