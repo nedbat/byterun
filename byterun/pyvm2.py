@@ -1,34 +1,6 @@
+"""A pure-Python Python bytecode interpreter."""
+# Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
-"""
-Security issues in running an open python interpreter:
-
-1. importing modules (sys, os, perhaps anything implemented in C?)
-2. large objects (range(999999))
-3. heavy math (999999**99999)
-4. infinite loops (while 1: pass)
-
-I think the policy should be "disallow by default" and if users complain,
-the feature can be added.
-
-Solutions to above problems:
-1.  only allow access to certian parts of modules / disallow the module entirely
-    see SysModule() below, maybe turn it into a generic module wrapper?
-2.  this was solved by checking for range in allowCFunction
-    are there other C methods that may return large objects?
-3.  the only way I can see to fix this is a check in BINARY_POW/INPLACE_POW
-    perhaps also check BINARY_MUL/INPLACE_MUL?  I think the ADD/SUB/MOD/XOR
-    functions are OK.
-4.  this was solved with the absolute byte code counter.
-
-Maybe I should follow the RExec interface?  I think the security issues were
-in how it was implemented, not in the API.
-On second thought, their API is very strange.
-
-Ideas for a Python VM written in Python:
-1.  running the byte codes as a specific user (useful for running multiple
-    python interpreters for multiple users in one process)
-2.  faked threading.  run a set number of byte codes, then switch to a second 'Thread' and run the byte codes, repeat.
-"""
 
 import operator, dis, new, inspect, copy, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
