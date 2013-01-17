@@ -227,6 +227,25 @@ class TestIt(vmtest.VmTestCase):
             fn(6, *[77], **{'c': 23, 'd': [123]})
             """)
 
+    def test_attributes(self):
+        self.assert_ok("""\
+            l = lambda: 1   # Just to have an object...
+            l.foo = 17
+            print hasattr(l, "foo"), l.foo, l.__class__
+            del l.foo
+            print hasattr(l, "foo")
+            """)
+
+    def test_import(self):
+        self.assert_ok("""\
+            import math
+            print math.pi, math.e
+            from math import sqrt
+            print sqrt(2)
+            from math import *
+            print sin(2)
+            """)
+
     def xxxtest_classes(self):
         self.assert_ok("""\
             class Thing(object):

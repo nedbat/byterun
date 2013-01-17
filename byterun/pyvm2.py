@@ -458,7 +458,7 @@ class VirtualMachine:
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.
         mod = self.pop()
-        for attr in mod:
+        for attr in dir(mod):
             if attr[0] != '_':
                 self.frame().f_locals[attr] = getattr(mod, attr)
 
@@ -561,7 +561,10 @@ class VirtualMachine:
         self.push(COMPARE_OPERATORS[opnum](two, one))
 
     def byte_IMPORT_NAME(self, name):
-        self.push(__import__(name))
+        fromlist = self.pop()
+        level = self.pop()
+        frame = self.frame()
+        self.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
 
     def byte_IMPORT_FROM(self, name):
         mod = self.pop()

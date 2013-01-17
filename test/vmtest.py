@@ -22,7 +22,7 @@ class VmTestCase(unittest.TestCase):
             dis.dis(code)
 
         old_stdout = sys.stdout
-        
+
         vm_stdout = StringIO()
         sys.stdout = vm_stdout
         vm = VirtualMachine()
@@ -40,7 +40,7 @@ class VmTestCase(unittest.TestCase):
 
         py_stdout = StringIO()
         sys.stdout = py_stdout
-        
+
         py_value = py_exc = None
         try:
             py_value = eval(code)
@@ -54,5 +54,6 @@ class VmTestCase(unittest.TestCase):
         self.assertEqual(vm_value, py_value)
 
     def assert_same_exception(self, e1, e2):
+        """Exceptions don't implement __eq__, check it ourselves."""
         self.assertEqual(str(e1), str(e2))
         self.assertIs(type(e1), type(e2))
