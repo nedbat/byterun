@@ -246,7 +246,7 @@ class TestIt(vmtest.VmTestCase):
             print sin(2)
             """)
 
-    def xxxtest_classes(self):
+    def test_classes(self):
         self.assert_ok("""\
             class Thing(object):
                 def __init__(self, x):

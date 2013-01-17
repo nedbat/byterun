@@ -105,54 +105,6 @@ class Generator:
         self.gi_running = 1
         return self._vm.run()
 
-class Class:
-    dontAccess = ['_name', '_bases', '_locals']
-    def __init__(self, name, bases, methods):
-        self._name = name
-        self._bases = bases
-        self._locals = methods
-    def __call__(self, *args, **kw):
-        return Object(self, self._name, self._bases, self._locals, args, kw)
-    def __str__(self):
-        return '<class %s at 0x%08X>' % (self._name, id(self))
-    __repr__ = __str__
-    def isparent(self, obj):
-        if not isinstance(obj, Object):
-            return False
-        if obj._class is self:
-            return True
-        if self in obj._bases:
-            return True
-        return False
-
-class Object:
-    def __init__(self, _class, name, bases, methods, args, kw):
-        self._class = _class
-        self._name = name
-        self._bases = bases
-        self._locals = methods
-        if methods.has_key('__init__'):
-            methods['__init__'](self, *args, **kw)
-    def __str__(self):
-        return '<%s instance at 0x%08X>' % (self._name, id(self))
-    __repr__ = __str__
-        
-class Method:
-    readOnly = ['im_self', 'im_class', 'im_func']
-    def __init__(self, object, _class, func):
-        self.im_self = object
-        self.im_class = _class
-        self.im_func = func
-    def __str__(self):
-        if self.im_self:
-            return '<bound method %s.%s of %s>' % (self.im_self._name,
-                                                   self.im_func.func_name,
-                                                   str(self.im_self))
-        else:
-            return '<unbound method %s.%s>' % (self.im_class._name,
-                                               self.im_func.func_name)
-    __repr__ = __str__
-
 UNARY_OPERATORS = {
     'POSITIVE': operator.pos,
     'NEGATIVE': operator.neg,
@@ -445,10 +397,7 @@ class VirtualMachine:
         if 0: # TODO: This makes one-line code fail. Part of aborted generator implementation?
             func = self.pop()
             self.push(func)
-            if isinstance(func, Object):
-                self._frames.pop()
-            else:
-                return True
+            return True
 
     def byte_YIELD_VALUE(self):
         value = self.pop() # since we're running in a different VM
@@ -481,7 +430,7 @@ class VirtualMachine:
         methods = self.pop()
         bases = self.pop()
         name = self.pop()
-        self.push(Class(name, bases, methods))
+        self.push(types.ClassType(name, bases, methods))
 
     def byte_STORE_NAME(self, name):
         self.frame().f_locals[name] = self.pop()
@@ -545,14 +494,7 @@ class VirtualMachine:
 
     def byte_LOAD_ATTR(self, attr):
         obj = self.pop()
-        if isinstance(obj, (Object, Class)):
-            val = obj._locals[attr]
-        else:
-            val = getattr(obj, attr)
-        if isinstance(obj, Object) and isinstance(val, Function):
-            val = Method(obj, obj._class, val)
-        elif isinstance(obj, Class) and isinstance(val, Function):
-            val = Method(None, obj, val)
+        val = getattr(obj, attr)
         self.push(val)
 
     def byte_COMPARE_OP(self, opnum):
@@ -720,8 +662,6 @@ class VirtualMachine:
     def byte_FOR_ITER(self, jump):
         iterobj = self.pop()
         self.push(iterobj)
-        #if not isinstance(iterobj, (Class, Object): # these are unsafe
-                                                     # i.e. defined by user
         try:
             v = iterobj.next()
             self.push(v)
