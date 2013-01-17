@@ -17,9 +17,9 @@ class VmTestCase(unittest.TestCase):
         code = textwrap.dedent(code)
         code = compile(code, "<string>", "exec")
 
-        if 1:   # Make this "if 1" to see disassembly on failure.
-            print
-            dis.dis(code)
+        # Print the disassembly so we'll see it if the test fails.
+        print
+        dis.dis(code)
 
         old_stdout = sys.stdout
 

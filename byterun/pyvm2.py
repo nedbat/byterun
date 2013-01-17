@@ -578,13 +578,15 @@ class VirtualMachine:
 
         func = self.pop()
         frame = self.frame()
-        if hasattr(func, 'im_func'): # method
+        if hasattr(func, 'im_func'):
+            # Methods get self as an implicit first parameter.
             if func.im_self:
                 posargs.insert(0, func.im_self)
-            if not func.im_class.isparent(posargs[0]):
+            # The first parameter must be the correct type.
+            if not isinstance(posargs[0], func.im_class):
                 raise TypeError(
-                    'unbound method %s() must be called with %s instance as first argument (got %s instead)' % 
-                    (func.im_func.func_name, func.im_class._name, type(posargs[0]))
+                    'unbound method %s() must be called with %s instance as first argument (got %s instance instead)' %
+                    (func.im_func.func_name, func.im_class.__name__, type(posargs[0]).__name__)
                 )
             func = func.im_func
         if hasattr(func, 'func_code'):
