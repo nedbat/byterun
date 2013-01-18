@@ -269,3 +269,57 @@ class TestIt(vmtest.VmTestCase):
             thing1 = Thing(2)
             print Thing.meth(14)
             """)
+
+class TestClosures(vmtest.VmTestCase):
+    def test_closures(self):
+        self.assert_ok("""\
+            def make_adder(x):
+                def add(y):
+                    return x+y
+                return add
+            a = make_adder(10)
+            print a(7)
+            """)
+
+    def test_closures_store_deref(self):
+        self.assert_ok("""\
+            def make_adder(x):
+                z = x+1
+                def add(y):
+                    return x+y+z
+                return add
+            a = make_adder(10)
+            print a(7)
+            """)
+
+    def test_closures_in_loop(self):
+        self.assert_ok("""\
+            def make_fns(x):
+                fns = []
+                for i in range(x):
+                    fns.append(lambda: i)
+                return fns
+            fns = make_fns(3)
+            for f in fns:
+                print f()
+            assert fns[0]() == fns[1]() == fns[2]() == 2
+            """)
+
+    def test_deep_closures(self):
+        self.assert_ok("""\
+            def f1(a):
+                b = 2*a
+                def f2(c):
+                    d = 2*c
+                    def f3(e):
+                        f = 2*e
+                        def f4(g):
+                            h = 2*g
+                            return a+b+c+d+e+f+g+h
+                        return f4
+                    return f3
+                return f2
+            answer = f1(3)(4)(5)(6)
+            print answer
+            assert answer == 54
+            """)

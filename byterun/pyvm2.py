@@ -5,16 +5,39 @@
 import operator, dis, new, inspect, copy, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
-class Cell:
-    dontAccess = ['deref', 'set', 'get']
-    def __init__(self):
-        self.deref = None
+class Cell(object):
+    """A fake cell for closures.
 
-    def set(self, deref):
-        self.deref = deref
+    Closures keep names in scope by storing them not in a frame, but in a
+    separate object called a cell.  Frames share references to cells, and
+    the LOAD_DEREF and STORE_DEREF opcodes get and set the value from cells.
+
+    This class acts as a cell, though it has to jump through two hoops to make
+    the simulation complete:
+
+        1. In order to create actual FunctionType functions, we have to have
+           actual cell objects, which are difficult to make. See the twisty
+           double-lambda in __init__.
+
+        2. Actual cell objects can't be modified, so to implement STORE_DEREF,
+           we store a one-element list in our cell, and then use [0] as the
+           actual value.
+
+    """
+    def __init__(self, value):
+        # Thanks to Alex Gaynor for help with this bit of twistiness.
+        # Construct an actual cell object by creating a closure right here,
+        # and grabbing the cell object out of the function we create.
+        # Note the [value] that makes a one-element list so we have
+        # writability later.
+        self.cell = (lambda x: lambda: x)([value]).func_closure[0]
 
     def get(self):
-        return self.deref
+        return self.cell.cell_contents[0]
+
+    def set(self, value):
+        self.cell.cell_contents[0] = value
+
 
 class Frame:
     readOnly = ['f_back', 'f_code', 'f_locals', 'f_globals', 'f_builtins',
@@ -22,7 +45,7 @@ class Frame:
     dontAccess = ['_vm', '_cells', '_blockStack', '_generator']
 
     def __init__(self, f_code, f_globals, f_locals, vm):
-        self._vm = vm
+        self._vm = vm   # TODO: This isn't used?
         self.f_code = f_code
         self.f_globals = f_globals
         self.f_locals = f_locals
@@ -33,7 +56,6 @@ class Frame:
             self.f_builtins = f_locals['__builtins__']
             if hasattr(self.f_builtins, '__dict__'):
                 self.f_builtins = self.f_builtins.__dict__
-        self.f_restricted = 1
         self.f_lineno = f_code.co_firstlineno
         self.f_lasti = 0
         if f_code.co_cellvars:
@@ -41,9 +63,9 @@ class Frame:
             if not self.f_back._cells:
                 self.f_back._cells = {}
             for var in f_code.co_cellvars:
-                self.f_back._cells[var] = self._cells[var] = Cell()
-                if self.f_locals.has_key(var):
-                    self._cells[var].set(self.f_locals[var])
+                # Make a cell for the variable in our locals, or None.
+                cell = Cell(self.f_locals.get(var))
+                self.f_back._cells[var] = self._cells[var] = cell
         else:
             self._cells = None
         if f_code.co_freevars:
@@ -53,7 +75,7 @@ class Frame:
                 self._cells[var] = self.f_back._cells[var]
         self._blockStack = []
 
-    def __str__(self):
+    def __repr__(self):
         return '<frame object at 0x%08X>' % id(self)
 
 class Generator:
@@ -322,6 +344,30 @@ class VirtualMachine:
     def byte_POP_TOP(self):
         self.pop()
 
+    def byte_ROT_TWO(self):
+        a = self.pop()
+        b = self.pop()
+        self.push(a)
+        self.push(b)
+
+    def byte_ROT_THREE(self):
+        a = self.pop()
+        b = self.pop()
+        c = self.pop()
+        self.push(a)
+        self.push(c)
+        self.push(b)
+
+    def byte_ROT_FOUR(self):
+        a = self.pop()
+        b = self.pop()
+        c = self.pop()
+        d = self.pop()
+        self.push(a)
+        self.push(d)
+        self.push(c)
+        self.push(b)
+
     def byte_STORE_SUBSCR(self):
         ind = self.pop()
         l = self.pop()
@@ -491,20 +537,32 @@ class VirtualMachine:
         if val:
             self.frame().f_lasti = jump
 
-    def byte_POP_JUMP_IF_TRUE(self, jump):
-        val = self.pop()
-        if val:
-            self.frame().f_lasti = jump
-
     def byte_JUMP_IF_FALSE(self, jump):
         val = self.pop()
         self.push(val)
         if not val:
             self.frame().f_lasti = jump
 
+    def byte_POP_JUMP_IF_TRUE(self, jump):
+        val = self.pop()
+        if val:
+            self.frame().f_lasti = jump
+
     def byte_POP_JUMP_IF_FALSE(self, jump):
         val = self.pop()
         if not val:
+            self.frame().f_lasti = jump
+
+    def byte_JUMP_IF_TRUE_OR_POP(self, jump):
+        val = self.pop()
+        if val:
+            self.push(val)
+            self.frame().f_lasti = jump
+
+    def byte_JUMP_IF_FALSE_OR_POP(self, jump):
+        val = self.pop()
+        if not val:
+            self.push(val)
             self.frame().f_lasti = jump
 
     def byte_JUMP_FORWARD(self, jump):
@@ -538,10 +596,13 @@ class VirtualMachine:
         self.frame().f_locals[name] = self.pop()
 
     def byte_LOAD_CLOSURE(self, name):
-        self.push(self.frame()._cells[name])
+        self.push(self.frame()._cells[name].cell)
 
     def byte_LOAD_DEREF(self, name):
         self.push(self.frame()._cells[name].get())
+
+    def byte_STORE_DEREF(self, name):
+        self.frame()._cells[name].set(self.pop())
 
     def byte_SET_LINENO(self, lineno):
         self.frame().f_lineno = lineno
@@ -614,11 +675,10 @@ class VirtualMachine:
         defaults = []
         for i in xrange(argc):
             defaults.insert(0, self.pop())
-        closure = []
-        if code.co_freevars:
-            for i in code.co_freevars:
-                closure.insert(0, self.pop())
-        self.push(Function(code, None, defaults, closure, self))
+        closure = self.pop()
+        globs = self.frame().f_globals
+        fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
+        self.push(fn)
 
     def byte_RAISE_VARARGS(self, argc):
         if argc == 0:
