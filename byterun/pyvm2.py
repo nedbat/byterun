@@ -253,7 +253,7 @@ class VirtualMachine:
                 else:
                     # dispatch
                     func = getattr(self, 'byte_%s' % byteName, None)
-                    if not func:
+                    if not func:            # pragma: no cover
                         raise VirtualMachineError("unknown bytecode type: %s" % byteName)
                     finished = func(*arguments)
                 #print len(self._frames), self._stack
@@ -288,9 +288,9 @@ class VirtualMachine:
         self.pop()
 
         # Check some invariants
-        if self._frames:
+        if self._frames:            # pragma: no cover
             raise VirtualMachineError("Frames left over!")
-        if self._stack:
+        if self._stack:             # pragma: no cover
             raise VirtualMachineError("Data left on stack! %r" % self._stack)
 
         if self._lastException[0]:
