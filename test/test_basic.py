@@ -279,6 +279,7 @@ class TestClosures(vmtest.VmTestCase):
                 return add
             a = make_adder(10)
             print a(7)
+            assert a(7) == 17
             """)
 
     def test_closures_store_deref(self):
@@ -290,6 +291,7 @@ class TestClosures(vmtest.VmTestCase):
                 return add
             a = make_adder(10)
             print a(7)
+            assert a(7) == 28
             """)
 
     def test_closures_in_loop(self):
@@ -303,6 +305,17 @@ class TestClosures(vmtest.VmTestCase):
             for f in fns:
                 print f()
             assert fns[0]() == fns[1]() == fns[2]() == 2
+            """)
+
+    def test_closures_with_defaults(self):
+        self.assert_ok("""\
+            def make_adder(x, y=13, z=43):
+                def add(q, r=11):
+                    return x+y+z+q+r
+                return add
+            a = make_adder(10, 17)
+            print a(7)
+            assert a(7) == 88
             """)
 
     def test_deep_closures(self):

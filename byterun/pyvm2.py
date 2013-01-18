@@ -672,10 +672,10 @@ class VirtualMachine:
 
     def byte_MAKE_CLOSURE(self, argc):
         code = self.pop()
+        closure = self.pop()
         defaults = []
         for i in xrange(argc):
             defaults.insert(0, self.pop())
-        closure = self.pop()
         globs = self.frame().f_globals
         fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
         self.push(fn)
