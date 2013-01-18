@@ -39,7 +39,7 @@ class Cell(object):
         self.cell.cell_contents[0] = value
 
 
-class Frame:
+class Frame(object):
     readOnly = ['f_back', 'f_code', 'f_locals', 'f_globals', 'f_builtins',
                 'f_restricted', 'f_lineno', 'f_lasti']
     dontAccess = ['_vm', '_cells', '_blockStack', '_generator']
@@ -78,7 +78,7 @@ class Frame:
     def __repr__(self):
         return '<frame object at 0x%08X>' % id(self)
 
-class Generator:
+class Generator(object):
     readOnly = ['gi_frame', 'gi_running']
     dontAccess = ['_vm', '_savedstack']
 
@@ -155,7 +155,7 @@ class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
     pass
 
-class VirtualMachine:
+class VirtualMachine(object):
     def __init__(self):
         self._frames = [] # list of current stack frames
         self._stack = [] # current stack
