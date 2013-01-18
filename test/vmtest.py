@@ -9,6 +9,13 @@ from cStringIO import StringIO
 
 from byterun.pyvm2 import VirtualMachine, VirtualMachineError
 
+
+# Make this False if you need to run the debugger inside a test.
+CAPTURE_STDOUT = True
+# Make this False to see the traceback from a failure inside pyvm2.
+CAPTURE_EXCEPTION = True
+
+
 def dis_code(code):
     """Disassemble `code` and all the code it refers to."""
     for const in code.co_consts:
@@ -18,6 +25,7 @@ def dis_code(code):
     print
     print code
     dis.dis(code)
+
 
 class VmTestCase(unittest.TestCase):
 
@@ -35,7 +43,8 @@ class VmTestCase(unittest.TestCase):
         # Run the code through our VM.
 
         vm_stdout = StringIO()
-        sys.stdout = vm_stdout
+        if CAPTURE_STDOUT:              # pragma: no branch
+            sys.stdout = vm_stdout
         vm = VirtualMachine()
         vm.loadCode(code)
 
@@ -50,7 +59,8 @@ class VmTestCase(unittest.TestCase):
             raise
         except Exception, vm_exc:
             # Otherwise, keep the exception for comparison later.
-            pass
+            if not CAPTURE_EXCEPTION:       # pragma: no cover
+                raise
         finally:
             if vm._log:                     # pragma: no branch
                 real_stdout.write("-- VM log ----------\n")
