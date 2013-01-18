@@ -298,6 +298,94 @@ class VirtualMachine(object):
             raise e1, e2, e3
         return self._returnValue
 
+    ## Stack manipulation
+
+    def byte_LOAD_CONST(self, const):
+        self.push(const)
+
+    def byte_POP_TOP(self):
+        self.pop()
+
+    def byte_DUP_TOP(self):
+        item = self.pop()
+        self.push(item)
+        self.push(item)
+
+    def byte_DUP_TOPX(self, count):
+        items = [self.pop() for i in range(count)]
+        items.reverse()
+        [self.push(i) for i in items]
+
+    def byte_ROT_TWO(self):
+        a = self.pop()
+        b = self.pop()
+        self.push(a)
+        self.push(b)
+
+    def byte_ROT_THREE(self):
+        a = self.pop()
+        b = self.pop()
+        c = self.pop()
+        self.push(a)
+        self.push(c)
+        self.push(b)
+
+    def byte_ROT_FOUR(self):
+        a = self.pop()
+        b = self.pop()
+        c = self.pop()
+        d = self.pop()
+        self.push(a)
+        self.push(d)
+        self.push(c)
+        self.push(b)
+
+    ## Names
+
+    def byte_LOAD_NAME(self, name):
+        frame = self.frame()
+        if frame.f_locals.has_key(name):
+            item = frame.f_locals[name]
+        elif frame.f_globals.has_key(name):
+            item = frame.f_globals[name]
+        elif frame.f_builtins.has_key(name):
+            item = frame.f_builtins[name]
+        else:
+            raise NameError("name '%s' is not defined" % name)
+        self.push(item)
+
+    def byte_STORE_NAME(self, name):
+        self.frame().f_locals[name] = self.pop()
+
+    def byte_DELETE_NAME(self, name):
+        del self.frame().f_locals[name]
+
+    def byte_LOAD_FAST(self, name):
+        self.push(self.frame().f_locals[name])
+
+    def byte_STORE_FAST(self, name):
+        self.frame().f_locals[name] = self.pop()
+
+    def byte_LOAD_GLOBAL(self, name):
+        f = self.frame()
+        if f.f_globals.has_key(name):
+            self.push(f.f_globals[name])
+        elif f.f_builtins.has_key(name):
+            self.push(f.f_builtins[name])
+        else:
+            raise NameError("global name '%s' is not defined" % name)
+
+    def byte_LOAD_DEREF(self, name):
+        self.push(self.frame()._cells[name].get())
+
+    def byte_STORE_DEREF(self, name):
+        self.frame()._cells[name].set(self.pop())
+
+    def byte_LOAD_LOCALS(self):
+        self.push(self.frame().f_locals)
+
+    ## Operators
+
     def unaryOperator(self, op):
         one = self.pop()
         self.push(UNARY_OPERATORS[op](one))
@@ -336,37 +424,25 @@ class VirtualMachine(object):
         else:
             self.push(l[start:end])
 
-    def byte_DUP_TOP(self):
-        item = self.pop()
-        self.push(item)
-        self.push(item)
+    def byte_COMPARE_OP(self, opnum):
+        one = self.pop()
+        two = self.pop()
+        self.push(COMPARE_OPERATORS[opnum](two, one))
 
-    def byte_POP_TOP(self):
-        self.pop()
+    ## Attributes and indexing
 
-    def byte_ROT_TWO(self):
-        a = self.pop()
-        b = self.pop()
-        self.push(a)
-        self.push(b)
+    def byte_LOAD_ATTR(self, attr):
+        obj = self.pop()
+        val = getattr(obj, attr)
+        self.push(val)
 
-    def byte_ROT_THREE(self):
-        a = self.pop()
-        b = self.pop()
-        c = self.pop()
-        self.push(a)
-        self.push(c)
-        self.push(b)
+    def byte_STORE_ATTR(self, name):
+        obj = self.pop()
+        setattr(obj, name, self.pop())
 
-    def byte_ROT_FOUR(self):
-        a = self.pop()
-        b = self.pop()
-        c = self.pop()
-        d = self.pop()
-        self.push(a)
-        self.push(d)
-        self.push(c)
-        self.push(b)
+    def byte_DELETE_ATTR(self, name):
+        obj = self.pop()
+        delattr(obj, name)
 
     def byte_STORE_SUBSCR(self):
         ind = self.pop()
@@ -379,115 +455,7 @@ class VirtualMachine(object):
         l = self.pop()
         del l[ind]
 
-    def byte_PRINT_EXPR(self):
-        print self.pop()
-
-    def byte_PRINT_ITEM(self):
-        print self.pop(),
-
-    def byte_PRINT_ITEM_TO(self):
-        item = self.pop()
-        to = self.pop()
-        print >>to, item,
-        self.push(to)
-
-    def byte_PRINT_NEWLINE(self):
-        print
-
-    def byte_PRINT_ITEM_TO(self):
-        # TODO: looks like PRINT_NEWLINE_TO to me...
-        to = self.pop()
-        print >>to , ''
-        self.push(to)
-
-    def byte_BREAK_LOOP(self):
-        block = self.frame()._blockStack.pop()
-        while block[0] != 'loop':
-            block = self.frame()._blockStack.pop()
-        self.frame().f_lasti = block[1]
-
-    def byte_LOAD_LOCALS(self):
-        self.push(self.frame().f_locals)
-
-    def byte_RETURN_VALUE(self):
-        self._returnValue = self.pop()
-        return True
-        if 0: # TODO: This makes one-line code fail. Part of aborted generator implementation?
-            func = self.pop()
-            self.push(func)
-            return True
-
-    def byte_YIELD_VALUE(self):
-        value = self.pop() # since we're running in a different VM
-        self._returnValue = value
-        return True
-
-    def byte_IMPORT_STAR(self):
-        # TODO: this doesn't use __all__ properly.
-        mod = self.pop()
-        for attr in dir(mod):
-            if attr[0] != '_':
-                self.frame().f_locals[attr] = getattr(mod, attr)
-
-    def byte_EXEC_STMT(self):
-        one = self.pop()
-        two = self.pop()
-        three = self.pop()
-        exec three in two, one
-
-    def byte_POP_BLOCK(self):
-        self.frame()._blockStack.pop()
-
-    def byte_END_FINALLY(self):
-        if self._lastException[0]:
-            raise self._lastException[0], self._lastException[1], self._lastException[2]
-        else:
-            return True
-
-    def byte_BUILD_CLASS(self):
-        methods = self.pop()
-        bases = self.pop()
-        name = self.pop()
-        self.push(types.ClassType(name, bases, methods))
-
-    def byte_STORE_NAME(self, name):
-        self.frame().f_locals[name] = self.pop()
-
-    def byte_DELETE_NAME(self, name):
-        del self.frame().f_locals[name]
-
-    def byte_UNPACK_SEQUENCE(self, count):
-        l = self.pop()
-        for i in range(len(l)-1, -1, -1):
-            self.push(l[i])
-
-    def byte_DUP_TOPX(self, count):
-        items = [self.pop() for i in range(count)]
-        items.reverse()
-        [self.push(i) for i in items]
-
-    def byte_STORE_ATTR(self, name):
-        obj = self.pop()
-        setattr(obj, name, self.pop())
-
-    def byte_DELETE_ATTR(self, name):
-        obj = self.pop()
-        delattr(obj, name)
-
-    def byte_LOAD_CONST(self, const):
-        self.push(const)
-
-    def byte_LOAD_NAME(self, name):
-        frame = self.frame()
-        if frame.f_locals.has_key(name):
-            item = frame.f_locals[name]
-        elif frame.f_globals.has_key(name):
-            item = frame.f_globals[name]
-        elif frame.f_builtins.has_key(name):
-            item = frame.f_builtins[name]
-        else:
-            raise NameError("name '%s' is not defined" % name)
-        self.push(item)
+    ## Building
 
     def byte_BUILD_TUPLE(self, count):
         elts = [self.pop() for i in xrange(count)]
@@ -510,26 +478,41 @@ class VirtualMachine(object):
         the_map[key] = value
         self.push(the_map)
 
-    def byte_LOAD_ATTR(self, attr):
-        obj = self.pop()
-        val = getattr(obj, attr)
-        self.push(val)
+    def byte_UNPACK_SEQUENCE(self, count):
+        l = self.pop()
+        for i in range(len(l)-1, -1, -1):
+            self.push(l[i])
 
-    def byte_COMPARE_OP(self, opnum):
-        one = self.pop()
-        two = self.pop()
-        self.push(COMPARE_OPERATORS[opnum](two, one))
+    ## Printing
 
-    def byte_IMPORT_NAME(self, name):
-        fromlist = self.pop()
-        level = self.pop()
-        frame = self.frame()
-        self.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
+    def byte_PRINT_EXPR(self):
+        print self.pop()
 
-    def byte_IMPORT_FROM(self, name):
-        mod = self.pop()
-        self.push(mod)
-        self.push(getattr(mod, name))
+    def byte_PRINT_ITEM(self):
+        print self.pop(),
+
+    def byte_PRINT_ITEM_TO(self):
+        item = self.pop()
+        to = self.pop()
+        print >>to, item,
+        self.push(to)
+
+    def byte_PRINT_NEWLINE(self):
+        print
+
+    def byte_PRINT_ITEM_TO(self):
+        # TODO: looks like PRINT_NEWLINE_TO to me...
+        to = self.pop()
+        print >>to , ''
+        self.push(to)
+
+    ## Jumps
+
+    def byte_JUMP_FORWARD(self, jump):
+        self.frame().f_lasti = jump
+
+    def byte_JUMP_ABSOLUTE(self, jump):
+        self.frame().f_lasti = jump
 
     def byte_JUMP_IF_TRUE(self, jump):
         val = self.pop()
@@ -565,23 +548,29 @@ class VirtualMachine(object):
             self.push(val)
             self.frame().f_lasti = jump
 
-    def byte_JUMP_FORWARD(self, jump):
-        self.frame().f_lasti = jump
-
-    def byte_JUMP_ABSOLUTE(self, jump):
-        self.frame().f_lasti = jump
-
-    def byte_LOAD_GLOBAL(self, name):
-        f = self.frame()
-        if f.f_globals.has_key(name):
-            self.push(f.f_globals[name])
-        elif f.f_builtins.has_key(name):
-            self.push(f.f_builtins[name])
-        else:
-            raise NameError("global name '%s' is not defined" % name)
+    ## Blocks
 
     def byte_SETUP_LOOP(self, dest):
         self.frame()._blockStack.append(('loop', dest))
+
+    def byte_GET_ITER(self):
+        self.push(iter(self.pop()))
+
+    def byte_FOR_ITER(self, jump):
+        iterobj = self.pop()
+        self.push(iterobj)
+        try:
+            v = iterobj.next()
+            self.push(v)
+        except StopIteration:
+            self.pop()
+            self.frame().f_lasti = jump
+
+    def byte_BREAK_LOOP(self):
+        block = self.frame()._blockStack.pop()
+        while block[0] != 'loop':
+            block = self.frame()._blockStack.pop()
+        self.frame().f_lasti = block[1]
 
     def byte_SETUP_EXCEPT(self, dest):
         self.frame()._blockStack.append(('except', dest))
@@ -589,23 +578,48 @@ class VirtualMachine(object):
     def byte_SETUP_FINALLY(self, dest):
         self.frame()._blockStack.append(('finally', dest))
 
-    def byte_LOAD_FAST(self, name):
-        self.push(self.frame().f_locals[name])
+    def byte_END_FINALLY(self):
+        if self._lastException[0]:
+            raise self._lastException[0], self._lastException[1], self._lastException[2]
+        else:
+            return True
 
-    def byte_STORE_FAST(self, name):
-        self.frame().f_locals[name] = self.pop()
+    def byte_POP_BLOCK(self):
+        self.frame()._blockStack.pop()
+
+    def byte_RAISE_VARARGS(self, argc):
+        if argc == 0:
+            raise VirtualMachineError("Not implemented: re-raise")
+        elif argc == 1:
+            raise self.pop()
+        elif argc == 2:
+            raise self.pop(), self.pop()
+        elif argc == 3:
+            raise self.pop(), self.pop(), self.pop()
+
+    ## Functions
+
+    def byte_MAKE_FUNCTION(self, argc):
+        code = self.pop()
+        defaults = []
+        for i in xrange(argc):
+            defaults.insert(0, self.pop())
+        globs = self.frame().f_globals
+        fn = types.FunctionType(code, globs, argdefs=tuple(defaults))
+        self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
         self.push(self.frame()._cells[name].cell)
 
-    def byte_LOAD_DEREF(self, name):
-        self.push(self.frame()._cells[name].get())
-
-    def byte_STORE_DEREF(self, name):
-        self.frame()._cells[name].set(self.pop())
-
-    def byte_SET_LINENO(self, lineno):
-        self.frame().f_lineno = lineno
+    def byte_MAKE_CLOSURE(self, argc):
+        code = self.pop()
+        closure = self.pop()
+        defaults = []
+        for i in xrange(argc):
+            defaults.insert(0, self.pop())
+        globs = self.frame().f_globals
+        fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
+        self.push(fn)
 
     def byte_CALL_FUNCTION(self, arg):
         return self.call_function(arg, [], {})
@@ -661,44 +675,52 @@ class VirtualMachine(object):
         else:
             self.push(func(*posargs, **namedargs))
 
-    def byte_MAKE_FUNCTION(self, argc):
-        code = self.pop()
-        defaults = []
-        for i in xrange(argc):
-            defaults.insert(0, self.pop())
-        globs = self.frame().f_globals
-        fn = types.FunctionType(code, globs, argdefs=tuple(defaults))
-        self.push(fn)
+    def byte_RETURN_VALUE(self):
+        self._returnValue = self.pop()
+        return True
+        if 0: # TODO: This makes one-line code fail. Part of aborted generator implementation?
+            func = self.pop()
+            self.push(func)
+            return True
 
-    def byte_MAKE_CLOSURE(self, argc):
-        code = self.pop()
-        closure = self.pop()
-        defaults = []
-        for i in xrange(argc):
-            defaults.insert(0, self.pop())
-        globs = self.frame().f_globals
-        fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
-        self.push(fn)
+    def byte_YIELD_VALUE(self):
+        value = self.pop() # since we're running in a different VM
+        self._returnValue = value
+        return True
 
-    def byte_RAISE_VARARGS(self, argc):
-        if argc == 0:
-            raise VirtualMachineError("Not implemented: re-raise")
-        elif argc == 1:
-            raise self.pop()
-        elif argc == 2:
-            raise self.pop(), self.pop()
-        elif argc == 3:
-            raise self.pop(), self.pop(), self.pop()
+    ## Importing
 
-    def byte_GET_ITER(self):
-        self.push(iter(self.pop()))
+    def byte_IMPORT_NAME(self, name):
+        fromlist = self.pop()
+        level = self.pop()
+        frame = self.frame()
+        self.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
 
-    def byte_FOR_ITER(self, jump):
-        iterobj = self.pop()
-        self.push(iterobj)
-        try:
-            v = iterobj.next()
-            self.push(v)
-        except StopIteration:
-            self.pop()
-            self.frame().f_lasti = jump
+    def byte_IMPORT_STAR(self):
+        # TODO: this doesn't use __all__ properly.
+        mod = self.pop()
+        for attr in dir(mod):
+            if attr[0] != '_':
+                self.frame().f_locals[attr] = getattr(mod, attr)
+
+    def byte_IMPORT_FROM(self, name):
+        mod = self.pop()
+        self.push(mod)
+        self.push(getattr(mod, name))
+
+    ## And the rest...
+
+    def byte_EXEC_STMT(self):
+        one = self.pop()
+        two = self.pop()
+        three = self.pop()
+        exec three in two, one
+
+    def byte_BUILD_CLASS(self):
+        methods = self.pop()
+        bases = self.pop()
+        name = self.pop()
+        self.push(types.ClassType(name, bases, methods))
+
+    def byte_SET_LINENO(self, lineno):
+        self.frame().f_lineno = lineno
