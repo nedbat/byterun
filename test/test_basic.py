@@ -270,6 +270,16 @@ class TestIt(vmtest.VmTestCase):
             print Thing.meth(14)
             """)
 
+    def test_callback(self):
+        self.assert_ok("""\
+            def lcase(s):
+                return s.lower()
+            l = ["xyz", "ABC"]
+            l.sort(key=lcase)
+            print l
+            assert l == ["ABC", "xyz"]
+            """)
+
 class TestClosures(vmtest.VmTestCase):
     def test_closures(self):
         self.assert_ok("""\
@@ -335,4 +345,14 @@ class TestClosures(vmtest.VmTestCase):
             answer = f1(3)(4)(5)(6)
             print answer
             assert answer == 54
+            """)
+
+class TestGenerators(vmtest.VmTestCase):
+    def test_first(self):
+        self.assert_ok("""\
+            def two():
+                yield 1
+                yield 2
+            for i in two():
+                print i
             """)

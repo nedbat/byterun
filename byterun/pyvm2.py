@@ -2,7 +2,7 @@
 # Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
-import operator, dis, new, inspect, copy, sys, types
+import operator, dis, new, inspect, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
 class Cell(object):
@@ -84,20 +84,21 @@ class Generator(object):
 
     def __init__(self, g_frame, vm):
         self.gi_frame = g_frame
-        self.gi_running = 0
-        self._vm = copy.copy(vm)
-        self._vm._stack = []
-        self._vm._returnValue = None
-        self._vm._lastException = (None, None, None)
-        self._vm._frames = copy.copy(vm._frames)
-        self._vm._frames.append(g_frame)
+        self._vm = vm
 
     def __iter__(self):
+        self._first = True
         return self
 
     def next(self):
-        self.gi_running = 1
-        return self._vm.run()
+        # To get the next value from an iterator, push its frame onto the
+        # stack, and let it run.  YIELD will take care of undoing this.
+        self._vm.resumeFrame(self.gi_frame)
+        # Ordinary iteration is like sending None into a generator.
+        if not self._first:
+            self._vm.push(None)
+        self._first = False
+
 
 UNARY_OPERATORS = {
     'POSITIVE': operator.pos,
@@ -198,6 +199,10 @@ class VirtualMachine(object):
                 else:
                     raise TypeError("did not get value for argument '%s'" % name)
         frame = Frame(code, f_globals, f_locals, self)
+        self._frames.append(frame)
+
+    def resumeFrame(self, frame):
+        frame.f_back = self.frame()
         self._frames.append(frame)
 
     def run(self):
@@ -561,7 +566,8 @@ class VirtualMachine(object):
         self.push(iterobj)
         try:
             v = iterobj.next()
-            self.push(v)
+            if not isinstance(iterobj, Generator):
+                self.push(v)
         except StopIteration:
             self.pop()
             self.frame().f_lasti = jump
@@ -668,9 +674,10 @@ class VirtualMachine(object):
             callargs = inspect.getcallargs(func, *posargs, **namedargs)
             self.loadCode(func.func_code, [], callargs)
             if func.func_code.co_flags & CO_GENERATOR:
-                raise VirtualMachineError("cannot do generators ATM")
-                gen = Generator(self.frame(), self)
-                self._frames.pop()._generator = gen
+                frame = self.frame()
+                gen = Generator(frame, self)
+                frame._generator = gen
+                self._frames.pop()
                 self.push(gen)
         else:
             self.push(func(*posargs, **namedargs))
@@ -678,14 +685,9 @@ class VirtualMachine(object):
     def byte_RETURN_VALUE(self):
         self._returnValue = self.pop()
         return True
-        if 0: # TODO: This makes one-line code fail. Part of aborted generator implementation?
-            func = self.pop()
-            self.push(func)
-            return True
 
     def byte_YIELD_VALUE(self):
-        value = self.pop() # since we're running in a different VM
-        self._returnValue = value
+        self._returnValue = self.pop()
         return True
 
     ## Importing
