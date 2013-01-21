@@ -277,6 +277,10 @@ class VirtualMachine(object):
         else:
             return []
 
+    def jump(self, jump):
+        """Move the bytecode pointer to `jump`, so it will execute next."""
+        self.frame().f_lasti = jump
+
     def log(self, msg):
         self._log.append(msg)
 
@@ -402,7 +406,7 @@ class VirtualMachine(object):
                             self.push(self._lastException[2])
                             self.push(self._lastException[1])
                             self.push(self._lastException[0])
-                        self.frame().f_lasti = block[1]
+                        self.jump(block[1])
                         break
                     while not self.frame()._blockStack:
                         self._frames.pop()
@@ -620,43 +624,43 @@ class VirtualMachine(object):
     ## Jumps
 
     def byte_JUMP_FORWARD(self, jump):
-        self.frame().f_lasti = jump
+        self.jump(jump)
 
     def byte_JUMP_ABSOLUTE(self, jump):
-        self.frame().f_lasti = jump
+        self.jump(jump)
 
     if 0:   # Not in py2.7
         def byte_JUMP_IF_TRUE(self, jump):
             val = self.peek()
             if val:
-                self.frame().f_lasti = jump
+                self.jump(jump)
 
         def byte_JUMP_IF_FALSE(self, jump):
             val = self.peek()
             if not val:
-                self.frame().f_lasti = jump
+                self.jump(jump)
 
     def byte_POP_JUMP_IF_TRUE(self, jump):
         val = self.pop()
         if val:
-            self.frame().f_lasti = jump
+            self.jump(jump)
 
     def byte_POP_JUMP_IF_FALSE(self, jump):
         val = self.pop()
         if not val:
-            self.frame().f_lasti = jump
+            self.jump(jump)
 
     def byte_JUMP_IF_TRUE_OR_POP(self, jump):
         val = self.peek()
         if val:
-            self.frame().f_lasti = jump
+            self.jump(jump)
         else:
             self.pop()
 
     def byte_JUMP_IF_FALSE_OR_POP(self, jump):
         val = self.peek()
         if not val:
-            self.frame().f_lasti = jump
+            self.jump(jump)
         else:
             self.pop()
 
@@ -675,13 +679,13 @@ class VirtualMachine(object):
             self.push(v)
         except StopIteration:
             self.pop()
-            self.frame().f_lasti = jump
+            self.jump(jump)
 
     def byte_BREAK_LOOP(self):
         block = self.frame()._blockStack.pop()
         while block[0] != 'loop':
             block = self.frame()._blockStack.pop()
-        self.frame().f_lasti = block[1]
+        self.jump(block[1])
 
     def byte_SETUP_EXCEPT(self, dest):
         self.frame()._blockStack.append(('except', dest))
