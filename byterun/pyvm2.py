@@ -374,7 +374,7 @@ class VirtualMachine(object):
                     self.binaryOperator(byteName[7:])
                 elif byteName.startswith('INPLACE_'):
                     self.inplaceOperator(byteName[8:])
-                elif byteName.find('SLICE') != -1:
+                elif 'SLICE' in byteName:
                     self.sliceOperator(byteName)
                 else:
                     # dispatch
@@ -626,15 +626,16 @@ class VirtualMachine(object):
     def byte_JUMP_ABSOLUTE(self, jump):
         self.frame().f_lasti = jump
 
-    def byte_JUMP_IF_TRUE(self, jump):
-        val = self.peek()
-        if val:
-            self.frame().f_lasti = jump
+    if 0:   # Not in py2.7
+        def byte_JUMP_IF_TRUE(self, jump):
+            val = self.peek()
+            if val:
+                self.frame().f_lasti = jump
 
-    def byte_JUMP_IF_FALSE(self, jump):
-        val = self.peek()
-        if not val:
-            self.frame().f_lasti = jump
+        def byte_JUMP_IF_FALSE(self, jump):
+            val = self.peek()
+            if not val:
+                self.frame().f_lasti = jump
 
     def byte_POP_JUMP_IF_TRUE(self, jump):
         val = self.pop()
@@ -825,5 +826,6 @@ class VirtualMachine(object):
         name = self.pop()
         self.push(Class(name, bases, methods))
 
-    def byte_SET_LINENO(self, lineno):
-        self.frame().f_lineno = lineno
+    if 0:   # Not in py2.7
+        def byte_SET_LINENO(self, lineno):
+            self.frame().f_lineno = lineno
