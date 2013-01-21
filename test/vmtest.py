@@ -10,10 +10,10 @@ from cStringIO import StringIO
 from byterun.pyvm2 import VirtualMachine, VirtualMachineError
 
 
-# Make this False if you need to run the debugger inside a test.
-CAPTURE_STDOUT = True
-# Make this False to see the traceback from a failure inside pyvm2.
-CAPTURE_EXCEPTION = True
+# Make this false if you need to run the debugger inside a test.
+CAPTURE_STDOUT = 1
+# Make this false to see the traceback from a failure inside pyvm2.
+CAPTURE_EXCEPTION = 1
 
 
 def dis_code(code):
@@ -46,11 +46,10 @@ class VmTestCase(unittest.TestCase):
         if CAPTURE_STDOUT:              # pragma: no branch
             sys.stdout = vm_stdout
         vm = VirtualMachine()
-        vm.loadCode(code)
 
         vm_value = vm_exc = None
         try:
-            vm_value = vm.run()
+            vm_value = vm.run_code(code)
         except VirtualMachineError:         # pragma: no cover
             # If the VM code raises an error, show it.
             raise

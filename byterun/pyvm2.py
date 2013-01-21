@@ -5,6 +5,102 @@
 import operator, dis, new, inspect, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
+class Function(object):
+    def __init__(self, code, globs, defaults, closure, vm):
+        self._vm = vm
+        self.func_code = code
+        self.func_name = code.co_name
+        self.func_defaults = defaults
+        self.func_globals = globs
+        self.func_dict = vm.frame().f_locals
+        self.func_closure = closure
+
+        # Sometimes, we need a real Python function.  This is for that.
+        self.func = types.FunctionType(code, globs, argdefs=tuple(defaults))
+
+    def __str__(self):
+        return '<function %s at 0x%08X>' % (self.func_name, id(self))
+
+    __repr__ = __str__
+
+    def __call__(self, *args, **kw):
+        if len(args) < self.func_code.co_argcount:
+            if not self.func_defaults:
+                if self.func_code.co_argcount == 0:
+                    argCount = 'no arguments'
+                elif self.func_code.co_argcount == 1:
+                    argCount = 'exactly 1 argument'
+                else:
+                    argCount = 'exactly %i arguments' % self.func_code.co_argcount
+                raise TypeError, '%s() takes %s (%s given)' % (self.func_name,
+                                                               argCount, len(args))
+            else:
+                defArgCount = len(self.func_defaults)
+                args.extend(self.func_defaults[-(self.func_code.co_argcount - len(args)):])
+        frame = self._vm.make_frame(self.func_code, args, kw, self.func_globals, self.func_dict)
+        return self._vm.run_frame(frame)
+
+
+class Class(object):
+    def __init__(self, name, bases, methods):
+        self._name = name
+        self._bases = bases
+        self._locals = methods
+
+    def __call__(self, *args, **kw):
+        return Object(self, self._name, self._bases, self._locals, args, kw)
+
+    def __str__(self):
+        return '<class %s at 0x%08X>' % (self._name, id(self))
+
+    def isparent(self, obj):
+        if not isinstance(obj, Object):
+            return 0
+        if obj._class is self:
+            return 1
+        if self in obj._bases:
+            return 1
+        return 0
+
+
+class Object(object):
+    def __init__(self, _class, name, bases, methods, args, kw):
+        self._class = _class
+        self._name = name
+        self._bases = bases
+        self._locals = methods
+        if methods.has_key('__init__'):
+            methods['__init__'](self, *args, **kw)
+
+    def __str__(self):
+        return '<%s instance at 0x%08X>' % (self._name, id(self))
+
+    def __getattr__(self, name):
+        try:
+            val = self._locals[name]
+        except KeyError:
+            raise AttributeError
+        if isinstance(val, Function):
+            val = Method(self, self._class, val)
+        return val
+
+
+class Method:
+    def __init__(self, obj, _class, func):
+        self.im_self = obj
+        self.im_class = _class
+        self.im_func = func
+
+    def __str__(self):
+        if self.im_self:
+            return '<bound method %s.%s of %s>' % (self.im_self._name,
+                                                   self.im_func.func_name,
+                                                   str(self.im_self))
+        else:
+            return '<unbound method %s.%s>' % (self.im_class._name,
+                                               self.im_func.func_name)
+
+
 class Cell(object):
     """A fake cell for closures.
 
@@ -40,10 +136,6 @@ class Cell(object):
 
 
 class Frame(object):
-    readOnly = ['f_back', 'f_code', 'f_locals', 'f_globals', 'f_builtins',
-                'f_restricted', 'f_lineno', 'f_lasti']
-    dontAccess = ['_vm', '_cells', '_blockStack', '_generator']
-
     def __init__(self, f_code, f_globals, f_locals, vm):
         self._vm = vm   # TODO: This isn't used?
         self.f_code = f_code
@@ -74,30 +166,32 @@ class Frame(object):
             for var in f_code.co_freevars:
                 self._cells[var] = self.f_back._cells[var]
         self._blockStack = []
+        self._generator = None
 
     def __repr__(self):
         return '<frame object at 0x%08X>' % id(self)
 
 class Generator(object):
-    readOnly = ['gi_frame', 'gi_running']
-    dontAccess = ['_vm', '_savedstack']
-
     def __init__(self, g_frame, vm):
         self.gi_frame = g_frame
         self._vm = vm
 
     def __iter__(self):
         self._first = True
+        self._finished = False
         return self
 
     def next(self):
-        # To get the next value from an iterator, push its frame onto the
-        # stack, and let it run.  YIELD will take care of undoing this.
-        self._vm.resumeFrame(self.gi_frame)
         # Ordinary iteration is like sending None into a generator.
         if not self._first:
             self._vm.push(None)
         self._first = False
+        # To get the next value from an iterator, push its frame onto the
+        # stack, and let it run.
+        val = self._vm.resume_frame(self.gi_frame)
+        if self._finished:
+            raise StopIteration
+        return val
 
 
 UNARY_OPERATORS = {
@@ -175,8 +269,8 @@ class VirtualMachine(object):
     def log(self, msg):
         self._log.append(msg)
 
-    def loadCode(self, code, args=[], kw={}, f_globals=None, f_locals=None):
-        self.log("loadCode: code=%r, args=%r, kw=%r, f_globals=%r, f_locals=%r" % (code, args, kw, f_globals, f_locals))
+    def make_frame(self, code, args=[], kw={}, f_globals=None, f_locals=None):
+        self.log("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))
         if f_globals:
             f_globals = f_globals
             if not f_locals:
@@ -199,15 +293,30 @@ class VirtualMachine(object):
                 else:
                     raise TypeError("did not get value for argument '%s'" % name)
         frame = Frame(code, f_globals, f_locals, self)
-        self._frames.append(frame)
+        return frame
 
-    def resumeFrame(self, frame):
+    def resume_frame(self, frame):
         frame.f_back = self.frame()
-        self._frames.append(frame)
+        val = self.run_frame(frame)
+        frame.f_back = None
+        return val
 
-    def run(self):
-        while self._frames:
-            # pre will go here
+    def run_code(self, code):
+        frame = self.make_frame(code)
+        val = self.run_frame(frame)
+
+        # Check some invariants
+        if self._frames:            # pragma: no cover
+            raise VirtualMachineError("Frames left over!")
+        if self._stack:             # pragma: no cover
+            raise VirtualMachineError("Data left on stack! %r" % self._stack)
+
+        return val
+
+    def run_frame(self, frame):
+        self._frames.append(frame)
+        while True:
+            # TODO: this can never change, right?
             frame = self.frame()
             opoffset = frame.f_lasti
             byte = frame.f_code.co_code[opoffset]
@@ -264,7 +373,7 @@ class VirtualMachine(object):
                 #print len(self._frames), self._stack
                 if finished:
                     self._frames.pop()
-                    self.push(self._returnValue)
+                    break
                 if self._lastException[0]:
                     self._lastException = (None, None, None)
             except:
@@ -289,18 +398,10 @@ class VirtualMachine(object):
                         if not self._frames:
                             break
 
-        # Get rid of the last returned value??
-        self.pop()
-
-        # Check some invariants
-        if self._frames:            # pragma: no cover
-            raise VirtualMachineError("Frames left over!")
-        if self._stack:             # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self._stack)
-
         if self._lastException[0]:
             e1, e2, e3 = self._lastException
             raise e1, e2, e3
+
         return self._returnValue
 
     ## Stack manipulation
@@ -566,8 +667,7 @@ class VirtualMachine(object):
         self.push(iterobj)
         try:
             v = iterobj.next()
-            if not isinstance(iterobj, Generator):
-                self.push(v)
+            self.push(v)
         except StopIteration:
             self.pop()
             self.frame().f_lasti = jump
@@ -611,7 +711,7 @@ class VirtualMachine(object):
         for i in xrange(argc):
             defaults.insert(0, self.pop())
         globs = self.frame().f_globals
-        fn = types.FunctionType(code, globs, argdefs=tuple(defaults))
+        fn = Function(code, globs, defaults, None, self)
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
@@ -664,26 +764,30 @@ class VirtualMachine(object):
             if func.im_self:
                 posargs.insert(0, func.im_self)
             # The first parameter must be the correct type.
-            if not isinstance(posargs[0], func.im_class):
-                raise TypeError(
-                    'unbound method %s() must be called with %s instance as first argument (got %s instance instead)' %
-                    (func.im_func.func_name, func.im_class.__name__, type(posargs[0]).__name__)
-                )
+            if 0:   # TODO: do we need to do this check?
+                if not isinstance(posargs[0], func.im_class):
+                    raise TypeError(
+                        'unbound method %s() must be called with %s instance as first argument (got %s instance instead)' %
+                        (func.im_func.func_name, func.im_class.__name__, type(posargs[0]).__name__)
+                    )
             func = func.im_func
         if hasattr(func, 'func_code'):
-            callargs = inspect.getcallargs(func, *posargs, **namedargs)
-            self.loadCode(func.func_code, [], callargs)
+            func_as_func = getattr(func, "func", func)
+            callargs = inspect.getcallargs(func_as_func, *posargs, **namedargs)
+            frame = self.make_frame(func.func_code, [], callargs)
             if func.func_code.co_flags & CO_GENERATOR:
-                frame = self.frame()
                 gen = Generator(frame, self)
                 frame._generator = gen
-                self._frames.pop()
                 self.push(gen)
+            else:
+                self.push(self.run_frame(frame))
         else:
             self.push(func(*posargs, **namedargs))
 
     def byte_RETURN_VALUE(self):
         self._returnValue = self.pop()
+        if self.frame()._generator:
+            self.frame()._generator._finished = True
         return True
 
     def byte_YIELD_VALUE(self):
@@ -722,7 +826,7 @@ class VirtualMachine(object):
         methods = self.pop()
         bases = self.pop()
         name = self.pop()
-        self.push(types.ClassType(name, bases, methods))
+        self.push(Class(name, bases, methods))
 
     def byte_SET_LINENO(self, lineno):
         self.frame().f_lineno = lineno
