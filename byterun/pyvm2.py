@@ -136,37 +136,40 @@ class Cell(object):
 Block = collections.namedtuple("Block", "type, handler, level")
 
 class Frame(object):
-    def __init__(self, f_code, f_globals, f_locals, vm):
-        self._vm = vm   # TODO: This isn't used?
+    def __init__(self, f_code, f_globals, f_locals, f_back):
         self.f_code = f_code
         self.f_globals = f_globals
         self.f_locals = f_locals
-        self.f_back = vm.frame()
-        if self.f_back:
-            self.f_builtins = self.f_back.f_builtins
+        self.f_back = f_back
+        if f_back:
+            self.f_builtins = f_back.f_builtins
         else:
             self.f_builtins = f_locals['__builtins__']
             if hasattr(self.f_builtins, '__dict__'):
                 self.f_builtins = self.f_builtins.__dict__
+
         self.f_lineno = f_code.co_firstlineno
         self.f_lasti = 0
+
         if f_code.co_cellvars:
-            self._cells = {}
-            if not self.f_back._cells:
-                self.f_back._cells = {}
+            self.cells = {}
+            if not f_back.cells:
+                f_back.cells = {}
             for var in f_code.co_cellvars:
                 # Make a cell for the variable in our locals, or None.
                 cell = Cell(self.f_locals.get(var))
-                self.f_back._cells[var] = self._cells[var] = cell
+                f_back.cells[var] = self.cells[var] = cell
         else:
-            self._cells = None
+            self.cells = None
+
         if f_code.co_freevars:
-            if not self._cells:
-                self._cells = {}
+            if not self.cells:
+                self.cells = {}
             for var in f_code.co_freevars:
-                self._cells[var] = self.f_back._cells[var]
+                self.cells[var] = f_back.cells[var]
+
         self.block_stack = []
-        self._generator = None
+        self.generator = None
 
     def __str__(self):
         return '<frame object at 0x%08X>' % id(self)
@@ -175,22 +178,22 @@ class Frame(object):
 class Generator(object):
     def __init__(self, g_frame, vm):
         self.gi_frame = g_frame
-        self._vm = vm
+        self.vm = vm
 
     def __iter__(self):
-        self._first = True
-        self._finished = False
+        self.first = True
+        self.finished = False
         return self
 
     def next(self):
         # Ordinary iteration is like sending None into a generator.
-        if not self._first:
-            self._vm.push(None)
-        self._first = False
+        if not self.first:
+            self.vm.push(None)
+        self.first = False
         # To get the next value from an iterator, push its frame onto the
         # stack, and let it run.
-        val = self._vm.resume_frame(self.gi_frame)
-        if self._finished:
+        val = self.vm.resume_frame(self.gi_frame)
+        if self.finished:
             raise StopIteration
         return val
 
@@ -312,7 +315,7 @@ class VirtualMachine(object):
                     f_locals[name] = kw[name]
                 else:
                     raise TypeError("did not get value for argument '%s'" % name)
-        frame = Frame(code, f_globals, f_locals, self)
+        frame = Frame(code, f_globals, f_locals, self.frame())
         return frame
 
     def resume_frame(self, frame):
@@ -536,10 +539,10 @@ class VirtualMachine(object):
             raise NameError("global name '%s' is not defined" % name)
 
     def byte_LOAD_DEREF(self, name):
-        self.push(self.frame()._cells[name].get())
+        self.push(self.frame().cells[name].get())
 
     def byte_STORE_DEREF(self, name):
-        self.frame()._cells[name].set(self.pop())
+        self.frame().cells[name].set(self.pop())
 
     def byte_LOAD_LOCALS(self):
         self.push(self.frame().f_locals)
@@ -775,7 +778,7 @@ class VirtualMachine(object):
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
-        self.push(self.frame()._cells[name].cell)
+        self.push(self.frame().cells[name].cell)
 
     def byte_MAKE_CLOSURE(self, argc):
         code = self.pop()
@@ -832,7 +835,7 @@ class VirtualMachine(object):
             frame = self.make_frame(func.func_code, [], callargs)
             if func.func_code.co_flags & CO_GENERATOR:
                 gen = Generator(frame, self)
-                frame._generator = gen
+                frame.generator = gen
                 self.push(gen)
             else:
                 self.push(self.run_frame(frame))
@@ -841,8 +844,8 @@ class VirtualMachine(object):
 
     def byte_RETURN_VALUE(self):
         self._returnValue = self.pop()
-        if self.frame()._generator:
-            self.frame()._generator._finished = True
+        if self.frame().generator:
+            self.frame().generator.finished = True
         return "return"
 
     def byte_YIELD_VALUE(self):
