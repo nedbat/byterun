@@ -2,7 +2,7 @@
 # Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
-import operator, dis, new, inspect, sys, types
+import collections, operator, dis, new, inspect, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
 class Function(object):
@@ -133,6 +133,8 @@ class Cell(object):
         self.cell.cell_contents[0] = value
 
 
+Block = collections.namedtuple("Block", "type, handler, level")
+
 class Frame(object):
     def __init__(self, f_code, f_globals, f_locals, vm):
         self._vm = vm   # TODO: This isn't used?
@@ -163,7 +165,7 @@ class Frame(object):
                 self._cells = {}
             for var in f_code.co_freevars:
                 self._cells[var] = self.f_back._cells[var]
-        self._blockStack = []
+        self.block_stack = []
         self._generator = None
 
     def __str__(self):
@@ -254,7 +256,7 @@ class VirtualMachine(object):
         self._frames = [] # list of current stack frames
         self._stack = [] # current stack
         self._returnValue = None
-        self._lastException = (None, None, None)
+        self._lastException = None
         self._log = []
 
     def frame(self):
@@ -280,6 +282,9 @@ class VirtualMachine(object):
     def jump(self, jump):
         """Move the bytecode pointer to `jump`, so it will execute next."""
         self.frame().f_lasti = jump
+
+    def push_block(self, type, handler):
+        self.frame().block_stack.append(Block(type, handler, len(self._stack)))
 
     def log(self, msg):
         self._log.append(msg)
@@ -318,17 +323,23 @@ class VirtualMachine(object):
 
     def run_code(self, code):
         frame = self.make_frame(code)
-        val = self.run_frame(frame)
-
-        # Check some invariants
-        if self._frames:            # pragma: no cover
-            raise VirtualMachineError("Frames left over!")
-        if self._stack:             # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self._stack)
+        try:
+            val = self.run_frame(frame)
+        finally:
+            # Check some invariants
+            if self._frames:            # pragma: no cover
+                raise VirtualMachineError("Frames left over!")
+            if self._stack:             # pragma: no cover
+                raise VirtualMachineError("Data left on stack! %r" % self._stack)
 
         return val
 
     def run_frame(self, frame):
+        """Run a frame until it returns (somehow).
+
+        Exceptions are raised, the return value is returned.
+
+        """
         self._frames.append(frame)
         while True:
             # TODO: this can never change, right?
@@ -369,7 +380,10 @@ class VirtualMachine(object):
                     op += " %r" % (arguments[0],)
                 self.log("%s%40s %r" % ("  "*(len(self._frames)-1), op, self._stack))
 
-            finished = False
+            # When unwinding the block stack, we need to keep track of why we
+            # are doing it.
+            why = None
+
             try:
                 if byteName.startswith('UNARY_'):
                     self.unaryOperator(byteName[6:])
@@ -384,38 +398,64 @@ class VirtualMachine(object):
                     func = getattr(self, 'byte_%s' % byteName, None)
                     if not func:            # pragma: no cover
                         raise VirtualMachineError("unknown bytecode type: %s" % byteName)
-                    finished = func(*arguments)
-                #print len(self._frames), self._stack
-                if finished:
-                    self._frames.pop()
-                    break
-                if self._lastException[0]:
-                    self._lastException = (None, None, None)
-            except:
-                while self._frames and not self.frame()._blockStack:
-                    self._frames.pop()
-                if not self._frames:
-                    raise
-                self._lastException = sys.exc_info()[:2] + (None,)
-                while True:
-                    if not self._frames:
-                        raise
-                    block = self.frame()._blockStack.pop()
-                    if block[0] in ('except', 'finally'):
-                        if block[0] == 'except':
-                            self.push(self._lastException[2])
-                            self.push(self._lastException[1])
-                            self.push(self._lastException[0])
-                        self.jump(block[1])
-                        break
-                    while not self.frame()._blockStack:
-                        self._frames.pop()
-                        if not self._frames:
-                            break
+                    why = func(*arguments)
 
-        if self._lastException[0]:
-            e1, e2, e3 = self._lastException
-            raise e1, e2, e3
+            except:
+                # deal with exceptions encountered while executing the op.
+                self._lastException = sys.exc_info()[:2] + (None,)
+                why = 'exception'
+
+            # Deal with any block management we need to do.
+
+            if why == 'exception':
+                # TODO: ceval calls PyTraceBack_Here, not sure what that does.
+                pass
+
+            if why == 'reraise':
+                why = 'exception'
+
+            while why and self.frame().block_stack:
+
+                block = self.frame().block_stack[-1]
+                if block.type == 'loop' and why == 'continue':
+                    # TODO
+                    raise VirtualMachineError("continue doesn't work yet!")
+
+                self.frame().block_stack.pop()
+
+                while len(self._stack) > block.level:
+                    self.pop()
+
+                if block.type == 'loop' and why == 'break':
+                    why = None
+                    self.jump(block.handler)
+                    break
+
+                if (block.type == 'finally' or 
+                    (block.type == 'except' and why == 'exception') or
+                    block.type == 'with'):
+
+                    if why == 'exception':
+                        exctype, value, tb = self._lastException
+                        self.push(tb)
+                        self.push(value)
+                        self.push(exctype)
+                    else:
+                        if why in ('return', 'continue'):
+                            self.push(self._returnValue)
+                        self.push(why)
+
+                    why = None
+                    self.jump(block.handler)
+                    break
+
+            if why:
+                break
+
+        self._frames.pop()
+
+        if why == 'exception':
+            raise self._lastException[0], self._lastException[1], self._lastException[2]
 
         return self._returnValue
 
@@ -667,7 +707,7 @@ class VirtualMachine(object):
     ## Blocks
 
     def byte_SETUP_LOOP(self, dest):
-        self.frame()._blockStack.append(('loop', dest))
+        self.push_block('loop', dest)
 
     def byte_GET_ITER(self):
         self.push(iter(self.pop()))
@@ -682,16 +722,16 @@ class VirtualMachine(object):
             self.jump(jump)
 
     def byte_BREAK_LOOP(self):
-        block = self.frame()._blockStack.pop()
+        block = self.frame().block_stack.pop()
         while block[0] != 'loop':
-            block = self.frame()._blockStack.pop()
+            block = self.frame().block_stack.pop()
         self.jump(block[1])
 
     def byte_SETUP_EXCEPT(self, dest):
-        self.frame()._blockStack.append(('except', dest))
+        self.push_block('except', dest)
 
     def byte_SETUP_FINALLY(self, dest):
-        self.frame()._blockStack.append(('finally', dest))
+        self.push_block('finally', dest)
 
     def byte_END_FINALLY(self):
         if self._lastException[0]:
@@ -700,17 +740,30 @@ class VirtualMachine(object):
             return True
 
     def byte_POP_BLOCK(self):
-        self.frame()._blockStack.pop()
+        self.frame().block_stack.pop()
 
     def byte_RAISE_VARARGS(self, argc):
+        exctype = value = tb = None
         if argc == 0:
-            raise VirtualMachineError("Not implemented: re-raise")
+            exctype, value, tb = self._lastException
         elif argc == 1:
-            raise self.pop()
+            exctype = self.pop()
         elif argc == 2:
-            raise self.pop(), self.pop()
+            exctype, value = self.pop(), self.pop()
         elif argc == 3:
-            raise self.pop(), self.pop(), self.pop()
+            exctype, value, tb = self.pop(), self.pop(), self.pop()
+
+        # There are a number of forms of "raise", this normalizes everything.
+        if isinstance(exctype, BaseException):
+            value = exctype
+            exctype = type(value)
+
+        self._lastException = exctype, value, tb
+
+        if tb:
+            return 'reraise'
+        else:
+            return 'exception'
 
     ## Functions
 
@@ -790,11 +843,11 @@ class VirtualMachine(object):
         self._returnValue = self.pop()
         if self.frame()._generator:
             self.frame()._generator._finished = True
-        return True
+        return "return"
 
     def byte_YIELD_VALUE(self):
         self._returnValue = self.pop()
-        return True
+        return "yield"
 
     ## Importing
 

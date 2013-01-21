@@ -52,7 +52,7 @@ class TestIt(vmtest.VmTestCase):
                 print "caught it!"
             """)
 
-    def test_raising_exception(self):
+    def test_raise_exception(self):
         self.assert_ok("raise Exception('oops')")
 
     def test_raise_and_catch_exception(self):
@@ -61,6 +61,7 @@ class TestIt(vmtest.VmTestCase):
                 raise ValueError("oops")
             except ValueError, e:
                 print "Caught: %s" % e
+            print "All done"
             """)
 
     def test_raise_and_catch_exception_in_function(self):
@@ -91,6 +92,8 @@ class TestIt(vmtest.VmTestCase):
                 fooey
             fn()
             """)
+
+    def test_catch_local_name_error(self):
         self.assert_ok("""\
             def fn():
                 try:
