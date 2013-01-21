@@ -21,8 +21,6 @@ class Function(object):
     def __str__(self):
         return '<function %s at 0x%08X>' % (self.func_name, id(self))
 
-    __repr__ = __str__
-
     def __call__(self, *args, **kw):
         if len(args) < self.func_code.co_argcount:
             if not self.func_defaults:
@@ -168,8 +166,9 @@ class Frame(object):
         self._blockStack = []
         self._generator = None
 
-    def __repr__(self):
+    def __str__(self):
         return '<frame object at 0x%08X>' % id(self)
+
 
 class Generator(object):
     def __init__(self, g_frame, vm):
