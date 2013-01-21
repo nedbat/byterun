@@ -362,3 +362,55 @@ class TestGenerators(vmtest.VmTestCase):
             for i in two():
                 print i
             """)
+
+
+class TestLoops(vmtest.VmTestCase):
+    def test_for(self):
+        self.assert_ok("""\
+            for i in range(10):
+                print i,
+            print "done"
+            """)
+
+    def test_break(self):
+        self.assert_ok("""\
+            for i in range(10):
+                print i,
+                if i == 7:
+                    break
+            print "done"
+            """)
+
+    def test_continue(self):
+        # fun fact: this doesn't use CONTINUE_LOOP
+        self.assert_ok("""\
+            for i in range(10):
+                if i % 3 == 0:
+                    continue
+                print i,
+            print "done"
+            """)
+
+    def test_continue_in_try_except(self):
+        self.assert_ok("""\
+            for i in range(10):
+                try:
+                    if i % 3 == 0:
+                        continue
+                    print i,
+                except ValueError:
+                    pass
+            print "done"
+            """)
+
+    def test_continue_in_try_finally(self):
+        self.assert_ok("""\
+            for i in range(10):
+                try:
+                    if i % 3 == 0:
+                        continue
+                    print i,
+                finally:
+                    print ".",
+            print "done"
+            """)

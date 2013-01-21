@@ -421,8 +421,9 @@ class VirtualMachine(object):
 
                 block = self.frame().block_stack[-1]
                 if block.type == 'loop' and why == 'continue':
-                    # TODO
-                    raise VirtualMachineError("continue doesn't work yet!")
+                    self.jump(self._returnValue)
+                    why = None
+                    break
 
                 self.frame().block_stack.pop()
 
@@ -725,10 +726,17 @@ class VirtualMachine(object):
             self.jump(jump)
 
     def byte_BREAK_LOOP(self):
-        block = self.frame().block_stack.pop()
-        while block[0] != 'loop':
-            block = self.frame().block_stack.pop()
-        self.jump(block[1])
+        return 'break'
+
+    def byte_CONTINUE_LOOP(self, dest):
+        # This is a trick with the return value.
+        # While unrolling blocks, continue and return both have to preserve
+        # state as the finally blocks are executed.  For continue, it's
+        # where to jump to, for return, it's the value to return.  It gets
+        # pushed on the stack for both, so continue puts the jump destination
+        # into _returnValue.
+        self._returnValue = dest
+        return 'continue'
 
     def byte_SETUP_EXCEPT(self, dest):
         self.push_block('except', dest)
@@ -737,10 +745,21 @@ class VirtualMachine(object):
         self.push_block('finally', dest)
 
     def byte_END_FINALLY(self):
-        if self._lastException[0]:
-            raise self._lastException[0], self._lastException[1], self._lastException[2]
+        v = self.pop()
+        if isinstance(v, str):
+            why = v
+            if why in ('return', 'continue'):
+                self._returnValue = self.pop()
+        elif isinstance(v, BaseException):
+            exctype = v
+            value = self.pop()
+            tb = self.pop()
+            self._lastException = (exctype, value, tb)
+            why = 'reraise'
         else:
-            return True
+            assert v is None
+            why = None
+        return why
 
     def byte_POP_BLOCK(self):
         self.frame().block_stack.pop()
