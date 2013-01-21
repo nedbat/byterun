@@ -261,10 +261,22 @@ class VirtualMachine(object):
     def frame(self):
         return self._frames and self._frames[-1] or None
 
+    def peek(self):
+        return self._stack[-1]
+
     def pop(self):
         return self._stack.pop()
+
     def push(self, thing):
         self._stack.append(thing)
+
+    def popn(self, n):
+        if n:
+            ret = self._stack[-n:]
+            self._stack[-n:] = []
+            return ret
+        else:
+            return []
 
     def log(self, msg):
         self._log.append(msg)
@@ -413,14 +425,13 @@ class VirtualMachine(object):
         self.pop()
 
     def byte_DUP_TOP(self):
-        item = self.pop()
-        self.push(item)
-        self.push(item)
+        self.push(self.peek())
 
     def byte_DUP_TOPX(self, count):
-        items = [self.pop() for i in range(count)]
-        items.reverse()
-        [self.push(i) for i in items]
+        items = self.popn(count)
+        for i in [1, 2]:
+            for x in items:
+                self.push(x)
 
     def byte_ROT_TWO(self):
         a = self.pop()
@@ -564,13 +575,11 @@ class VirtualMachine(object):
     ## Building
 
     def byte_BUILD_TUPLE(self, count):
-        elts = [self.pop() for i in xrange(count)]
-        elts.reverse()
+        elts = self.popn(count)
         self.push(tuple(elts))
 
     def byte_BUILD_LIST(self, count):
-        elts = [self.pop() for i in xrange(count)]
-        elts.reverse()
+        elts = self.popn(count)
         self.push(elts)
 
     def byte_BUILD_MAP(self, size):
@@ -586,8 +595,8 @@ class VirtualMachine(object):
 
     def byte_UNPACK_SEQUENCE(self, count):
         l = self.pop()
-        for i in range(len(l)-1, -1, -1):
-            self.push(l[i])
+        for x in reversed(l):
+            self.push(x)
 
     ## Printing
 
@@ -599,18 +608,15 @@ class VirtualMachine(object):
 
     def byte_PRINT_ITEM_TO(self):
         item = self.pop()
-        to = self.pop()
+        to = self.peek()
         print >>to, item,
-        self.push(to)
 
     def byte_PRINT_NEWLINE(self):
         print
 
-    def byte_PRINT_ITEM_TO(self):
-        # TODO: looks like PRINT_NEWLINE_TO to me...
-        to = self.pop()
+    def byte_PRINT_NEWLINE_TO(self):
+        to = self.peek()
         print >>to , ''
-        self.push(to)
 
     ## Jumps
 
@@ -621,14 +627,12 @@ class VirtualMachine(object):
         self.frame().f_lasti = jump
 
     def byte_JUMP_IF_TRUE(self, jump):
-        val = self.pop()
-        self.push(val)
+        val = self.peek()
         if val:
             self.frame().f_lasti = jump
 
     def byte_JUMP_IF_FALSE(self, jump):
-        val = self.pop()
-        self.push(val)
+        val = self.peek()
         if not val:
             self.frame().f_lasti = jump
 
@@ -643,16 +647,18 @@ class VirtualMachine(object):
             self.frame().f_lasti = jump
 
     def byte_JUMP_IF_TRUE_OR_POP(self, jump):
-        val = self.pop()
+        val = self.peek()
         if val:
-            self.push(val)
             self.frame().f_lasti = jump
+        else:
+            self.pop()
 
     def byte_JUMP_IF_FALSE_OR_POP(self, jump):
-        val = self.pop()
+        val = self.peek()
         if not val:
-            self.push(val)
             self.frame().f_lasti = jump
+        else:
+            self.pop()
 
     ## Blocks
 
@@ -663,8 +669,7 @@ class VirtualMachine(object):
         self.push(iter(self.pop()))
 
     def byte_FOR_ITER(self, jump):
-        iterobj = self.pop()
-        self.push(iterobj)
+        iterobj = self.peek()
         try:
             v = iterobj.next()
             self.push(v)
@@ -707,9 +712,7 @@ class VirtualMachine(object):
 
     def byte_MAKE_FUNCTION(self, argc):
         code = self.pop()
-        defaults = []
-        for i in xrange(argc):
-            defaults.insert(0, self.pop())
+        defaults = self.popn(argc)
         globs = self.frame().f_globals
         fn = Function(code, globs, defaults, None, self)
         self.push(fn)
@@ -720,9 +723,7 @@ class VirtualMachine(object):
     def byte_MAKE_CLOSURE(self, argc):
         code = self.pop()
         closure = self.pop()
-        defaults = []
-        for i in xrange(argc):
-            defaults.insert(0, self.pop())
+        defaults = self.popn(argc)
         globs = self.frame().f_globals
         fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
         self.push(fn)
@@ -751,10 +752,7 @@ class VirtualMachine(object):
             key = self.pop()
             namedargs[key] = value
         namedargs.update(kwargs)
-        # TODO: Make a helper method for this
-        posargs = []
-        for i in xrange(lenPos):
-            posargs.insert(0, self.pop())
+        posargs = self.popn(lenPos)
         posargs.extend(args)
 
         func = self.pop()
@@ -810,8 +808,7 @@ class VirtualMachine(object):
                 self.frame().f_locals[attr] = getattr(mod, attr)
 
     def byte_IMPORT_FROM(self, name):
-        mod = self.pop()
-        self.push(mod)
+        mod = self.peek()
         self.push(getattr(mod, name))
 
     ## And the rest...
