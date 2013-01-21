@@ -205,6 +205,24 @@ class TestIt(vmtest.VmTestCase):
             print l
             """)
 
+    def test_strange_sequence_ops(self):
+        # from stdlib: test/test_augassign.py
+        self.assert_ok("""\
+            x = [1,2]
+            x += [3,4]
+            x *= 2
+
+            assert x == [1, 2, 3, 4, 1, 2, 3, 4]
+
+            x = [1, 2, 3]
+            y = x
+            x[1:2] *= 2
+            y[1:2] += [1]
+
+            assert x == [1, 2, 1, 2, 3]
+            assert x is y
+            """)
+
     def test_unary_operators(self):
         self.assert_ok("""\
             x, s = 8, "Hello\\n"
@@ -240,6 +258,14 @@ class TestIt(vmtest.VmTestCase):
             print hasattr(l, "foo"), l.foo
             del l.foo
             print hasattr(l, "foo")
+            """)
+
+    def test_attribute_inplace_ops(self):
+        self.assert_ok("""\
+            l = lambda: 1   # Just to have an object...
+            l.foo = 17
+            l.foo -= 3
+            print l.foo
             """)
 
     def test_import(self):
