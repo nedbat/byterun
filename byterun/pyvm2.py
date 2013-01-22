@@ -636,8 +636,9 @@ class VirtualMachine(object):
 
     ## Printing
 
-    def byte_PRINT_EXPR(self):
-        print self.pop()
+    if 0:   # Only used in the interactive interpreter, not in modules.
+        def byte_PRINT_EXPR(self):
+            print self.pop()
 
     def byte_PRINT_ITEM(self):
         print self.pop(),
