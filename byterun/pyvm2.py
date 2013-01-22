@@ -198,57 +198,6 @@ class Generator(object):
         return val
 
 
-UNARY_OPERATORS = {
-    'POSITIVE': operator.pos,
-    'NEGATIVE': operator.neg,
-    'NOT':      operator.not_,
-    'CONVERT':  repr,
-    'INVERT':   operator.invert,
-}
-
-BINARY_OPERATORS = {
-    'POWER':    pow,
-    'MULTIPLY': operator.mul,
-    'DIVIDE':   operator.div,
-    'MODULO':   operator.mod,
-    'ADD':      operator.add,
-    'SUBTRACT': operator.sub,
-    'SUBSCR':   operator.getitem,
-    'LSHIFT':   operator.lshift,
-    'RSHIFT':   operator.rshift,
-    'AND':      operator.and_,
-    'XOR':      operator.xor,
-    'OR':       operator.or_,
-}
-
-INPLACE_OPERATORS = { # these are execed
-    'POWER':    'x**=y',
-    'MULTIPLY': 'x*=y',
-    'DIVIDE':   'x/=y',
-    'MODULO':   'x%=y',
-    'ADD':      'x+=y',
-    'SUBTRACT': 'x-=y',
-    'LSHIFT':   'x>>=y',
-    'RSHIFT':   'x<<=y',
-    'AND':      'x&=y',
-    'XOR':      'x^=y',
-    'OR':       'x|=y',
-}
-    
-COMPARE_OPERATORS = [
-    operator.lt,
-    operator.le,
-    operator.eq,
-    operator.ne,
-    operator.gt,
-    operator.ge,
-    operator.contains,
-    lambda x,y: x not in y,
-    lambda x,y: x is y,
-    lambda x,y: x is not y,
-    lambda x,y: issubclass(x, Exception) and issubclass(x, y)
-]
-    
 
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
@@ -256,28 +205,28 @@ class VirtualMachineError(Exception):
 
 class VirtualMachine(object):
     def __init__(self):
-        self._frames = [] # list of current stack frames
-        self._stack = [] # current stack
-        self._returnValue = None
-        self._lastException = None
-        self._log = []
+        self.frames = [] # list of current stack frames
+        self.stack = [] # current stack
+        self.return_value = None
+        self.last_exception = None
+        self.log = []
 
     def frame(self):
-        return self._frames and self._frames[-1] or None
+        return self.frames and self.frames[-1] or None
 
     def peek(self):
-        return self._stack[-1]
+        return self.stack[-1]
 
     def pop(self):
-        return self._stack.pop()
+        return self.stack.pop()
 
     def push(self, thing):
-        self._stack.append(thing)
+        self.stack.append(thing)
 
     def popn(self, n):
         if n:
-            ret = self._stack[-n:]
-            self._stack[-n:] = []
+            ret = self.stack[-n:]
+            self.stack[-n:] = []
             return ret
         else:
             return []
@@ -287,10 +236,10 @@ class VirtualMachine(object):
         self.frame().f_lasti = jump
 
     def push_block(self, type, handler):
-        self.frame().block_stack.append(Block(type, handler, len(self._stack)))
+        self.frame().block_stack.append(Block(type, handler, len(self.stack)))
 
     def log(self, msg):
-        self._log.append(msg)
+        self.log.append(msg)
 
     def make_frame(self, code, args=[], kw={}, f_globals=None, f_locals=None):
         self.log("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))
@@ -330,10 +279,10 @@ class VirtualMachine(object):
             val = self.run_frame(frame)
         finally:
             # Check some invariants
-            if self._frames:            # pragma: no cover
+            if self.frames:            # pragma: no cover
                 raise VirtualMachineError("Frames left over!")
-            if self._stack:             # pragma: no cover
-                raise VirtualMachineError("Data left on stack! %r" % self._stack)
+            if self.stack:             # pragma: no cover
+                raise VirtualMachineError("Data left on stack! %r" % self.stack)
 
         return val
 
@@ -343,7 +292,7 @@ class VirtualMachine(object):
         Exceptions are raised, the return value is returned.
 
         """
-        self._frames.append(frame)
+        self.frames.append(frame)
         while True:
             # TODO: this can never change, right?
             frame = self.frame()
@@ -381,7 +330,7 @@ class VirtualMachine(object):
                 op = "%d: %s" % (opoffset, byteName)
                 if arguments:
                     op += " %r" % (arguments[0],)
-                self.log("%s%40s %r" % ("  "*(len(self._frames)-1), op, self._stack))
+                self.log("%s%40s %r" % ("  "*(len(self.frames)-1), op, self.stack))
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
@@ -405,7 +354,7 @@ class VirtualMachine(object):
 
             except:
                 # deal with exceptions encountered while executing the op.
-                self._lastException = sys.exc_info()[:2] + (None,)
+                self.last_exception = sys.exc_info()[:2] + (None,)
                 why = 'exception'
 
             # Deal with any block management we need to do.
@@ -421,13 +370,13 @@ class VirtualMachine(object):
 
                 block = self.frame().block_stack[-1]
                 if block.type == 'loop' and why == 'continue':
-                    self.jump(self._returnValue)
+                    self.jump(self.return_value)
                     why = None
                     break
 
                 self.frame().block_stack.pop()
 
-                while len(self._stack) > block.level:
+                while len(self.stack) > block.level:
                     self.pop()
 
                 if block.type == 'loop' and why == 'break':
@@ -440,13 +389,13 @@ class VirtualMachine(object):
                     block.type == 'with'):
 
                     if why == 'exception':
-                        exctype, value, tb = self._lastException
+                        exctype, value, tb = self.last_exception
                         self.push(tb)
                         self.push(value)
                         self.push(exctype)
                     else:
                         if why in ('return', 'continue'):
-                            self.push(self._returnValue)
+                            self.push(self.return_value)
                         self.push(why)
 
                     why = None
@@ -456,12 +405,12 @@ class VirtualMachine(object):
             if why:
                 break
 
-        self._frames.pop()
+        self.frames.pop()
 
         if why == 'exception':
-            raise self._lastException[0], self._lastException[1], self._lastException[2]
+            raise self.last_exception[0], self.last_exception[1], self.last_exception[2]
 
-        return self._returnValue
+        return self.return_value
 
     ## Stack manipulation
 
@@ -550,21 +499,58 @@ class VirtualMachine(object):
 
     ## Operators
 
+    UNARY_OPERATORS = {
+        'POSITIVE': operator.pos,
+        'NEGATIVE': operator.neg,
+        'NOT':      operator.not_,
+        'CONVERT':  repr,
+        'INVERT':   operator.invert,
+    }
+
     def unaryOperator(self, op):
         one = self.pop()
-        self.push(UNARY_OPERATORS[op](one))
+        self.push(self.UNARY_OPERATORS[op](one))
+
+    BINARY_OPERATORS = {
+        'POWER':    pow,
+        'MULTIPLY': operator.mul,
+        'DIVIDE':   operator.div,
+        'MODULO':   operator.mod,
+        'ADD':      operator.add,
+        'SUBTRACT': operator.sub,
+        'SUBSCR':   operator.getitem,
+        'LSHIFT':   operator.lshift,
+        'RSHIFT':   operator.rshift,
+        'AND':      operator.and_,
+        'XOR':      operator.xor,
+        'OR':       operator.or_,
+    }
 
     def binaryOperator(self, op):
         one = self.pop()
         two = self.pop()
-        self.push(BINARY_OPERATORS[op](two, one))
+        self.push(self.BINARY_OPERATORS[op](two, one))
 
+    INPLACE_OPERATORS = { # these are execed
+        'POWER':    'x **= y',
+        'MULTIPLY': 'x *= y',
+        'DIVIDE':   'x /= y',
+        'MODULO':   'x %= y',
+        'ADD':      'x += y',
+        'SUBTRACT': 'x -= y',
+        'LSHIFT':   'x >>= y',
+        'RSHIFT':   'x <<= y',
+        'AND':      'x &= y',
+        'XOR':      'x ^= y',
+        'OR':       'x |= y',
+    }
+        
     def inplaceOperator(self, op):
         y = self.pop()
         x = self.pop()
         # Isn't there a better way than exec?? :(
         vars = {'x':x, 'y':y}
-        exec INPLACE_OPERATORS[op] in vars
+        exec self.INPLACE_OPERATORS[op] in vars
         self.push(vars['x'])
 
     def sliceOperator(self, op):
@@ -588,10 +574,24 @@ class VirtualMachine(object):
         else:
             self.push(l[start:end])
 
+    COMPARE_OPERATORS = [
+        operator.lt,
+        operator.le,
+        operator.eq,
+        operator.ne,
+        operator.gt,
+        operator.ge,
+        operator.contains,
+        lambda x,y: x not in y,
+        lambda x,y: x is y,
+        lambda x,y: x is not y,
+        lambda x,y: issubclass(x, Exception) and issubclass(x, y)
+    ]
+        
     def byte_COMPARE_OP(self, opnum):
         one = self.pop()
         two = self.pop()
-        self.push(COMPARE_OPERATORS[opnum](two, one))
+        self.push(self.COMPARE_OPERATORS[opnum](two, one))
 
     ## Attributes and indexing
 
@@ -734,8 +734,8 @@ class VirtualMachine(object):
         # state as the finally blocks are executed.  For continue, it's
         # where to jump to, for return, it's the value to return.  It gets
         # pushed on the stack for both, so continue puts the jump destination
-        # into _returnValue.
-        self._returnValue = dest
+        # into return_value.
+        self.return_value = dest
         return 'continue'
 
     def byte_SETUP_EXCEPT(self, dest):
@@ -749,14 +749,14 @@ class VirtualMachine(object):
         if isinstance(v, str):
             why = v
             if why in ('return', 'continue'):
-                self._returnValue = self.pop()
+                self.return_value = self.pop()
         elif v is None:
             why = None
         elif issubclass(v, BaseException):
             exctype = v
             value = self.pop()
             tb = self.pop()
-            self._lastException = (exctype, value, tb)
+            self.last_exception = (exctype, value, tb)
             why = 'reraise'
         return why
 
@@ -766,7 +766,7 @@ class VirtualMachine(object):
     def byte_RAISE_VARARGS(self, argc):
         exctype = value = tb = None
         if argc == 0:
-            exctype, value, tb = self._lastException
+            exctype, value, tb = self.last_exception
         elif argc == 1:
             exctype = self.pop()
         elif argc == 2:
@@ -779,7 +779,7 @@ class VirtualMachine(object):
             value = exctype
             exctype = type(value)
 
-        self._lastException = exctype, value, tb
+        self.last_exception = (exctype, value, tb)
 
         if tb:
             return 'reraise'
@@ -861,13 +861,13 @@ class VirtualMachine(object):
             self.push(func(*posargs, **namedargs))
 
     def byte_RETURN_VALUE(self):
-        self._returnValue = self.pop()
+        self.return_value = self.pop()
         if self.frame().generator:
             self.frame().generator.finished = True
         return "return"
 
     def byte_YIELD_VALUE(self):
-        self._returnValue = self.pop()
+        self.return_value = self.pop()
         return "yield"
 
     ## Importing
