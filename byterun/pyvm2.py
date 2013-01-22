@@ -12,7 +12,7 @@ class Function(object):
         self.func_name = code.co_name
         self.func_defaults = defaults
         self.func_globals = globs
-        self.func_dict = vm.frame().f_locals
+        self.func_dict = vm.frame.f_locals
         self.func_closure = closure
 
         # Sometimes, we need a real Python function.  This is for that.
@@ -194,14 +194,15 @@ class VirtualMachineError(Exception):
 
 class VirtualMachine(object):
     def __init__(self):
-        self.frames = [] # list of current stack frames
-        self.stack = [] # current stack
+        # The call stack of frames.
+        self.frames = []
+        # The current frame.
+        self.frame = None
+        # The data stack.
+        self.stack = []
         self.return_value = None
         self.last_exception = None
         self._log = []
-
-    def frame(self):
-        return self.frames and self.frames[-1] or None
 
     def peek(self):
         return self.stack[-1]
@@ -222,10 +223,10 @@ class VirtualMachine(object):
 
     def jump(self, jump):
         """Move the bytecode pointer to `jump`, so it will execute next."""
-        self.frame().f_lasti = jump
+        self.frame.f_lasti = jump
 
     def push_block(self, type, handler):
-        self.frame().block_stack.append(Block(type, handler, len(self.stack)))
+        self.frame.block_stack.append(Block(type, handler, len(self.stack)))
 
     def log(self, msg):
         self._log.append(msg)
@@ -236,8 +237,8 @@ class VirtualMachine(object):
             f_globals = f_globals
             if not f_locals:
                 f_locals = f_globals
-        elif self.frame():
-            f_globals = self.frame().f_globals
+        elif self.frames:
+            f_globals = self.frame.f_globals
             f_locals = {}
         else:
             f_globals = f_locals = globals()
@@ -253,11 +254,22 @@ class VirtualMachine(object):
                     f_locals[name] = kw[name]
                 else:
                     raise TypeError("did not get value for argument '%s'" % name)
-        frame = Frame(code, f_globals, f_locals, self.frame())
+        frame = Frame(code, f_globals, f_locals, self.frame)
         return frame
 
+    def push_frame(self, frame):
+        self.frames.append(frame)
+        self.frame = frame
+
+    def pop_frame(self):
+        self.frames.pop()
+        if self.frames:
+            self.frame = self.frames[-1]
+        else:
+            self.frame = None
+
     def resume_frame(self, frame):
-        frame.f_back = self.frame()
+        frame.f_back = self.frame
         val = self.run_frame(frame)
         frame.f_back = None
         return val
@@ -281,10 +293,8 @@ class VirtualMachine(object):
         Exceptions are raised, the return value is returned.
 
         """
-        self.frames.append(frame)
+        self.push_frame(frame)
         while True:
-            # TODO: this can never change, right?
-            frame = self.frame()
             opoffset = frame.f_lasti
             byte = frame.f_code.co_code[opoffset]
             frame.f_lasti += 1
@@ -355,15 +365,15 @@ class VirtualMachine(object):
             if why == 'reraise':
                 why = 'exception'
 
-            while why and self.frame().block_stack:
+            while why and frame.block_stack:
 
-                block = self.frame().block_stack[-1]
+                block = frame.block_stack[-1]
                 if block.type == 'loop' and why == 'continue':
                     self.jump(self.return_value)
                     why = None
                     break
 
-                self.frame().block_stack.pop()
+                frame.block_stack.pop()
 
                 while len(self.stack) > block.level:
                     self.pop()
@@ -394,7 +404,7 @@ class VirtualMachine(object):
             if why:
                 break
 
-        self.frames.pop()
+        self.pop_frame()
 
         if why == 'exception':
             raise self.last_exception[0], self.last_exception[1], self.last_exception[2]
@@ -445,7 +455,7 @@ class VirtualMachine(object):
     ## Names
 
     def byte_LOAD_NAME(self, name):
-        frame = self.frame()
+        frame = self.frame
         if frame.f_locals.has_key(name):
             item = frame.f_locals[name]
         elif frame.f_globals.has_key(name):
@@ -457,19 +467,19 @@ class VirtualMachine(object):
         self.push(item)
 
     def byte_STORE_NAME(self, name):
-        self.frame().f_locals[name] = self.pop()
+        self.frame.f_locals[name] = self.pop()
 
     def byte_DELETE_NAME(self, name):
-        del self.frame().f_locals[name]
+        del self.frame.f_locals[name]
 
     def byte_LOAD_FAST(self, name):
-        self.push(self.frame().f_locals[name])
+        self.push(self.frame.f_locals[name])
 
     def byte_STORE_FAST(self, name):
-        self.frame().f_locals[name] = self.pop()
+        self.frame.f_locals[name] = self.pop()
 
     def byte_LOAD_GLOBAL(self, name):
-        f = self.frame()
+        f = self.frame
         if f.f_globals.has_key(name):
             self.push(f.f_globals[name])
         elif f.f_builtins.has_key(name):
@@ -478,13 +488,13 @@ class VirtualMachine(object):
             raise NameError("global name '%s' is not defined" % name)
 
     def byte_LOAD_DEREF(self, name):
-        self.push(self.frame().cells[name].get())
+        self.push(self.frame.cells[name].get())
 
     def byte_STORE_DEREF(self, name):
-        self.frame().cells[name].set(self.pop())
+        self.frame.cells[name].set(self.pop())
 
     def byte_LOAD_LOCALS(self):
-        self.push(self.frame().f_locals)
+        self.push(self.frame.f_locals)
 
     ## Operators
 
@@ -751,7 +761,7 @@ class VirtualMachine(object):
         return why
 
     def byte_POP_BLOCK(self):
-        self.frame().block_stack.pop()
+        self.frame.block_stack.pop()
 
     def byte_RAISE_VARARGS(self, argc):
         exctype = value = tb = None
@@ -781,18 +791,18 @@ class VirtualMachine(object):
     def byte_MAKE_FUNCTION(self, argc):
         code = self.pop()
         defaults = self.popn(argc)
-        globs = self.frame().f_globals
+        globs = self.frame.f_globals
         fn = Function(code, globs, defaults, None, self)
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
-        self.push(self.frame().cells[name].cell)
+        self.push(self.frame.cells[name].cell)
 
     def byte_MAKE_CLOSURE(self, argc):
         code = self.pop()
         closure = self.pop()
         defaults = self.popn(argc)
-        globs = self.frame().f_globals
+        globs = self.frame.f_globals
         fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
         self.push(fn)
 
@@ -824,7 +834,7 @@ class VirtualMachine(object):
         posargs.extend(args)
 
         func = self.pop()
-        frame = self.frame()
+        frame = self.frame
         if hasattr(func, 'im_func'):
             # Methods get self as an implicit first parameter.
             if func.im_self:
@@ -852,8 +862,8 @@ class VirtualMachine(object):
 
     def byte_RETURN_VALUE(self):
         self.return_value = self.pop()
-        if self.frame().generator:
-            self.frame().generator.finished = True
+        if self.frame.generator:
+            self.frame.generator.finished = True
         return "return"
 
     def byte_YIELD_VALUE(self):
@@ -865,7 +875,7 @@ class VirtualMachine(object):
     def byte_IMPORT_NAME(self, name):
         fromlist = self.pop()
         level = self.pop()
-        frame = self.frame()
+        frame = self.frame
         self.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
 
     def byte_IMPORT_STAR(self):
@@ -873,7 +883,7 @@ class VirtualMachine(object):
         mod = self.pop()
         for attr in dir(mod):
             if attr[0] != '_':
-                self.frame().f_locals[attr] = getattr(mod, attr)
+                self.frame.f_locals[attr] = getattr(mod, attr)
 
     def byte_IMPORT_FROM(self, name):
         mod = self.peek()
@@ -895,4 +905,4 @@ class VirtualMachine(object):
 
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):
-            self.frame().f_lineno = lineno
+            self.frame.f_lineno = lineno
