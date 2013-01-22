@@ -750,15 +750,14 @@ class VirtualMachine(object):
             why = v
             if why in ('return', 'continue'):
                 self._returnValue = self.pop()
-        elif isinstance(v, BaseException):
+        elif v is None:
+            why = None
+        elif issubclass(v, BaseException):
             exctype = v
             value = self.pop()
             tb = self.pop()
             self._lastException = (exctype, value, tb)
             why = 'reraise'
-        else:
-            assert v is None
-            why = None
         return why
 
     def byte_POP_BLOCK(self):
@@ -775,7 +774,7 @@ class VirtualMachine(object):
         elif argc == 3:
             exctype, value, tb = self.pop(), self.pop(), self.pop()
 
-        # There are a number of forms of "raise", this normalizes everything.
+        # There are a number of forms of "raise", normalize them somewhat.
         if isinstance(exctype, BaseException):
             value = exctype
             exctype = type(value)
