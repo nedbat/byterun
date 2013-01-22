@@ -7,7 +7,7 @@ CO_GENERATOR = 32 # flag for "this code uses yield"
 
 class Function(object):
     def __init__(self, code, globs, defaults, closure, vm):
-        self._vm = vm
+        self.vm = vm
         self.func_code = code
         self.func_name = code.co_name
         self.func_defaults = defaults
@@ -35,47 +35,36 @@ class Function(object):
             else:
                 defArgCount = len(self.func_defaults)
                 args.extend(self.func_defaults[-(self.func_code.co_argcount - len(args)):])
-        frame = self._vm.make_frame(self.func_code, args, kw, self.func_globals, self.func_dict)
-        return self._vm.run_frame(frame)
+        frame = self.vm.make_frame(self.func_code, args, kw, self.func_globals, self.func_dict)
+        return self.vm.run_frame(frame)
 
 
 class Class(object):
     def __init__(self, name, bases, methods):
-        self._name = name
-        self._bases = bases
-        self._locals = methods
+        self.name = name
+        self.bases = bases
+        self.locals = methods
 
     def __call__(self, *args, **kw):
-        return Object(self, self._name, self._bases, self._locals, args, kw)
+        return Object(self, self.locals, args, kw)
 
     def __str__(self):
-        return '<class %s at 0x%08X>' % (self._name, id(self))
-
-    def isparent(self, obj):
-        if not isinstance(obj, Object):
-            return 0
-        if obj._class is self:
-            return 1
-        if self in obj._bases:
-            return 1
-        return 0
+        return '<class %s at 0x%08X>' % (self.name, id(self))
 
 
 class Object(object):
-    def __init__(self, _class, name, bases, methods, args, kw):
+    def __init__(self, _class, methods, args, kw):
         self._class = _class
-        self._name = name
-        self._bases = bases
-        self._locals = methods
+        self.locals = methods
         if methods.has_key('__init__'):
             methods['__init__'](self, *args, **kw)
 
     def __str__(self):
-        return '<%s instance at 0x%08X>' % (self._name, id(self))
+        return '<%s instance at 0x%08X>' % (self._class.name, id(self))
 
     def __getattr__(self, name):
         try:
-            val = self._locals[name]
+            val = self.locals[name]
         except KeyError:
             raise AttributeError
         if isinstance(val, Function):
@@ -91,11 +80,11 @@ class Method:
 
     def __str__(self):
         if self.im_self:
-            return '<bound method %s.%s of %s>' % (self.im_self._name,
+            return '<bound method %s.%s of %s>' % (self.im_self.name,
                                                    self.im_func.func_name,
                                                    str(self.im_self))
         else:
-            return '<unbound method %s.%s>' % (self.im_class._name,
+            return '<unbound method %s.%s>' % (self.im_class.name,
                                                self.im_func.func_name)
 
 
@@ -209,7 +198,7 @@ class VirtualMachine(object):
         self.stack = [] # current stack
         self.return_value = None
         self.last_exception = None
-        self.log = []
+        self._log = []
 
     def frame(self):
         return self.frames and self.frames[-1] or None
@@ -239,7 +228,7 @@ class VirtualMachine(object):
         self.frame().block_stack.append(Block(type, handler, len(self.stack)))
 
     def log(self, msg):
-        self.log.append(msg)
+        self._log.append(msg)
 
     def make_frame(self, code, args=[], kw={}, f_globals=None, f_locals=None):
         self.log("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))

@@ -61,9 +61,9 @@ class VmTestCase(unittest.TestCase):
             if not CAPTURE_EXCEPTION:       # pragma: no cover
                 raise
         finally:
-            if vm.log:                     # pragma: no branch
+            if vm._log:                     # pragma: no branch
                 real_stdout.write("-- VM log ----------\n")
-                real_stdout.write("\n".join(vm.log))
+                real_stdout.write("\n".join(vm._log))
                 real_stdout.write("\n")
             real_stdout.write("-- stdout ----------\n")
             real_stdout.write(vm_stdout.getvalue())
