@@ -1,14 +1,16 @@
 """Testing tools for byterun."""
 
+from __future__ import print_function
+
 import dis
 import sys
 import textwrap
 import types
 import unittest
-from cStringIO import StringIO
+
+import six
 
 from byterun.pyvm2 import VirtualMachine, VirtualMachineError
-
 
 # Make this false if you need to run the debugger inside a test.
 CAPTURE_STDOUT = 1
@@ -22,8 +24,8 @@ def dis_code(code):
         if isinstance(const, types.CodeType):
             dis_code(const)
 
-    print
-    print code
+    print("")
+    print(code)
     dis.dis(code)
 
 
@@ -42,7 +44,7 @@ class VmTestCase(unittest.TestCase):
 
         # Run the code through our VM.
 
-        vm_stdout = StringIO()
+        vm_stdout = six.StringIO()
         if CAPTURE_STDOUT:              # pragma: no branch
             sys.stdout = vm_stdout
         vm = VirtualMachine()
@@ -56,10 +58,11 @@ class VmTestCase(unittest.TestCase):
         except AssertionError:              # pragma: no cover
             # If test code fails an assert, show it.
             raise
-        except Exception, vm_exc:
+        except Exception as e:
             # Otherwise, keep the exception for comparison later.
             if not CAPTURE_EXCEPTION:       # pragma: no cover
                 raise
+            vm_exc = e
         finally:
             if vm._log:                     # pragma: no branch
                 real_stdout.write("-- VM log ----------\n")
@@ -70,7 +73,7 @@ class VmTestCase(unittest.TestCase):
 
         # Run the code through the real Python interpreter, for comparison.
 
-        py_stdout = StringIO()
+        py_stdout = six.StringIO()
         sys.stdout = py_stdout
 
         py_value = py_exc = None
@@ -78,8 +81,8 @@ class VmTestCase(unittest.TestCase):
             py_value = eval(code)
         except AssertionError:              # pragma: no cover
             raise
-        except Exception, py_exc:
-            pass
+        except Exception as e:
+            py_exc = e
 
         sys.stdout = real_stdout
 

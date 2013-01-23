@@ -2,21 +2,39 @@
 # Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
-import collections, operator, dis, new, inspect, sys, types
+from __future__ import print_function
+import collections, operator, dis, inspect, sys, types
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
+import six
+
+PY3, PY2 = six.PY3, not six.PY3
+
+def make_cell(value):
+    # Thanks to Alex Gaynor for help with this bit of twistiness.
+    # Construct an actual cell object by creating a closure right here,
+    # and grabbing the cell object out of the function we create.
+    fn = (lambda x: lambda: x)(value)
+    if PY3:
+        return fn.__closure__[0]
+    else:
+        return fn.func_closure[0]
+
 class Function(object):
-    def __init__(self, code, globs, defaults, closure, vm):
+    def __init__(self, name, code, globs, defaults, closure, vm):
         self.vm = vm
         self.func_code = code
-        self.func_name = code.co_name
+        self.func_name = name or code.co_name
         self.func_defaults = defaults
         self.func_globals = globs
         self.func_dict = vm.frame.f_locals
         self.func_closure = closure
 
         # Sometimes, we need a real Python function.  This is for that.
-        self.func = types.FunctionType(code, globs, argdefs=tuple(defaults))
+        kw = {}
+        if closure:
+            kw['closure'] = tuple(make_cell(0) for _ in closure)
+        self.func = types.FunctionType(code, globs, argdefs=tuple(defaults), **kw)
 
     def __str__(self):
         return '<function %s at 0x%08X>' % (self.func_name, id(self))
@@ -30,8 +48,8 @@ class Function(object):
                     argCount = 'exactly 1 argument'
                 else:
                     argCount = 'exactly %i arguments' % self.func_code.co_argcount
-                raise TypeError, '%s() takes %s (%s given)' % (self.func_name,
-                                                               argCount, len(args))
+                raise TypeError('%s() takes %s (%s given)' % (self.func_name,
+                                                               argCount, len(args)))
             else:
                 defArgCount = len(self.func_defaults)
                 args.extend(self.func_defaults[-(self.func_code.co_argcount - len(args)):])
@@ -56,7 +74,7 @@ class Object(object):
     def __init__(self, _class, methods, args, kw):
         self._class = _class
         self.locals = methods
-        if methods.has_key('__init__'):
+        if '__init__' in methods:
             methods['__init__'](self, *args, **kw)
 
     def __str__(self):
@@ -108,18 +126,13 @@ class Cell(object):
 
     """
     def __init__(self, value):
-        # Thanks to Alex Gaynor for help with this bit of twistiness.
-        # Construct an actual cell object by creating a closure right here,
-        # and grabbing the cell object out of the function we create.
-        # Note the [value] that makes a one-element list so we have
-        # writability later.
-        self.cell = (lambda x: lambda: x)([value]).func_closure[0]
+        self.contents = value
 
     def get(self):
-        return self.cell.cell_contents[0]
+        return self.contents
 
     def set(self, value):
-        self.cell.cell_contents[0] = value
+        self.contents = value
 
 
 Block = collections.namedtuple("Block", "type, handler, level")
@@ -188,6 +201,11 @@ class Generator(object):
 
 
 
+if six.PY3:
+    byteint = lambda b: b
+else:
+    byteint = ord
+
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
     pass
@@ -245,12 +263,12 @@ class VirtualMachine(object):
         for i in range(code.co_argcount):
             name = code.co_varnames[i]
             if i < len(args):
-                if kw.has_key(name):
+                if name in kw:
                     raise TypeError("got multiple values for keyword argument '%s'" % name)
                 else:
                     f_locals[name] = args[i]
             else:
-                if kw.has_key(name):
+                if name in kw:
                     f_locals[name] = kw[name]
                 else:
                     raise TypeError("did not get value for argument '%s'" % name)
@@ -276,14 +294,12 @@ class VirtualMachine(object):
 
     def run_code(self, code):
         frame = self.make_frame(code)
-        try:
-            val = self.run_frame(frame)
-        finally:
-            # Check some invariants
-            if self.frames:            # pragma: no cover
-                raise VirtualMachineError("Frames left over!")
-            if self.stack:             # pragma: no cover
-                raise VirtualMachineError("Data left on stack! %r" % self.stack)
+        val = self.run_frame(frame)
+        # Check some invariants
+        if self.frames:            # pragma: no cover
+            raise VirtualMachineError("Frames left over!")
+        if self.stack:             # pragma: no cover
+            raise VirtualMachineError("Data left on stack! %r" % self.stack)
 
         return val
 
@@ -296,16 +312,15 @@ class VirtualMachine(object):
         self.push_frame(frame)
         while True:
             opoffset = frame.f_lasti
-            byte = frame.f_code.co_code[opoffset]
+            byteCode = byteint(frame.f_code.co_code[opoffset])
             frame.f_lasti += 1
-            byteCode = ord(byte)
             byteName = dis.opname[byteCode]
             arg = None
             arguments = []
             if byteCode >= dis.HAVE_ARGUMENT:
                 arg = frame.f_code.co_code[frame.f_lasti:frame.f_lasti+2]
                 frame.f_lasti += 2
-                intArg = ord(arg[0]) + (ord(arg[1])<<8)
+                intArg = byteint(arg[0]) + (byteint(arg[1])<<8)
                 if byteCode in dis.hasconst:
                     arg = frame.f_code.co_consts[intArg]
                 elif byteCode in dis.hasfree:
@@ -342,7 +357,7 @@ class VirtualMachine(object):
                     self.binaryOperator(byteName[7:])
                 elif byteName.startswith('INPLACE_'):
                     self.inplaceOperator(byteName[8:])
-                elif 'SLICE' in byteName:
+                elif PY2 and 'SLICE' in byteName:
                     self.sliceOperator(byteName)
                 else:
                     # dispatch
@@ -407,7 +422,7 @@ class VirtualMachine(object):
         self.pop_frame()
 
         if why == 'exception':
-            raise self.last_exception[0], self.last_exception[1], self.last_exception[2]
+            six.reraise(*self.last_exception)
 
         return self.return_value
 
@@ -427,6 +442,13 @@ class VirtualMachine(object):
         for i in [1, 2]:
             for x in items:
                 self.push(x)
+
+    def byte_DUP_TOP_TWO(self):
+        x, y = self.popn(2)
+        self.push(x)
+        self.push(y)
+        self.push(x)
+        self.push(y)
 
     def byte_ROT_TWO(self):
         a = self.pop()
@@ -456,11 +478,11 @@ class VirtualMachine(object):
 
     def byte_LOAD_NAME(self, name):
         frame = self.frame
-        if frame.f_locals.has_key(name):
+        if name in frame.f_locals:
             item = frame.f_locals[name]
-        elif frame.f_globals.has_key(name):
+        elif name in frame.f_globals:
             item = frame.f_globals[name]
-        elif frame.f_builtins.has_key(name):
+        elif name in frame.f_builtins:
             item = frame.f_builtins[name]
         else:
             raise NameError("name '%s' is not defined" % name)
@@ -478,11 +500,14 @@ class VirtualMachine(object):
     def byte_STORE_FAST(self, name):
         self.frame.f_locals[name] = self.pop()
 
+    def byte_DELETE_FAST(self, name):
+        del self.frame.f_locals[name]
+
     def byte_LOAD_GLOBAL(self, name):
         f = self.frame
-        if f.f_globals.has_key(name):
+        if name in f.f_globals:
             self.push(f.f_globals[name])
-        elif f.f_builtins.has_key(name):
+        elif name in f.f_builtins:
             self.push(f.f_builtins[name])
         else:
             raise NameError("global name '%s' is not defined" % name)
@@ -513,7 +538,9 @@ class VirtualMachine(object):
     BINARY_OPERATORS = {
         'POWER':    pow,
         'MULTIPLY': operator.mul,
-        'DIVIDE':   operator.div,
+        'DIVIDE':   getattr(operator, 'div', lambda x,y:None),
+        'FLOOR_DIVIDE': operator.floordiv,
+        'TRUE_DIVIDE':  operator.truediv,
         'MODULO':   operator.mod,
         'ADD':      operator.add,
         'SUBTRACT': operator.sub,
@@ -530,27 +557,34 @@ class VirtualMachine(object):
         two = self.pop()
         self.push(self.BINARY_OPERATORS[op](two, one))
 
-    INPLACE_OPERATORS = { # these are execed
-        'POWER':    'x **= y',
-        'MULTIPLY': 'x *= y',
-        'DIVIDE':   'x /= y',
-        'MODULO':   'x %= y',
-        'ADD':      'x += y',
-        'SUBTRACT': 'x -= y',
-        'LSHIFT':   'x >>= y',
-        'RSHIFT':   'x <<= y',
-        'AND':      'x &= y',
-        'XOR':      'x ^= y',
-        'OR':       'x |= y',
-    }
-        
     def inplaceOperator(self, op):
         y = self.pop()
         x = self.pop()
-        # Isn't there a better way than exec?? :(
-        vars = {'x':x, 'y':y}
-        exec self.INPLACE_OPERATORS[op] in vars
-        self.push(vars['x'])
+        if op == 'POWER':
+            x **= y
+        elif op == 'MULTIPLY':
+            x *= y
+        elif op == 'DIVIDE':
+            x /= y
+        elif op == 'MODULO':
+            x %= y
+        elif op == 'ADD':
+            x += y
+        elif op == 'SUBTRACT':
+            x -= y
+        elif op == 'LSHIFT':
+            x >>= y
+        elif op == 'RSHIFT':
+            x <<= y
+        elif op == 'AND':
+            x &= y
+        elif op == 'XOR':
+            x ^= y
+        elif op == 'OR':
+            x |= y
+        else:
+            raise VirtualMachineError("Unknown in-place operator: %r" % op)
+        self.push(x)
 
     def sliceOperator(self, op):
         start = 0
@@ -644,26 +678,37 @@ class VirtualMachine(object):
         for x in reversed(l):
             self.push(x)
 
+    def byte_BUILD_SLICE(self, count):
+        # New in Py3
+        if count == 2:
+            x, y = self.popn(2)
+            self.push(slice(x, y))
+        elif count == 3:
+            x, y, z = self.popn(3)
+            self.push(slice(x, y, z))
+        else:
+            raise VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
+
     ## Printing
 
     if 0:   # Only used in the interactive interpreter, not in modules.
         def byte_PRINT_EXPR(self):
-            print self.pop()
+            print(self.pop())
 
     def byte_PRINT_ITEM(self):
-        print self.pop(),
+        print(self.pop(), end="")
 
     def byte_PRINT_ITEM_TO(self):
         item = self.pop()
         to = self.peek()
-        print >>to, item,
+        print(item, end="", file=to)
 
     def byte_PRINT_NEWLINE(self):
-        print
+        print()
 
     def byte_PRINT_NEWLINE_TO(self):
         to = self.peek()
-        print >>to , ''
+        print("", file=to)
 
     ## Jumps
 
@@ -719,7 +764,7 @@ class VirtualMachine(object):
     def byte_FOR_ITER(self, jump):
         iterobj = self.peek()
         try:
-            v = iterobj.next()
+            v = next(iterobj)
             self.push(v)
         except StopIteration:
             self.pop()
@@ -789,21 +834,30 @@ class VirtualMachine(object):
     ## Functions
 
     def byte_MAKE_FUNCTION(self, argc):
+        if PY3:
+            name = self.pop()
+        else:
+            name = None
         code = self.pop()
         defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(code, globs, defaults, None, self)
+        fn = Function(name, code, globs, defaults, None, self)
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
-        self.push(self.frame.cells[name].cell)
+        self.push(self.frame.cells[name])
 
     def byte_MAKE_CLOSURE(self, argc):
+        if PY3:
+            # TODO: the py3 docs don't mention this change.
+            name = self.pop()
+        else:
+            name = None
         code = self.pop()
         closure = self.pop()
         defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = types.FunctionType(code, globs, argdefs=tuple(defaults), closure=closure)
+        fn = Function(None, code, globs, defaults, closure, self)
         self.push(fn)
 
     def byte_CALL_FUNCTION(self, arg):
@@ -825,7 +879,7 @@ class VirtualMachine(object):
     def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
         namedargs = {}
-        for i in xrange(lenKw):
+        for i in range(lenKw):
             value = self.pop()
             key = self.pop()
             namedargs[key] = value
@@ -895,13 +949,20 @@ class VirtualMachine(object):
         one = self.pop()
         two = self.pop()
         three = self.pop()
-        exec three in two, one
+        six.exec_(three, two, one)
 
     def byte_BUILD_CLASS(self):
         methods = self.pop()
         bases = self.pop()
         name = self.pop()
         self.push(Class(name, bases, methods))
+
+    def byte_LOAD_BUILD_CLASS(self):
+        # New in py3
+        self.push(__build_class__)
+
+    def byte_STORE_LOCALS(self):
+        self.frame.f_locals = self.pop()
 
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):
