@@ -198,7 +198,7 @@ class Generator(object):
         if self.finished:
             raise StopIteration
         return val
-
+    __next__ = next
 
 
 if six.PY3:
