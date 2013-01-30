@@ -1,3 +1,4 @@
 [run]
 branch = true
 source = .
+omit = .tox/*
