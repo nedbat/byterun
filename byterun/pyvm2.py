@@ -390,6 +390,10 @@ class VirtualMachine(object):
 
                 frame.block_stack.pop()
 
+                #if block.type == 'except':
+                #    self.unwind_except_handler(block)
+                #    continue
+
                 while len(self.stack) > block.level:
                     self.pop()
 
@@ -398,7 +402,7 @@ class VirtualMachine(object):
                     self.jump(block.handler)
                     break
 
-                if (block.type == 'finally' or 
+                if (block.type == 'finally' or
                     (block.type == 'except' and why == 'exception') or
                     block.type == 'with'):
 
@@ -425,6 +429,14 @@ class VirtualMachine(object):
             six.reraise(*self.last_exception)
 
         return self.return_value
+
+    def unwind_except_handler(self, block):
+        while len(self.stack) > block.level + 3:
+            self.pop()
+        exctype = self.pop()
+        value = self.pop()
+        tb = self.pop()
+        self.last_exception = exctype, value, tb
 
     ## Stack manipulation
 
@@ -620,7 +632,7 @@ class VirtualMachine(object):
         lambda x,y: x is not y,
         lambda x,y: issubclass(x, Exception) and issubclass(x, y)
     ]
-        
+
     def byte_COMPARE_OP(self, opnum):
         one = self.pop()
         two = self.pop()
@@ -830,6 +842,23 @@ class VirtualMachine(object):
             return 'reraise'
         else:
             return 'exception'
+
+    def byte_RAISE_VARARGS_py3(self, argc):
+        cause = exc = None
+        if argc == 2:
+            cause = pop()
+            exc = pop()
+        elif argc == 1:
+            exc = pop()
+        # do raise
+        if exc is None:
+            derp
+
+    def byte_POP_EXCEPT(self):
+        block = self.frame.block_stack.pop()
+        if block.type != 'except':
+            raise Exception("popped block is not an except handler")
+        self.unwind_except_handler(block)
 
     ## Functions
 
