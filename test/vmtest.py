@@ -77,8 +77,9 @@ class VmTestCase(unittest.TestCase):
         sys.stdout = py_stdout
 
         py_value = py_exc = None
+        globs = {}
         try:
-            py_value = eval(code)
+            py_value = eval(code, globs, globs)
         except AssertionError:              # pragma: no cover
             raise
         except Exception as e:

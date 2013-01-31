@@ -164,6 +164,18 @@ class TestIt(vmtest.VmTestCase):
             fn(5, "b", "c")
             """)
 
+    def test_recursion(self):
+        self.assert_ok("""\
+            def fact(n):
+                if n <= 1:
+                    return 1
+                else:
+                    return n * fact(n-1)
+            f6 = fact(6)
+            print(f6)
+            assert f6 == 720
+            """)
+
     def test_args_kwargs_functions(self):
         self.assert_ok("""\
             def fn(a, b=17, c="Hello", d=[]):
