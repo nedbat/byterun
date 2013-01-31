@@ -507,3 +507,27 @@ class TestExceptions(vmtest.VmTestCase):
             print(l)
             assert l == [0, 'f', 'e', 1, 'f', 'e', 2, 'f', 'e', 'r']
             """)
+
+
+class TestWithStatement(vmtest.VmTestCase):
+    def test_coverage_bug_146(self):
+        self.assert_ok("""\
+            l = []
+            class NullContext(object):
+                def __enter__(self):
+                    l.append('i')
+                    return self
+
+                def __exit__(self, exc_type, exc_val, exc_tb):
+                    l.append('o')
+                    return False
+
+            for i in range(3):
+                with NullContext():
+                    l.append('w')
+                l.append('e')
+            l.append('r')
+            s = ''.join(l)
+            print(s)
+            assert s == "iwoeiwoeiwoer"
+            """)

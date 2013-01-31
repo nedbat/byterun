@@ -105,6 +105,9 @@ class Method:
             return '<unbound method %s.%s>' % (self.im_class.name,
                                                self.im_func.func_name)
 
+    def __call__(self, *args, **kwargs):
+        return self.im_func(self.im_self, *args, **kwargs)
+
 
 class Cell(object):
     """A fake cell for closures.
@@ -223,15 +226,28 @@ class VirtualMachine(object):
         self._log = []
 
     def peek(self):
+        """Return the value at the top of the stack, with no changes."""
         return self.stack[-1]
 
-    def pop(self):
-        return self.stack.pop()
+    def pop(self, i=0):
+        """Pop a value from the stack.
 
-    def push(self, thing):
-        self.stack.append(thing)
+        Default to the top of the stack, but `i` can be a count from the top
+        instead.
+
+        """
+        return self.stack.pop(-1-i)
+
+    def push(self, val):
+        """Push a value onto the value stack."""
+        self.stack.append(val)
 
     def popn(self, n):
+        """Pop a number of values from the value stack.
+
+        A list of `n` values is returned, the deepest value first.
+
+        """
         if n:
             ret = self.stack[-n:]
             self.stack[-n:] = []
@@ -815,6 +831,8 @@ class VirtualMachine(object):
             tb = self.pop()
             self.last_exception = (exctype, value, tb)
             why = 'reraise'
+        else:       # pragma: no cover
+            raise VirtualMachineError("Confused END_FINALLY")
         return why
 
     def byte_POP_BLOCK(self):
@@ -859,6 +877,42 @@ class VirtualMachine(object):
         if block.type != 'except':
             raise Exception("popped block is not an except handler")
         self.unwind_except_handler(block)
+
+    def byte_SETUP_WITH(self, dest):
+        ctxmgr = self.pop()
+        self.push(ctxmgr.__exit__)
+        ctxmgr_obj = ctxmgr.__enter__()
+        self.push_block('with', dest)
+        self.push(ctxmgr_obj)
+
+    def byte_WITH_CLEANUP(self):
+        # The code here does some weird stack manipulation: the exit function
+        # is buried in the stack, and where depends on what's on top of it.
+        # Pull out the exit function, and leave the rest in place.
+        v = w = None
+        u = self.peek()
+        if u is None:
+            exit_func = self.pop(1)
+        elif isinstance(u, str):
+            if u in ('return', 'continue'):
+                exit_func = self.pop(2)
+            else:
+                exit_func = self.pop(1)
+            u = None
+        elif issubclass(v, BaseException):
+            u, v, w = self.popn(3)
+            exit_func = self.pop()
+            self.push(u)
+            self.push(v)
+            self.push(w)
+        else:       # pragma: no cover
+            raise VirtualMachineError("Confused WITH_CLEANUP")
+        exit_ret = exit_func(u, v, w)
+        err = (u is not None) and bool(exit_ret)
+        if err:
+            # An error occurred, and was suppressed, pop it from the stack.
+            self.popn(3)
+            self.push(None)
 
     ## Functions
 
