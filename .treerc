@@ -1,0 +1,6 @@
+[default]
+ignore =
+    *.pyc
+    __pycache__
+    .tox
+    htmlcov
