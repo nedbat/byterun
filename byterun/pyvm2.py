@@ -36,7 +36,7 @@ class Function(object):
             kw['closure'] = tuple(make_cell(0) for _ in closure)
         self.func = types.FunctionType(code, globs, argdefs=tuple(defaults), **kw)
 
-    def __str__(self):
+    def __repr__(self):
         return '<function %s at 0x%08X>' % (self.func_name, id(self))
 
     def __call__(self, *args, **kw):
@@ -66,7 +66,7 @@ class Class(object):
     def __call__(self, *args, **kw):
         return Object(self, self.locals, args, kw)
 
-    def __str__(self):
+    def __repr__(self):
         return '<class %s at 0x%08X>' % (self.name, id(self))
 
 
@@ -77,14 +77,14 @@ class Object(object):
         if '__init__' in methods:
             methods['__init__'](self, *args, **kw)
 
-    def __str__(self):
+    def __repr__(self):
         return '<%s instance at 0x%08X>' % (self._class.name, id(self))
 
     def __getattr__(self, name):
         try:
             val = self.locals[name]
         except KeyError:
-            raise AttributeError
+            raise AttributeError("Object %r has no attribute %r" % (self, name))
         if isinstance(val, Function):
             val = Method(self, self._class, val)
         return val
@@ -96,14 +96,12 @@ class Method:
         self.im_class = _class
         self.im_func = func
 
-    def __str__(self):
+    def __repr__(self):
+        name = "%s.%s" % (self.im_class.name, self.im_func.func_name)
         if self.im_self:
-            return '<bound method %s.%s of %s>' % (self.im_self.name,
-                                                   self.im_func.func_name,
-                                                   str(self.im_self))
+            return '<bound method %s of %s>' % (name, self.im_self)
         else:
-            return '<unbound method %s.%s>' % (self.im_class.name,
-                                               self.im_func.func_name)
+            return '<unbound method %s>' % (name,)
 
     def __call__(self, *args, **kwargs):
         return self.im_func(self.im_self, *args, **kwargs)
@@ -176,7 +174,7 @@ class Frame(object):
         self.block_stack = []
         self.generator = None
 
-    def __str__(self):
+    def __repr__(self):
         return '<frame object at 0x%08X>' % id(self)
 
 
@@ -357,10 +355,10 @@ class VirtualMachine(object):
                 arguments = [arg]
 
             if 1:
-                op = "%d: %s" % (opoffset, byteName)
+                op = "%4d: %s" % (opoffset, byteName)
                 if arguments:
                     op += " %r" % (arguments[0],)
-                self.log("%s%40s %r" % ("  "*(len(self.frames)-1), op, self.stack))
+                self.log("%-40s %s%r" % (op, "    "*(len(self.frames)-1), self.stack))
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.

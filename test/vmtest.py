@@ -35,7 +35,7 @@ class VmTestCase(unittest.TestCase):
         """Run `code` in the VM, and in the real Python, and see that they behave the same."""
 
         code = textwrap.dedent(code)
-        code = compile(code, "<string>", "exec")
+        code = compile(code, "<%s>" % self.id(), "exec")
 
         # Print the disassembly so we'll see it if the test fails.
         dis_code(code)
