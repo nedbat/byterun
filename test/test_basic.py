@@ -405,10 +405,10 @@ class TestExceptions(vmtest.VmTestCase):
             """)
 
     def test_raise_exception(self):
-        self.assert_ok("raise Exception('oops')")
+        self.assert_ok("raise Exception('oops')", raises=Exception)
 
     def test_raise_exception_class(self):
-        self.assert_ok("raise ValueError")
+        self.assert_ok("raise ValueError", raises=ValueError)
 
     def test_raise_and_catch_exception(self):
         self.assert_ok("""\
@@ -432,7 +432,7 @@ class TestExceptions(vmtest.VmTestCase):
             """)
 
     def test_global_name_error(self):
-        self.assert_ok("fooey")
+        self.assert_ok("fooey", raises=NameError)
         self.assert_ok("""\
             try:
                 fooey
@@ -446,7 +446,7 @@ class TestExceptions(vmtest.VmTestCase):
             def fn():
                 fooey
             fn()
-            """)
+            """, raises=NameError)
 
     def test_catch_local_name_error(self):
         self.assert_ok("""\
@@ -469,7 +469,7 @@ class TestExceptions(vmtest.VmTestCase):
                     print("No fooey")
                     raise
             fn()
-            """)
+            """, raises=NameError)
 
     def test_reraise_explicit_exception(self):
         self.assert_ok("""\
@@ -480,7 +480,7 @@ class TestExceptions(vmtest.VmTestCase):
                     print("Caught %s" % e)
                     raise
             fn()
-            """)
+            """, raises=ValueError)
 
     def test_finally_while_throwing(self):
         self.assert_ok("""\
@@ -492,7 +492,7 @@ class TestExceptions(vmtest.VmTestCase):
                     print("Finally")
             fn()
             print("Done")
-            """)
+            """, raises=ValueError)
 
     def test_coverage_issue_92(self):
         self.assert_ok("""\
@@ -510,9 +510,9 @@ class TestExceptions(vmtest.VmTestCase):
 
 
 class TestWithStatement(vmtest.VmTestCase):
-    def test_coverage_bug_146(self):
+
+    def test_simple_context_manager(self):
         self.assert_ok("""\
-            l = []
             class NullContext(object):
                 def __enter__(self):
                     l.append('i')
@@ -522,12 +522,13 @@ class TestWithStatement(vmtest.VmTestCase):
                     l.append('o')
                     return False
 
+            l = []
             for i in range(3):
                 with NullContext():
                     l.append('w')
                 l.append('e')
             l.append('r')
             s = ''.join(l)
-            print(s)
+            print("Look: %r" % s)
             assert s == "iwoeiwoeiwoer"
             """)

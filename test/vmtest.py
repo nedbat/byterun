@@ -31,7 +31,7 @@ def dis_code(code):
 
 class VmTestCase(unittest.TestCase):
 
-    def assert_ok(self, code):
+    def assert_ok(self, code, raises=None):
         """Run `code` in the VM, and in the real Python, and see that they behave the same."""
 
         code = textwrap.dedent(code)
@@ -90,6 +90,10 @@ class VmTestCase(unittest.TestCase):
         self.assert_same_exception(vm_exc, py_exc)
         self.assertEqual(vm_stdout.getvalue(), py_stdout.getvalue())
         self.assertEqual(vm_value, py_value)
+        if raises:
+            self.assertIsInstance(vm_exc, raises)
+        else:
+            self.assertIsNone(vm_exc)
 
     def assert_same_exception(self, e1, e2):
         """Exceptions don't implement __eq__, check it ourselves."""
