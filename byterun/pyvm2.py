@@ -897,12 +897,12 @@ class VirtualMachine(object):
             else:
                 exit_func = self.pop(1)
             u = None
-        elif issubclass(v, BaseException):
-            u, v, w = self.popn(3)
+        elif issubclass(u, BaseException):
+            w, v, u = self.popn(3)
             exit_func = self.pop()
-            self.push(u)
-            self.push(v)
             self.push(w)
+            self.push(v)
+            self.push(u)
         else:       # pragma: no cover
             raise VirtualMachineError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
