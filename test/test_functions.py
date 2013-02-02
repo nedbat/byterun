@@ -69,12 +69,12 @@ class TestClosures(vmtest.VmTestCase):
             def make_fns(x):
                 fns = []
                 for i in range(x):
-                    fns.append(lambda: i)
+                    fns.append(lambda i=i: i)
                 return fns
             fns = make_fns(3)
             for f in fns:
                 print(f())
-            assert fns[0]() == fns[1]() == fns[2]() == 2
+            assert (fns[0](), fns[1](), fns[2]()) == (0, 1, 2)
             """)
 
     def test_closures_with_defaults(self):

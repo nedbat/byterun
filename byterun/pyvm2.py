@@ -34,7 +34,7 @@ class VirtualMachine(object):
         self.last_exception = None
         self._log = []
 
-    def peek(self):
+    def top(self):
         """Return the value at the top of the stack, with no changes."""
         return self.stack[-1]
 
@@ -47,9 +47,9 @@ class VirtualMachine(object):
         """
         return self.stack.pop(-1-i)
 
-    def push(self, val):
-        """Push a value onto the value stack."""
-        self.stack.append(val)
+    def push(self, *vals):
+        """Push values onto the value stack."""
+        self.stack.extend(vals)
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -233,9 +233,7 @@ class VirtualMachine(object):
 
                     if why == 'exception':
                         exctype, value, tb = self.last_exception
-                        self.push(tb)
-                        self.push(value)
-                        self.push(exctype)
+                        self.push(tb, value, exctype)
                     else:
                         if why in ('return', 'continue'):
                             self.push(self.return_value)
@@ -272,59 +270,43 @@ class VirtualMachine(object):
         self.pop()
 
     def byte_DUP_TOP(self):
-        self.push(self.peek())
+        self.push(self.top())
 
     def byte_DUP_TOPX(self, count):
         items = self.popn(count)
         for i in [1, 2]:
-            for x in items:
-                self.push(x)
+            self.push(*items)
 
     def byte_DUP_TOP_TWO(self):
         # Py3 only
-        x, y = self.popn(2)
-        self.push(x)
-        self.push(y)
-        self.push(x)
-        self.push(y)
+        a, b = self.popn(2)
+        self.push(a, b, a, b)
 
     def byte_ROT_TWO(self):
-        a = self.pop()
-        b = self.pop()
-        self.push(a)
-        self.push(b)
+        a, b = self.popn(2)
+        self.push(b, a)
 
     def byte_ROT_THREE(self):
-        a = self.pop()
-        b = self.pop()
-        c = self.pop()
-        self.push(a)
-        self.push(c)
-        self.push(b)
+        a, b, c = self.popn(3)
+        self.push(c, a, b)
 
     def byte_ROT_FOUR(self):
-        a = self.pop()
-        b = self.pop()
-        c = self.pop()
-        d = self.pop()
-        self.push(a)
-        self.push(d)
-        self.push(c)
-        self.push(b)
+        a, b, c, d = self.popn(4)
+        self.push(d, a, b, c)
 
     ## Names
 
     def byte_LOAD_NAME(self, name):
         frame = self.frame
         if name in frame.f_locals:
-            value = frame.f_locals[name]
+            val = frame.f_locals[name]
         elif name in frame.f_globals:
-            value = frame.f_globals[name]
+            val = frame.f_globals[name]
         elif name in frame.f_builtins:
-            value = frame.f_builtins[name]
+            val = frame.f_builtins[name]
         else:
             raise NameError("name '%s' is not defined" % name)
-        self.push(value)
+        self.push(val)
 
     def byte_STORE_NAME(self, name):
         self.frame.f_locals[name] = self.pop()
@@ -334,10 +316,10 @@ class VirtualMachine(object):
 
     def byte_LOAD_FAST(self, name):
         if name in self.frame.f_locals:
-            value = self.frame.f_locals[name]
+            val = self.frame.f_locals[name]
         else:
             raise UnboundLocalError("local variable '%s' referenced before assignment" % name)
-        self.push(value)
+        self.push(val)
 
     def byte_STORE_FAST(self, name):
         self.frame.f_locals[name] = self.pop()
@@ -348,12 +330,12 @@ class VirtualMachine(object):
     def byte_LOAD_GLOBAL(self, name):
         f = self.frame
         if name in f.f_globals:
-            value = f.f_globals[name]
+            val = f.f_globals[name]
         elif name in f.f_builtins:
-            value = f.f_builtins[name]
+            val = f.f_builtins[name]
         else:
             raise NameError("global name '%s' is not defined" % name)
-        self.push(value)
+        self.push(val)
 
     def byte_LOAD_DEREF(self, name):
         self.push(self.frame.cells[name].get())
@@ -463,9 +445,8 @@ class VirtualMachine(object):
     ]
 
     def byte_COMPARE_OP(self, opnum):
-        one = self.pop()
-        two = self.pop()
-        self.push(self.COMPARE_OPERATORS[opnum](two, one))
+        x, y = self.popn(2)
+        self.push(self.COMPARE_OPERATORS[opnum](x, y))
 
     ## Attributes and indexing
 
@@ -475,23 +456,20 @@ class VirtualMachine(object):
         self.push(val)
 
     def byte_STORE_ATTR(self, name):
-        obj = self.pop()
-        setattr(obj, name, self.pop())
+        val, obj = self.popn(2)
+        setattr(obj, name, val)
 
     def byte_DELETE_ATTR(self, name):
         obj = self.pop()
         delattr(obj, name)
 
     def byte_STORE_SUBSCR(self):
-        ind = self.pop()
-        l = self.pop()
-        item = self.pop()
-        l[ind] = item
+        val, obj, subscr = self.popn(3)
+        obj[subscr] = val
 
     def byte_DELETE_SUBSCR(self):
-        ind = self.pop()
-        l = self.pop()
-        del l[ind]
+        obj, subscr = self.popn(2)
+        del obj[subscr]
 
     ## Building
 
@@ -508,15 +486,13 @@ class VirtualMachine(object):
         self.push({})
 
     def byte_STORE_MAP(self):
-        key = self.pop()
-        value = self.pop()
-        the_map = self.pop()
-        the_map[key] = value
+        the_map, val, key = self.popn(3)
+        the_map[key] = val
         self.push(the_map)
 
     def byte_UNPACK_SEQUENCE(self, count):
-        l = self.pop()
-        for x in reversed(l):
+        seq = self.pop()
+        for x in reversed(seq):
             self.push(x)
 
     def byte_BUILD_SLICE(self, count):
@@ -541,14 +517,14 @@ class VirtualMachine(object):
 
     def byte_PRINT_ITEM_TO(self):
         item = self.pop()
-        to = self.peek()
+        to = self.top()
         print(item, end="", file=to)
 
     def byte_PRINT_NEWLINE(self):
         print()
 
     def byte_PRINT_NEWLINE_TO(self):
-        to = self.peek()
+        to = self.top()
         print("", file=to)
 
     ## Jumps
@@ -561,12 +537,12 @@ class VirtualMachine(object):
 
     if 0:   # Not in py2.7
         def byte_JUMP_IF_TRUE(self, jump):
-            val = self.peek()
+            val = self.top()
             if val:
                 self.jump(jump)
 
         def byte_JUMP_IF_FALSE(self, jump):
-            val = self.peek()
+            val = self.top()
             if not val:
                 self.jump(jump)
 
@@ -581,14 +557,14 @@ class VirtualMachine(object):
             self.jump(jump)
 
     def byte_JUMP_IF_TRUE_OR_POP(self, jump):
-        val = self.peek()
+        val = self.top()
         if val:
             self.jump(jump)
         else:
             self.pop()
 
     def byte_JUMP_IF_FALSE_OR_POP(self, jump):
-        val = self.peek()
+        val = self.top()
         if not val:
             self.jump(jump)
         else:
@@ -603,7 +579,7 @@ class VirtualMachine(object):
         self.push(iter(self.pop()))
 
     def byte_FOR_ITER(self, jump):
-        iterobj = self.peek()
+        iterobj = self.top()
         try:
             v = next(iterobj)
             self.push(v)
@@ -640,9 +616,9 @@ class VirtualMachine(object):
             why = None
         elif issubclass(v, BaseException):
             exctype = v
-            value = self.pop()
+            val = self.pop()
             tb = self.pop()
-            self.last_exception = (exctype, value, tb)
+            self.last_exception = (exctype, val, tb)
             why = 'reraise'
         else:       # pragma: no cover
             raise VirtualMachineError("Confused END_FINALLY")
@@ -652,22 +628,22 @@ class VirtualMachine(object):
         self.frame.block_stack.pop()
 
     def byte_RAISE_VARARGS(self, argc):
-        exctype = value = tb = None
+        exctype = val = tb = None
         if argc == 0:
-            exctype, value, tb = self.last_exception
+            exctype, val, tb = self.last_exception
         elif argc == 1:
             exctype = self.pop()
         elif argc == 2:
-            exctype, value = self.pop(), self.pop()
+            exctype, val = self.pop(), self.pop()
         elif argc == 3:
-            exctype, value, tb = self.pop(), self.pop(), self.pop()
+            exctype, val, tb = self.pop(), self.pop(), self.pop()
 
         # There are a number of forms of "raise", normalize them somewhat.
         if isinstance(exctype, BaseException):
-            value = exctype
-            exctype = type(value)
+            val = exctype
+            exctype = type(val)
 
-        self.last_exception = (exctype, value, tb)
+        self.last_exception = (exctype, val, tb)
 
         if tb:
             return 'reraise'
@@ -703,7 +679,7 @@ class VirtualMachine(object):
         # is buried in the stack, and where depends on what's on top of it.
         # Pull out the exit function, and leave the rest in place.
         v = w = None
-        u = self.peek()
+        u = self.top()
         if u is None:
             exit_func = self.pop(1)
         elif isinstance(u, str):
@@ -715,9 +691,7 @@ class VirtualMachine(object):
         elif issubclass(u, BaseException):
             w, v, u = self.popn(3)
             exit_func = self.pop()
-            self.push(w)
-            self.push(v)
-            self.push(u)
+            self.push(w, v, u)
         else:       # pragma: no cover
             raise VirtualMachineError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
@@ -749,8 +723,7 @@ class VirtualMachine(object):
             name = self.pop()
         else:
             name = None
-        code = self.pop()
-        closure = self.pop()
+        closure, code = self.popn(2)
         defaults = self.popn(argc)
         globs = self.frame.f_globals
         fn = Function(None, code, globs, defaults, closure, self)
@@ -768,17 +741,15 @@ class VirtualMachine(object):
         return self.call_function(arg, [], kwargs)
 
     def byte_CALL_FUNCTION_VAR_KW(self, arg):
-        kwargs = self.pop()
-        args = self.pop()
+        args, kwargs = self.popn(2)
         return self.call_function(arg, args, kwargs)
 
     def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
         namedargs = {}
         for i in range(lenKw):
-            value = self.pop()
-            key = self.pop()
-            namedargs[key] = value
+            key, val = self.popn(2)
+            namedargs[key] = val
         namedargs.update(kwargs)
         posargs = self.popn(lenPos)
         posargs.extend(args)
@@ -823,8 +794,7 @@ class VirtualMachine(object):
     ## Importing
 
     def byte_IMPORT_NAME(self, name):
-        fromlist = self.pop()
-        level = self.pop()
+        level, fromlist = self.popn(2)
         frame = self.frame
         self.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
 
@@ -836,21 +806,17 @@ class VirtualMachine(object):
                 self.frame.f_locals[attr] = getattr(mod, attr)
 
     def byte_IMPORT_FROM(self, name):
-        mod = self.peek()
+        mod = self.top()
         self.push(getattr(mod, name))
 
     ## And the rest...
 
     def byte_EXEC_STMT(self):
-        one = self.pop()
-        two = self.pop()
-        three = self.pop()
-        six.exec_(three, two, one)
+        stmt, globs, locs = self.popn(3)
+        six.exec_(stmt, globs, locs)
 
     def byte_BUILD_CLASS(self):
-        methods = self.pop()
-        bases = self.pop()
-        name = self.pop()
+        name, bases, methods = self.popn(3)
         self.push(Class(name, bases, methods))
 
     def byte_LOAD_BUILD_CLASS(self):
