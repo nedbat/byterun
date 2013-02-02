@@ -13,7 +13,7 @@ import six
 from byterun.pyvm2 import VirtualMachine, VirtualMachineError
 
 # Make this false if you need to run the debugger inside a test.
-CAPTURE_STDOUT = 1
+CAPTURE_STDOUT = ('-s' not in sys.argv)
 # Make this false to see the traceback from a failure inside pyvm2.
 CAPTURE_EXCEPTION = 1
 
