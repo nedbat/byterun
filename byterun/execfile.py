@@ -16,7 +16,7 @@ NoSource = Exception
 
 def exec_code_object(code, env):
     vm = VirtualMachine()
-    vm.run_code(code)
+    vm.run_code(code, f_globals=env)
 
 
 # from coverage.py:
@@ -130,20 +130,7 @@ def run_python_file(filename, args, package=None):
         code = compile(source, filename, "exec")
 
         # Execute the source file.
-        try:
-            exec_code_object(code, main_mod.__dict__)
-        except SystemExit:
-            # The user called sys.exit().  Just pass it along to the upper
-            # layers, where it will be handled.
-            raise
-        except:
-            # Something went wrong while executing the user code.
-            # Get the exc_info, and pack them into an exception that we can
-            # throw up to the outer loop.  We peel two layers off the traceback
-            # so that the coverage.py code doesn't appear in the final printed
-            # traceback.
-            typ, err, tb = sys.exc_info()
-            raise ExceptionDuringRun(typ, err, tb.tb_next.tb_next)
+        exec_code_object(code, main_mod.__dict__)
     finally:
         # Restore the old __main__
         sys.modules['__main__'] = old_main_mod

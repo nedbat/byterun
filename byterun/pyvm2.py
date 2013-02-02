@@ -78,15 +78,20 @@ class VirtualMachine(object):
 
     def make_frame(self, code, args=[], kw={}, f_globals=None, f_locals=None):
         log.info("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))
-        if f_globals:
+        if f_globals is not None:
             f_globals = f_globals
-            if not f_locals:
+            if f_locals is None:
                 f_locals = f_globals
         elif self.frames:
             f_globals = self.frame.f_globals
             f_locals = {}
         else:
-            f_globals = f_locals = globals()
+            f_globals = f_locals = {
+                '__builtins__': __builtins__,
+                '__name__': '__main__',
+                '__doc__': None,
+                '__package__': None,
+            }
         for i in range(code.co_argcount):
             name = code.co_varnames[i]
             if i < len(args):
@@ -119,8 +124,8 @@ class VirtualMachine(object):
         frame.f_back = None
         return val
 
-    def run_code(self, code):
-        frame = self.make_frame(code)
+    def run_code(self, code, f_globals=None, f_locals=None):
+        frame = self.make_frame(code, f_globals=f_globals, f_locals=None)
         val = self.run_frame(frame)
         # Check some invariants
         if self.frames:            # pragma: no cover
