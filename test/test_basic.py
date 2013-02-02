@@ -183,6 +183,24 @@ class TestIt(vmtest.VmTestCase):
             print(l.foo)
             """)
 
+    def test_deleting_names(self):
+        self.assert_ok("""\
+            g = 17
+            assert g == 17
+            del g
+            g
+            """, raises=NameError)
+
+    def test_deleting_local_names(self):
+        self.assert_ok("""\
+            def f():
+                l = 23
+                assert l == 23
+                del l
+                l
+            f()
+            """, raises=NameError)
+
     def test_import(self):
         self.assert_ok("""\
             import math

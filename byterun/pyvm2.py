@@ -470,6 +470,7 @@ class VirtualMachine(object):
                 self.push(x)
 
     def byte_DUP_TOP_TWO(self):
+        # Py3 only
         x, y = self.popn(2)
         self.push(x)
         self.push(y)
@@ -505,14 +506,14 @@ class VirtualMachine(object):
     def byte_LOAD_NAME(self, name):
         frame = self.frame
         if name in frame.f_locals:
-            item = frame.f_locals[name]
+            value = frame.f_locals[name]
         elif name in frame.f_globals:
-            item = frame.f_globals[name]
+            value = frame.f_globals[name]
         elif name in frame.f_builtins:
-            item = frame.f_builtins[name]
+            value = frame.f_builtins[name]
         else:
             raise NameError("name '%s' is not defined" % name)
-        self.push(item)
+        self.push(value)
 
     def byte_STORE_NAME(self, name):
         self.frame.f_locals[name] = self.pop()
@@ -521,7 +522,11 @@ class VirtualMachine(object):
         del self.frame.f_locals[name]
 
     def byte_LOAD_FAST(self, name):
-        self.push(self.frame.f_locals[name])
+        if name in self.frame.f_locals:
+            value = self.frame.f_locals[name]
+        else:
+            raise UnboundLocalError("local variable '%s' referenced before assignment" % name)
+        self.push(value)
 
     def byte_STORE_FAST(self, name):
         self.frame.f_locals[name] = self.pop()
@@ -532,11 +537,12 @@ class VirtualMachine(object):
     def byte_LOAD_GLOBAL(self, name):
         f = self.frame
         if name in f.f_globals:
-            self.push(f.f_globals[name])
+            value = f.f_globals[name]
         elif name in f.f_builtins:
-            self.push(f.f_builtins[name])
+            value = f.f_builtins[name]
         else:
             raise NameError("global name '%s' is not defined" % name)
+        self.push(value)
 
     def byte_LOAD_DEREF(self, name):
         self.push(self.frame.cells[name].get())
@@ -558,8 +564,8 @@ class VirtualMachine(object):
     }
 
     def unaryOperator(self, op):
-        one = self.pop()
-        self.push(self.UNARY_OPERATORS[op](one))
+        x = self.pop()
+        self.push(self.UNARY_OPERATORS[op](x))
 
     BINARY_OPERATORS = {
         'POWER':    pow,
@@ -579,13 +585,11 @@ class VirtualMachine(object):
     }
 
     def binaryOperator(self, op):
-        one = self.pop()
-        two = self.pop()
-        self.push(self.BINARY_OPERATORS[op](two, one))
+        x, y = self.popn(2)
+        self.push(self.BINARY_OPERATORS[op](x, y))
 
     def inplaceOperator(self, op):
-        y = self.pop()
-        x = self.pop()
+        x, y = self.popn(2)
         if op == 'POWER':
             x **= y
         elif op == 'MULTIPLY':
