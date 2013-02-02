@@ -30,10 +30,31 @@ class TestIt(vmtest.VmTestCase):
 
     def test_inplace_operators(self):
         self.assert_ok("""\
-            text = "one"
-            text += "two"
-            text += "three"
-            print(text)
+            x, y = 2, 3
+            x **= y
+            assert x == 8 and y == 3
+            x *= y
+            assert x == 24 and y == 3
+            x /= y
+            assert x == 8 and y == 3
+            x %= y
+            assert x == 2 and y == 3
+            x += y
+            assert x == 5 and y == 3
+            x -= y
+            assert x == 2 and y == 3
+            x <<= y
+            assert x == 16 and y == 3
+            x >>= y
+            assert x == 2 and y == 3
+
+            x = 0x8F
+            x &= 0xA5
+            assert x == 0x85
+            x |= 0x10
+            assert x == 0x95
+            x ^= 0x33
+            assert x == 0xA6
             """)
 
     def test_slice(self):
@@ -204,6 +225,21 @@ class TestIt(vmtest.VmTestCase):
             l.sort(key=lcase)
             print(l)
             assert l == ["ABC", "xyz"]
+            """)
+
+    def test_unpacking(self):
+        self.assert_ok("""\
+            a, b, c = (1, 2, 3)
+            assert a == 1
+            assert b == 2
+            assert c == 3
+            """)
+
+    def test_exec_statement(self):
+        self.assert_ok("""\
+            g = {}
+            exec "a = 11" in g, g
+            assert g['a'] == 11
             """)
 
 

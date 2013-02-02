@@ -36,7 +36,7 @@ class Function(object):
             kw['closure'] = tuple(make_cell(0) for _ in closure)
         self.func = types.FunctionType(code, globs, argdefs=tuple(defaults), **kw)
 
-    def __repr__(self):
+    def __repr__(self):         # pragma: no cover
         return '<function %s at 0x%08X>' % (self.func_name, id(self))
 
     def __call__(self, *args, **kw):
@@ -66,7 +66,7 @@ class Class(object):
     def __call__(self, *args, **kw):
         return Object(self, self.locals, args, kw)
 
-    def __repr__(self):
+    def __repr__(self):         # pragma: no cover
         return '<class %s at 0x%08X>' % (self.name, id(self))
 
 
@@ -77,7 +77,7 @@ class Object(object):
         if '__init__' in methods:
             methods['__init__'](self, *args, **kw)
 
-    def __repr__(self):
+    def __repr__(self):         # pragma: no cover
         return '<%s instance at 0x%08X>' % (self._class.name, id(self))
 
     def __getattr__(self, name):
@@ -96,7 +96,7 @@ class Method:
         self.im_class = _class
         self.im_func = func
 
-    def __repr__(self):
+    def __repr__(self):         # pragma: no cover
         name = "%s.%s" % (self.im_class.name, self.im_func.func_name)
         if self.im_self:
             return '<bound method %s of %s>' % (name, self.im_self)
@@ -174,7 +174,7 @@ class Frame(object):
         self.block_stack = []
         self.generator = None
 
-    def __repr__(self):
+    def __repr__(self):         # pragma: no cover
         return '<frame object at 0x%08X>' % id(self)
 
 
@@ -599,16 +599,16 @@ class VirtualMachine(object):
         elif op == 'SUBTRACT':
             x -= y
         elif op == 'LSHIFT':
-            x >>= y
-        elif op == 'RSHIFT':
             x <<= y
+        elif op == 'RSHIFT':
+            x >>= y
         elif op == 'AND':
             x &= y
         elif op == 'XOR':
             x ^= y
         elif op == 'OR':
             x |= y
-        else:
+        else:           # pragma: no cover
             raise VirtualMachineError("Unknown in-place operator: %r" % op)
         self.push(x)
 
@@ -712,7 +712,7 @@ class VirtualMachine(object):
         elif count == 3:
             x, y, z = self.popn(3)
             self.push(slice(x, y, z))
-        else:
+        else:           # pragma: no cover
             raise VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
 
     ## Printing
