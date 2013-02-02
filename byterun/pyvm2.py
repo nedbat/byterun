@@ -3,7 +3,12 @@
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
 from __future__ import print_function
-import operator, dis, inspect, sys
+import dis
+import inspect
+import logging
+import operator
+import sys
+
 CO_GENERATOR = 32 # flag for "this code uses yield"
 
 import six
@@ -12,6 +17,7 @@ PY3, PY2 = six.PY3, not six.PY3
 
 from .pyobj import Frame, Block, Method, Object, Function, Class, Generator
 
+log = logging.getLogger(__name__)
 
 if six.PY3:
     byteint = lambda b: b
@@ -32,7 +38,6 @@ class VirtualMachine(object):
         self.stack = []
         self.return_value = None
         self.last_exception = None
-        self._log = []
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
@@ -71,11 +76,8 @@ class VirtualMachine(object):
     def push_block(self, type, handler):
         self.frame.block_stack.append(Block(type, handler, len(self.stack)))
 
-    def log(self, msg):
-        self._log.append(msg)
-
     def make_frame(self, code, args=[], kw={}, f_globals=None, f_locals=None):
-        self.log("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))
+        log.info("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))
         if f_globals:
             f_globals = f_globals
             if not f_locals:
@@ -169,7 +171,7 @@ class VirtualMachine(object):
                 op = "%4d: %s" % (opoffset, byteName)
                 if arguments:
                     op += " %r" % (arguments[0],)
-                self.log("%-40s %s%r" % (op, "    "*(len(self.frames)-1), self.stack))
+                log.info("%-40s %s%r" % (op, "    "*(len(self.frames)-1), self.stack))
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.

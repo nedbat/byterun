@@ -1,6 +1,8 @@
 """A main program for Byterun."""
 
 import argparse
+import logging
+
 from . import execfile
 
 parser = argparse.ArgumentParser()
@@ -13,6 +15,10 @@ if args.module:
     run_fn = execfile.run_python_module
 else:
     run_fn = execfile.run_python_file
+
+logging.basicConfig(
+    level = logging.INFO,
+)
 
 argv = [args.to_run] + args.arg
 run_fn(args.to_run, argv)
