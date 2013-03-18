@@ -9,9 +9,8 @@ import logging
 import operator
 import sys
 
-CO_GENERATOR = 32 # flag for "this code uses yield"
-
 import six
+from six.moves import reprlib
 
 PY3, PY2 = six.PY3, not six.PY3
 
@@ -23,6 +22,12 @@ if six.PY3:
     byteint = lambda b: b
 else:
     byteint = ord
+
+# Create a repr that won't overflow.
+repr_obj = reprlib.Repr()
+repr_obj.maxother = 120
+repper = repr_obj.repr
+
 
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
@@ -76,8 +81,8 @@ class VirtualMachine(object):
     def push_block(self, type, handler):
         self.frame.block_stack.append(Block(type, handler, len(self.stack)))
 
-    def make_frame(self, code, args=[], kw={}, f_globals=None, f_locals=None):
-        log.info("make_frame: code=%r, args=%r, kw=%r" % (code, args, kw))
+    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
+        log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
             f_globals = f_globals
             if f_locals is None:
@@ -92,18 +97,7 @@ class VirtualMachine(object):
                 '__doc__': None,
                 '__package__': None,
             }
-        for i in range(code.co_argcount):
-            name = code.co_varnames[i]
-            if i < len(args):
-                if name in kw:
-                    raise TypeError("got multiple values for keyword argument '%s'" % name)
-                else:
-                    f_locals[name] = args[i]
-            else:
-                if name in kw:
-                    f_locals[name] = kw[name]
-                else:
-                    raise TypeError("did not get value for argument '%s'" % name)
+        f_locals.update(callargs)
         frame = Frame(code, f_globals, f_locals, self.frame)
         return frame
 
@@ -125,7 +119,7 @@ class VirtualMachine(object):
         return val
 
     def run_code(self, code, f_globals=None, f_locals=None):
-        frame = self.make_frame(code, f_globals=f_globals, f_locals=None)
+        frame = self.make_frame(code, f_globals=f_globals, f_locals=f_locals)
         val = self.run_frame(frame)
         # Check some invariants
         if self.frames:            # pragma: no cover
@@ -176,7 +170,7 @@ class VirtualMachine(object):
                 op = "%4d: %s" % (opoffset, byteName)
                 if arguments:
                     op += " %r" % (arguments[0],)
-                log.info("%-40s %s%r" % (op, "    "*(len(self.frames)-1), self.stack))
+                log.info("%-40s %s%s" % (op, "    "*(len(self.frames)-1), repper(self.stack)))
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
@@ -193,14 +187,15 @@ class VirtualMachine(object):
                     self.sliceOperator(byteName)
                 else:
                     # dispatch
-                    func = getattr(self, 'byte_%s' % byteName, None)
-                    if not func:            # pragma: no cover
+                    bytecode_fn = getattr(self, 'byte_%s' % byteName, None)
+                    if not bytecode_fn:            # pragma: no cover
                         raise VirtualMachineError("unknown bytecode type: %s" % byteName)
-                    why = func(*arguments)
+                    why = bytecode_fn(*arguments)
 
             except:
                 # deal with exceptions encountered while executing the op.
                 self.last_exception = sys.exc_info()[:2] + (None,)
+                log.exception("Caught exception during execution")
                 why = 'exception'
 
             # Deal with any block management we need to do.
@@ -212,43 +207,46 @@ class VirtualMachine(object):
             if why == 'reraise':
                 why = 'exception'
 
-            while why and frame.block_stack:
+            if why != 'yield':
+                while why and frame.block_stack:
 
-                block = frame.block_stack[-1]
-                if block.type == 'loop' and why == 'continue':
-                    self.jump(self.return_value)
-                    why = None
-                    break
+                    assert why != 'yield'
 
-                frame.block_stack.pop()
+                    block = frame.block_stack[-1]
+                    if block.type == 'loop' and why == 'continue':
+                        self.jump(self.return_value)
+                        why = None
+                        break
 
-                #if block.type == 'except':
-                #    self.unwind_except_handler(block)
-                #    continue
+                    frame.block_stack.pop()
 
-                while len(self.stack) > block.level:
-                    self.pop()
+                    #if block.type == 'except':
+                    #    self.unwind_except_handler(block)
+                    #    continue
 
-                if block.type == 'loop' and why == 'break':
-                    why = None
-                    self.jump(block.handler)
-                    break
+                    while len(self.stack) > block.level:
+                        self.pop()
 
-                if (block.type == 'finally' or
-                    (block.type == 'except' and why == 'exception') or
-                    block.type == 'with'):
+                    if block.type == 'loop' and why == 'break':
+                        why = None
+                        self.jump(block.handler)
+                        break
 
-                    if why == 'exception':
-                        exctype, value, tb = self.last_exception
-                        self.push(tb, value, exctype)
-                    else:
-                        if why in ('return', 'continue'):
-                            self.push(self.return_value)
-                        self.push(why)
+                    if (block.type == 'finally' or
+                        (block.type == 'except' and why == 'exception') or
+                        block.type == 'with'):
 
-                    why = None
-                    self.jump(block.handler)
-                    break
+                        if why == 'exception':
+                            exctype, value, tb = self.last_exception
+                            self.push(tb, value, exctype)
+                        else:
+                            if why in ('return', 'continue'):
+                                self.push(self.return_value)
+                            self.push(why)
+
+                        why = None
+                        self.jump(block.handler)
+                        break
 
             if why:
                 break
@@ -775,18 +773,8 @@ class VirtualMachine(object):
                         (func.im_func.func_name, func.im_class.__name__, type(posargs[0]).__name__)
                     )
             func = func.im_func
-        if hasattr(func, 'func_code'):
-            func_as_func = getattr(func, "func", func)
-            callargs = inspect.getcallargs(func_as_func, *posargs, **namedargs)
-            frame = self.make_frame(func.func_code, [], callargs)
-            if func.func_code.co_flags & CO_GENERATOR:
-                gen = Generator(frame, self)
-                frame.generator = gen
-                self.push(gen)
-            else:
-                self.push(self.run_frame(frame))
-        else:
-            self.push(func(*posargs, **namedargs))
+        retval = func(*posargs, **namedargs)
+        self.push(retval)
 
     def byte_RETURN_VALUE(self):
         self.return_value = self.pop()

@@ -29,7 +29,7 @@ class TestFunctions(vmtest.VmTestCase):
             assert f6 == 720
             """)
 
-    def test_args_kwargs_functions(self):
+    def test_calling_functions_with_args_kwargs(self):
         self.assert_ok("""\
             def fn(a, b=17, c="Hello", d=[]):
                 d.append(99)
@@ -37,6 +37,96 @@ class TestFunctions(vmtest.VmTestCase):
             fn(6, *[77, 88])
             fn(**{'c': 23, 'a': 7})
             fn(6, *[77], **{'c': 23, 'd': [123]})
+            """)
+
+    def test_defining_functions_with_args_kwargs(self):
+        self.assert_ok("""\
+            def fn(*args):
+                print("args is %r" % (args,))
+            fn(1, 2)
+            """)
+        self.assert_ok("""\
+            def fn(**kwargs):
+                print("kwargs is %r" % (kwargs,))
+            fn(red=True, blue=False)
+            """)
+        self.assert_ok("""\
+            def fn(*args, **kwargs):
+                print("args is %r" % (args,))
+                print("kwargs is %r" % (kwargs,))
+            fn(1, 2, red=True, blue=False)
+            """)
+        self.assert_ok("""\
+            def fn(x, y, *args, **kwargs):
+                print("x is %r, y is %r" % (x, y))
+                print("args is %r" % (args,))
+                print("kwargs is %r" % (kwargs,))
+            fn('a', 'b', 1, 2, red=True, blue=False)
+            """)
+
+    def test_defining_functions_with_empty_args_kwargs(self):
+        self.assert_ok("""\
+            def fn(*args):
+                print("args is %r" % (args,))
+            fn()
+            """)
+        self.assert_ok("""\
+            def fn(**kwargs):
+                print("kwargs is %r" % (kwargs,))
+            fn()
+            """)
+        self.assert_ok("""\
+            def fn(*args, **kwargs):
+                print("args is %r, kwargs is %r" % (args, kwargs))
+            fn()
+            """)
+
+    def test_partial(self):
+        self.assert_ok("""\
+            from _functools import partial
+
+            def f(a,b):
+                return a-b
+
+            f7 = partial(f, 7)
+            four = f7(3)
+            assert four == 4
+            """)
+
+    def test_partial_with_kwargs(self):
+        self.assert_ok("""\
+            from _functools import partial
+
+            def f(a,b,c=0,d=0):
+                return (a,b,c,d)
+
+            f7 = partial(f, b=7, c=1)
+            them = f7(10)
+            assert them == (10,7,1,0)
+            """)
+
+    def test_wraps(self):
+        self.assert_ok("""\
+            from functools import wraps
+            def my_decorator(f):
+                dec = wraps(f)
+                def wrapper(*args, **kwds):
+                    print('Calling decorated function')
+                    return f(*args, **kwds)
+                wrapper = dec(wrapper)
+                return wrapper
+
+            #print(my_decorator, my_decorator.func_code)
+
+            @my_decorator
+            def example():
+                '''Docstring'''
+                return 17
+
+            #print(example, example.func_code)
+            assert example() == 17
+            #assert example.__name__ == 'example'
+            #assert example.__doc__ == 'Docstring'
             """)
 
 
@@ -117,5 +207,17 @@ class TestGenerators(vmtest.VmTestCase):
                 print(i)
             """)
 
+    def test_partial_generator(self):
+        self.assert_ok("""\
+            from _functools import partial
 
+            def f(a,b):
+                num = a+b
+                while num:
+                    yield num
+                    num -= 1
 
+            f2 = partial(f, 2)
+            three = f2(1)
+            assert list(three) == [3,2,1]
+            """)

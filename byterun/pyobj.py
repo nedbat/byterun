@@ -1,6 +1,8 @@
 """Implementations of Python fundamental objects for Byterun."""
 
-import collections, types
+import collections
+import inspect
+import types
 
 import six
 
@@ -18,41 +20,43 @@ def make_cell(value):
         return fn.func_closure[0]
 
 class Function(object):
+    __slots__ = [
+        'func_code', 'func_name', 'func_defaults', 'func_globals', 'func_locals', 'func_dict', 'func_closure',
+        '__name__', '__dict__', '__doc__',
+        '_vm', '_func',
+    ]
+
     def __init__(self, name, code, globs, defaults, closure, vm):
-        self.vm = vm
+        self._vm = vm
         self.func_code = code
-        self.func_name = name or code.co_name
-        self.func_defaults = defaults
+        self.func_name = self.__name__ = name or code.co_name
+        self.func_defaults = tuple(defaults)
         self.func_globals = globs
-        self.func_dict = vm.frame.f_locals
+        self.func_locals = self._vm.frame.f_locals
+        self.__dict__ = {}
         self.func_closure = closure
+        self.__doc__ = code.co_consts[0]
 
         # Sometimes, we need a real Python function.  This is for that.
         kw = {}
         if closure:
             kw['closure'] = tuple(make_cell(0) for _ in closure)
-        self.func = types.FunctionType(code, globs, argdefs=tuple(defaults), **kw)
+        self._func = types.FunctionType(code, globs, argdefs=self.func_defaults, **kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<function %s at 0x%08X>' % (self.func_name, id(self))
+        return '<Function %s code=%s at 0x%08X>' % (self.func_name, repr(self.func_code), id(self))
 
-    def __call__(self, *args, **kw):
-        if len(args) < self.func_code.co_argcount:
-            if not self.func_defaults:
-                if self.func_code.co_argcount == 0:
-                    argCount = 'no arguments'
-                elif self.func_code.co_argcount == 1:
-                    argCount = 'exactly 1 argument'
-                else:
-                    argCount = 'exactly %i arguments' % self.func_code.co_argcount
-                raise TypeError('%s() takes %s (%s given)' % (self.func_name,
-                                                               argCount, len(args)))
-            else:
-                defArgCount = len(self.func_defaults)
-                args.extend(self.func_defaults[-(self.func_code.co_argcount - len(args)):])
-        frame = self.vm.make_frame(self.func_code, args, kw, self.func_globals, self.func_dict)
-        return self.vm.run_frame(frame)
-
+    def __call__(self, *args, **kwargs):
+        callargs = inspect.getcallargs(self._func, *args, **kwargs)
+        frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, self.func_locals)
+        CO_GENERATOR = 32 # flag for "this code uses yield"
+        if self.func_code.co_flags & CO_GENERATOR:
+            gen = Generator(frame, self._vm)
+            frame.generator = gen
+            retval = gen
+        else:
+            retval = self._vm.run_frame(frame)
+        return retval
 
 class Class(object):
     def __init__(self, name, bases, methods):
@@ -64,7 +68,7 @@ class Class(object):
         return Object(self, self.locals, args, kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<class %s at 0x%08X>' % (self.name, id(self))
+        return '<Class %s at 0x%08X>' % (self.name, id(self))
 
 
 class Object(object):
@@ -75,7 +79,7 @@ class Object(object):
             methods['__init__'](self, *args, **kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<%s instance at 0x%08X>' % (self._class.name, id(self))
+        return '<%s Instance at 0x%08X>' % (self._class.name, id(self))
 
     def __getattr__(self, name):
         try:
@@ -96,9 +100,9 @@ class Method:
     def __repr__(self):         # pragma: no cover
         name = "%s.%s" % (self.im_class.name, self.im_func.func_name)
         if self.im_self:
-            return '<bound method %s of %s>' % (name, self.im_self)
+            return '<bound Method %s of %s>' % (name, self.im_self)
         else:
-            return '<unbound method %s>' % (name,)
+            return '<unbound Method %s>' % (name,)
 
     def __call__(self, *args, **kwargs):
         return self.im_func(self.im_self, *args, **kwargs)
@@ -166,23 +170,25 @@ class Frame(object):
             if not self.cells:
                 self.cells = {}
             for var in f_code.co_freevars:
+                assert self.cells is not None
+                assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
                 self.cells[var] = f_back.cells[var]
 
         self.block_stack = []
         self.generator = None
 
     def __repr__(self):         # pragma: no cover
-        return '<frame object at 0x%08X>' % id(self)
+        return '<Frame at 0x%08X>' % id(self)
 
 
 class Generator(object):
     def __init__(self, g_frame, vm):
         self.gi_frame = g_frame
         self.vm = vm
-
-    def __iter__(self):
         self.first = True
         self.finished = False
+
+    def __iter__(self):
         return self
 
     def next(self):
@@ -196,5 +202,5 @@ class Generator(object):
         if self.finished:
             raise StopIteration
         return val
-    __next__ = next
 
+    __next__ = next
