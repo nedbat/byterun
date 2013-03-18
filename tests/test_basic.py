@@ -253,12 +253,20 @@ class TestIt(vmtest.VmTestCase):
             assert c == 3
             """)
 
-    def test_exec_statement(self):
-        self.assert_ok("""\
-            g = {}
-            exec "a = 11" in g, g
-            assert g['a'] == 11
-            """)
+    if PY2:
+        def test_exec_statement(self):
+            self.assert_ok("""\
+                g = {}
+                exec "a = 11" in g, g
+                assert g['a'] == 11
+                """)
+    elif PY3:
+        def test_exec_statement(self):
+            self.assert_ok("""\
+                g = {}
+                exec "a = 11" in g, g
+                assert g['a'] == 11
+                """)
 
     def test_jump_if_true_or_pop(self):
         self.assert_ok("""\

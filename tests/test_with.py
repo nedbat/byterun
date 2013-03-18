@@ -211,7 +211,7 @@ class TestWithStatement(vmtest.VmTestCase):
                         try:
                             self.gen.throw(type, value, traceback)
                             raise RuntimeError("generator didn't stop after throw()")
-                        except StopIteration, exc:
+                        except StopIteration as exc:
                             return exc is not value
                         except:
                             if sys.exc_info()[1] is not value:
@@ -280,7 +280,7 @@ class TestWithStatement(vmtest.VmTestCase):
                         try:
                             self.gen.throw(type, value, traceback)
                             raise RuntimeError("generator didn't stop after throw()")
-                        except StopIteration, exc:
+                        except StopIteration as exc:
                             return exc is not value
                         except:
                             if sys.exc_info()[1] is not value:
