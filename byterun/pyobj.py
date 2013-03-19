@@ -46,6 +46,14 @@ class Function(object):
     def __repr__(self):         # pragma: no cover
         return '<Function %s code=%s at 0x%08X>' % (self.func_name, repr(self.func_code), id(self))
 
+    def __get__(self, instance, owner):
+        if instance is not None:
+            return Method(instance, owner, self)
+        if PY2:
+            return Method(None, owner, self)
+        else:
+            return self
+
     def __call__(self, *args, **kwargs):
         callargs = inspect.getcallargs(self._func, *args, **kwargs)
         frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, self.func_locals)
@@ -86,8 +94,11 @@ class Object(object):
             val = self.locals[name]
         except KeyError:
             raise AttributeError("Object %r has no attribute %r" % (self, name))
-        if isinstance(val, Function):
-            val = Method(self, self._class, val)
+        # Check if we have a descriptor
+        get = getattr(val, '__get__', None)
+        if get:
+            return get(self, self._class)
+        # Not a descriptor, return the value.
         return val
 
 
@@ -100,12 +111,15 @@ class Method:
     def __repr__(self):         # pragma: no cover
         name = "%s.%s" % (self.im_class.name, self.im_func.func_name)
         if self.im_self:
-            return '<bound Method %s of %s>' % (name, self.im_self)
+            return '<Bound Method %s of %s>' % (name, self.im_self)
         else:
-            return '<unbound Method %s>' % (name,)
+            return '<Unbound Method %s>' % (name,)
 
     def __call__(self, *args, **kwargs):
-        return self.im_func(self.im_self, *args, **kwargs)
+        if self.im_self:
+            return self.im_func(self.im_self, *args, **kwargs)
+        else:
+            return self.im_func(*args, **kwargs)
 
 
 class Cell(object):
