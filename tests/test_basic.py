@@ -268,7 +268,7 @@ class TestIt(vmtest.VmTestCase):
         def test_exec_statement(self):
             self.assert_ok("""\
                 g = {}
-                exec "a = 11" in g, g
+                exec("a = 11", g, g)
                 assert g['a'] == 11
                 """)
 
