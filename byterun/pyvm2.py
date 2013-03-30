@@ -167,10 +167,13 @@ class VirtualMachine(object):
                 arguments = [arg]
 
             if 1:
-                op = "%4d: %s" % (opoffset, byteName)
+                op = "%d: %s" % (opoffset, byteName)
                 if arguments:
                     op += " %r" % (arguments[0],)
-                log.info("%-40s %s%s" % (op, "    "*(len(self.frames)-1), repper(self.stack)))
+                indent = "    "*(len(self.frames)-1)
+                log.info("  %sdata: %s" % (indent, repper(self.stack)))
+                log.info("  %sblks: %s" % (indent, repper(self.frame.block_stack)))
+                log.info("%s%s" % (indent, op))
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
