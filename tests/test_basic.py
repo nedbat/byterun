@@ -39,7 +39,7 @@ class TestIt(vmtest.VmTestCase):
             assert x == 8 and y == 3
             x *= y
             assert x == 24 and y == 3
-            x /= y
+            x //= y
             assert x == 8 and y == 3
             x %= y
             assert x == 2 and y == 3
@@ -60,6 +60,23 @@ class TestIt(vmtest.VmTestCase):
             x ^= 0x33
             assert x == 0xA6
             """)
+
+    if PY2:
+        def test_inplace_division(self):
+            self.assert_ok("""\
+                x, y = 24, 3
+                x /= y
+                assert x == 8 and y == 3
+                assert type(x) == int
+                """)
+    elif PY3:
+        def test_inplace_division(self):
+            self.assert_ok("""\
+                x, y = 24, 3
+                x /= y
+                assert x == 8.0 and y == 3
+                assert type(x) == float
+                """)
 
     def test_slice(self):
         self.assert_ok("""\
