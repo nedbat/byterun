@@ -2,7 +2,7 @@
 # Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
-from __future__ import print_function
+from __future__ import print_function, division
 import dis
 import inspect
 import logging
@@ -395,7 +395,9 @@ class VirtualMachine(object):
             x **= y
         elif op == 'MULTIPLY':
             x *= y
-        elif op == 'DIVIDE':
+        elif op in ['DIVIDE', 'FLOOR_DIVIDE']:
+            x //= y
+        elif op == 'TRUE_DIVIDE':
             x /= y
         elif op == 'MODULO':
             x %= y
