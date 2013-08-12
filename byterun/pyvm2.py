@@ -620,15 +620,19 @@ class VirtualMachine(object):
         self.push_block('finally', dest)
 
     def byte_END_FINALLY(self):
-        v = self.pop()
-        if isinstance(v, str):
-            why = v
+        status = self.pop()
+        if isinstance(status, str):
+            why = status
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
-        elif v is None:
+            elif why == 'silenced':
+                block = self.pop_block()
+                assert block.type == 'except'
+                self.unwind_except_handler(block)
+        elif status is None:
             why = None
-        elif issubclass(v, BaseException):
-            exctype = v
+        elif issubclass(status, BaseException):
+            exctype = status
             val = self.pop()
             tb = self.pop()
             self.last_exception = (exctype, val, tb)
@@ -712,7 +716,7 @@ class VirtualMachine(object):
         if err:
             # An error occurred, and was suppressed, pop it from the stack.
             self.popn(3)
-            self.push(None)
+            self.push('silence') # Silence is not None
 
     ## Functions
 
