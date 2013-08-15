@@ -67,7 +67,10 @@ class TestIt(vmtest.VmTestCase):
                 x, y = 24, 3
                 x /= y
                 assert x == 8 and y == 3
-                assert type(x) == int
+                assert isinstance(x, int)
+                x /= y
+                assert x == 2 and y == 3
+                assert isinstance(x, int)
                 """)
     elif PY3:
         def test_inplace_division(self):
@@ -75,7 +78,10 @@ class TestIt(vmtest.VmTestCase):
                 x, y = 24, 3
                 x /= y
                 assert x == 8.0 and y == 3
-                assert type(x) == float
+                assert isinstance(x, float)
+                x /= y
+                assert x == (8.0/3.0) and y == 3
+                assert isinstance(x, float)
                 """)
 
     def test_slice(self):
