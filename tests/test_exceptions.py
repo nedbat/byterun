@@ -3,6 +3,10 @@
 from __future__ import print_function
 from . import vmtest
 
+import six
+
+PY3, PY2 = six.PY3, not six.PY3
+
 
 class TestExceptions(vmtest.VmTestCase):
     def test_catching_exceptions(self):
@@ -36,6 +40,20 @@ class TestExceptions(vmtest.VmTestCase):
 
     def test_raise_exception_class(self):
         self.assert_ok("raise ValueError", raises=ValueError)
+
+    if PY2:
+        def test_raise_exception_2args(self):
+            self.assert_ok("raise ValueError, 'bad'", raises=ValueError)
+
+        def test_raise_exception_3args(self):
+            self.assert_ok("""\
+                from sys import exc_info
+                try:
+                    raise Exception
+                except:
+                    _, _, tb = exc_info()
+                raise ValueError, "message", tb
+                """, raises=ValueError)
 
     def test_raise_and_catch_exception(self):
         self.assert_ok("""\
