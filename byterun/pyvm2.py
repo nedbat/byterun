@@ -638,6 +638,8 @@ class VirtualMachine(object):
         self.frame.block_stack.pop()
 
     def byte_RAISE_VARARGS(self, argc):
+        # NOTE: the dis docs are completely wrong about the order of the
+        # operands on the stack!
         exctype = val = tb = None
         if argc == 0:
             exctype, val, tb = self.last_exception
