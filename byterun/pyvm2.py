@@ -644,9 +644,12 @@ class VirtualMachine(object):
         elif argc == 1:
             exctype = self.pop()
         elif argc == 2:
-            exctype, val = self.pop(), self.pop()
+            val = self.pop()
+            exctype = self.pop()
         elif argc == 3:
-            exctype, val, tb = self.pop(), self.pop(), self.pop()
+            tb = self.pop()
+            val = self.pop()
+            exctype = self.pop()
 
         # There are a number of forms of "raise", normalize them somewhat.
         if isinstance(exctype, BaseException):
