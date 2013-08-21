@@ -81,6 +81,9 @@ class VirtualMachine(object):
     def push_block(self, type, handler):
         self.frame.block_stack.append(Block(type, handler, len(self.stack)))
 
+    def pop_block(self):
+        return self.frame.block_stack.pop()
+
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
@@ -221,7 +224,7 @@ class VirtualMachine(object):
                         why = None
                         break
 
-                    frame.block_stack.pop()
+                    self.pop_block()
 
                     #if block.type == 'except':
                     #    self.unwind_except_handler(block)
@@ -617,15 +620,19 @@ class VirtualMachine(object):
         self.push_block('finally', dest)
 
     def byte_END_FINALLY(self):
-        v = self.pop()
-        if isinstance(v, str):
-            why = v
+        status = self.pop()
+        if isinstance(status, str):
+            why = status
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
-        elif v is None:
+            elif why == 'silenced':
+                block = self.pop_block()
+                assert block.type == 'except'
+                self.unwind_except_handler(block)
+        elif status is None:
             why = None
-        elif issubclass(v, BaseException):
-            exctype = v
+        elif issubclass(status, BaseException):
+            exctype = status
             val = self.pop()
             tb = self.pop()
             self.last_exception = (exctype, val, tb)
@@ -635,7 +642,7 @@ class VirtualMachine(object):
         return why
 
     def byte_POP_BLOCK(self):
-        self.frame.block_stack.pop()
+        self.pop_block()
 
     def byte_RAISE_VARARGS(self, argc):
         # NOTE: the dis docs are completely wrong about the order of the
@@ -677,7 +684,7 @@ class VirtualMachine(object):
             derp
 
     def byte_POP_EXCEPT(self):
-        block = self.frame.block_stack.pop()
+        block = self.pop_block()
         if block.type != 'except':
             raise Exception("popped block is not an except handler")
         self.unwind_except_handler(block)
@@ -714,7 +721,7 @@ class VirtualMachine(object):
         if err:
             # An error occurred, and was suppressed, pop it from the stack.
             self.popn(3)
-            self.push(None)
+            self.push(None) # Silence is not None
 
     ## Functions
 
