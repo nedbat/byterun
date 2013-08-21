@@ -645,15 +645,20 @@ class VirtualMachine(object):
         self.pop_block()
 
     def byte_RAISE_VARARGS(self, argc):
+        # NOTE: the dis docs are completely wrong about the order of the
+        # operands on the stack!
         exctype = val = tb = None
         if argc == 0:
             exctype, val, tb = self.last_exception
         elif argc == 1:
             exctype = self.pop()
         elif argc == 2:
-            exctype, val = self.pop(), self.pop()
+            val = self.pop()
+            exctype = self.pop()
         elif argc == 3:
-            exctype, val, tb = self.pop(), self.pop(), self.pop()
+            tb = self.pop()
+            val = self.pop()
+            exctype = self.pop()
 
         # There are a number of forms of "raise", normalize them somewhat.
         if isinstance(exctype, BaseException):
