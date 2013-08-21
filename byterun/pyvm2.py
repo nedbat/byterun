@@ -721,7 +721,7 @@ class VirtualMachine(object):
         if err:
             # An error occurred, and was suppressed, pop it from the stack.
             self.popn(3)
-            self.push('silence') # Silence is not None
+            self.push(None) # Silence is not None
 
     ## Functions
 
