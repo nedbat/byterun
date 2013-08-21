@@ -226,9 +226,10 @@ class VirtualMachine(object):
 
                     self.pop_block()
 
-                    #if block.type == 'except':
-                    #    self.unwind_except_handler(block)
-                    #    continue
+                    #foo
+                    if block.type == 'except-handler':
+                       self.unwind_except_handler(block)
+                       continue
 
                     while len(self.stack) > block.level:
                         self.pop()
@@ -238,21 +239,40 @@ class VirtualMachine(object):
                         self.jump(block.handler)
                         break
 
-                    if (block.type == 'finally' or
-                        (block.type == 'except' and why == 'exception') or
-                        block.type == 'with'):
+                    if PY2:
+                        if (block.type == 'finally' or
+                            (block.type == 'setup-except' and why == 'exception') or
+                            block.type == 'with'):
+                            if why == 'exception':
+                                exctype, value, tb = self.last_exception
+                                self.push(tb, value, exctype)
+                            else:
+                                if why in ('return', 'continue'):
+                                    self.push(self.return_value)
+                                self.push(why)
+                            why = None
+                            self.jump(block.handler)
 
-                        if why == 'exception':
+                    elif PY3:
+                        if (why == 'exception' and 
+                            block.type in ['setup-except', 'finally']):
+
+                            self.push_block('except-handler', -1)
                             exctype, value, tb = self.last_exception
                             self.push(tb, value, exctype)
-                        else:
+                            # PyErr_Normalize_Exception goes here
+                            self.push(tb, value, exctype)
+                            why = None
+                            self.jump(block.handler)
+
+                        if block.type == 'finally':
                             if why in ('return', 'continue'):
                                 self.push(self.return_value)
                             self.push(why)
 
-                        why = None
-                        self.jump(block.handler)
-                        break
+                            why = None
+                            self.jump(block.handler)
+                            break
 
             if why:
                 break
@@ -614,7 +634,7 @@ class VirtualMachine(object):
         return 'continue'
 
     def byte_SETUP_EXCEPT(self, dest):
-        self.push_block('except', dest)
+        self.push_block('setup-except', dest)
 
     def byte_SETUP_FINALLY(self, dest):
         self.push_block('finally', dest)
@@ -681,14 +701,19 @@ class VirtualMachine(object):
 
     def byte_POP_EXCEPT(self):
         block = self.pop_block()
-        if block.type != 'except':
-            raise Exception("popped block is not an except handler")
+        if PY2:
+            if block.type != 'setup-except':
+                raise Exception("popped block is not an except handler")
+        if PY3:
+            if block.type != 'except-handler':
+                raise Exception("popped block is not an except handler")
         self.unwind_except_handler(block)
 
     def byte_SETUP_WITH(self, dest):
         ctxmgr = self.pop()
         self.push(ctxmgr.__exit__)
         ctxmgr_obj = ctxmgr.__enter__()
+        # self.push_block('finally', dest)
         self.push_block('with', dest)
         self.push(ctxmgr_obj)
 
