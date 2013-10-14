@@ -680,6 +680,8 @@ class VirtualMachine(object):
         if isinstance(exctype, BaseException):
             val = exctype
             exctype = type(val)
+        elif val is None:
+            val = exctype()
 
         self.last_exception = (exctype, val, tb)
 
