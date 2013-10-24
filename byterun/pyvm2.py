@@ -26,6 +26,7 @@ else:
 # Create a repr that won't overflow.
 repr_obj = reprlib.Repr()
 repr_obj.maxother = 120
+repr_obj.maxlist = 1000
 repper = repr_obj.repr
 
 
