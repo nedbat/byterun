@@ -693,10 +693,7 @@ class VirtualMachine(object):
 
         self.last_exception = (exctype, val, tb)
 
-        if tb:
-            return 'reraise'
-        else:
-            return 'exception'
+        return 'exception'
 
     def byte_RAISE_VARARGS_py3(self, argc):
         cause = exc = None
