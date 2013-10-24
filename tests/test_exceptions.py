@@ -55,6 +55,10 @@ class TestExceptions(vmtest.VmTestCase):
                 raise ValueError, "message", tb
                 """, raises=ValueError)
 
+    if PY3:
+        def test_raise_exception_from(self):
+            self.assert_ok("""raise ValueError from NameError""", raises=ValueError)
+
     def test_raise_and_catch_exception(self):
         self.assert_ok("""\
             try:
