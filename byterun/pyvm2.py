@@ -727,13 +727,12 @@ class VirtualMachine(object):
         # val is a valid exception instance and exc_type is its class
         if cause:
             if type(cause) == type(type):
-                fixed_cause = cause()
-            elif isinstance(cause, BaseException):
-                fixed_cause = cause
-            else:
+                cause = cause()
+            elif not isinstance(cause, BaseException):
                 return 'exception'
                 # raise Exception("Exception causes must derive from BaseException")
-            val.__cause__ = fixed_cause
+
+            val.__cause__ = cause
 
         self.last_exception = exc_type, val, val.__traceback__
         return 'exception'
