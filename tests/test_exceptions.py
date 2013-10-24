@@ -7,7 +7,6 @@ import six
 
 PY3, PY2 = six.PY3, not six.PY3
 
-
 class TestExceptions(vmtest.VmTestCase):
     def test_catching_exceptions(self):
         # Catch the exception precisely

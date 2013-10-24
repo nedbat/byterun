@@ -661,12 +661,14 @@ class VirtualMachine(object):
         self.pop_block()
 
     def byte_RAISE_VARARGS(self, argc):
+        if PY3:
+            return self.byte_RAISE_VARARGS_py3(argc)
         # NOTE: the dis docs are completely wrong about the order of the
         # operands on the stack!
         exctype = val = tb = None
-        if argc == 0:
+        if argc == 0: # reraise
             exctype, val, tb = self.last_exception
-        elif argc == 1:
+        elif argc == 1: # `raise Exception`
             exctype = self.pop()
         elif argc == 2:
             val = self.pop()
@@ -693,13 +695,44 @@ class VirtualMachine(object):
     def byte_RAISE_VARARGS_py3(self, argc):
         cause = exc = None
         if argc == 2:
-            cause = pop()
-            exc = pop()
+            cause = self.pop()
+            exc = self.pop()
         elif argc == 1:
-            exc = pop()
-        # do raise
-        if exc is None:
-            derp
+            exc = self.pop()
+
+        return self.do_raise(exc, cause)
+
+    def do_raise(self, exc, cause):
+        if exc == None: # reraise
+            exc_type, val, tb = self.last_exception
+            if exc_type == None:
+                return 'exception'
+                # raise Exception("No active exception to reraise")
+            return 'reraise'
+        elif type(exc) == type(type): # as in `raise ValueError`
+            exc_type = exc
+            val = exc() # make an instance
+        elif isinstance(exc, BaseException): # as in `raise ValueError('foo')
+            exc_type = type(exc)
+            val = exc
+        else:
+            return 'exception'
+            # raise TypeError("exceptions must derive from BaseException")
+
+        # if you reach this point, you're guaranteed that
+        # val is a valid exception instance and exc_type is its class
+        if cause:
+            if type(cause) == type(type):
+                fixed_cause = cause()
+            elif isinstance(cause, BaseException):
+                fixed_cause = cause
+            else:
+                return 'exception'
+                # raise Exception("Exception causes must derive from BaseException")
+            val.__cause__ = fixed_cause
+
+        self.last_exception = exc_type, val, val.__traceback__
+        return 'exception'
 
     def byte_POP_EXCEPT(self):
         block = self.pop_block()
