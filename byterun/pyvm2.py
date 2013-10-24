@@ -663,17 +663,23 @@ class VirtualMachine(object):
     def byte_RAISE_VARARGS(self, argc):
         if PY3:
             return self.byte_RAISE_VARARGS_py3(argc)
+
         # NOTE: the dis docs are completely wrong about the order of the
         # operands on the stack!
         exctype = val = tb = None
+
         if argc == 0: # reraise
             exctype, val, tb = self.last_exception
-        elif argc == 1: # `raise Exception`
+        elif argc == 1:
+            # `raise Exception`
             exctype = self.pop()
         elif argc == 2:
+            # `raise Exception("instance")` or 
+            # `raise Exception, Value
             val = self.pop()
             exctype = self.pop()
         elif argc == 3:
+            # `raise Exception, Value, traceback`
             tb = self.pop()
             val = self.pop()
             exctype = self.pop()
@@ -703,6 +709,7 @@ class VirtualMachine(object):
         return self.do_raise(exc, cause)
 
     def do_raise(self, exc, cause):
+        """ A py3-like do_raise"""
         if exc == None: # reraise
             exc_type, val, tb = self.last_exception
             if exc_type == None:
