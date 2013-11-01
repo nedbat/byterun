@@ -7,7 +7,6 @@ import six
 
 PY3, PY2 = six.PY3, not six.PY3
 
-
 class TestExceptions(vmtest.VmTestCase):
     def test_catching_exceptions(self):
         # Catch the exception precisely
@@ -54,6 +53,10 @@ class TestExceptions(vmtest.VmTestCase):
                     _, _, tb = exc_info()
                 raise ValueError, "message", tb
                 """, raises=ValueError)
+
+    if PY3:
+        def test_raise_exception_from(self):
+            self.assert_ok("""raise ValueError from NameError""", raises=ValueError)
 
     def test_raise_and_catch_exception(self):
         self.assert_ok("""\
