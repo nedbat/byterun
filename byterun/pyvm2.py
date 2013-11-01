@@ -663,8 +663,8 @@ class VirtualMachine(object):
             if why == 'silenced': # PY3
                 block = self.pop_block()
                 assert block.type == 'except-handler'
-                self.unwind_except_handler()
-                return None
+                self.unwind_except_handler(block)
+                why = None
         elif v is None:
             why = None
         elif issubclass(v, BaseException):
