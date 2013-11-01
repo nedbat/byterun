@@ -273,10 +273,8 @@ class VirtualMachine(object):
                             self.push_block('except-handler', -1)
                             exctype, value, tb = self.last_exception
                             # self.last_exception = None, None, None
-                            # self.push(exctype, value, tb)
                             self.push(tb, value, exctype)
                             # PyErr_Normalize_Exception goes here
-                            # self.push(exctype, value, tb)
                             self.push(tb, value, exctype)
                             why = None
                             self.jump(block.handler)
