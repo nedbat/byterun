@@ -79,8 +79,10 @@ class VirtualMachine(object):
         """Move the bytecode pointer to `jump`, so it will execute next."""
         self.frame.f_lasti = jump
 
-    def push_block(self, type, handler):
-        self.frame.block_stack.append(Block(type, handler, len(self.stack)))
+    def push_block(self, type, handler, level=None):
+        if level is None:
+            level = len(self.stack)
+        self.frame.block_stack.append(Block(type, handler, level))
 
     def pop_block(self):
         return self.frame.block_stack.pop()
@@ -132,6 +134,10 @@ class VirtualMachine(object):
             raise VirtualMachineError("Data left on stack! %r" % self.stack)
 
         return val
+
+    def unwind_block(self, block):
+        while len(self.stack) > block.level:
+            self.pop()
 
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
@@ -232,8 +238,7 @@ class VirtualMachine(object):
                        self.unwind_except_handler(block)
                        continue
 
-                    while len(self.stack) > block.level:
-                        self.pop()
+                    self.unwind_block(block)
 
                     if block.type == 'loop' and why == 'break':
                         why = None
@@ -646,6 +651,11 @@ class VirtualMachine(object):
             why = v
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
+            if why == 'silenced': # PY3
+                block = self.pop_block()
+                assert block.type == 'except-handler'
+                self.unwind_except_handler()
+                return None
         elif v is None:
             why = None
         elif issubclass(v, BaseException):
@@ -663,7 +673,9 @@ class VirtualMachine(object):
 
     def byte_RAISE_VARARGS(self, argc):
         if PY3:
-            return self.byte_RAISE_VARARGS_py3(argc)
+            retval = self.byte_RAISE_VARARGS_py3(argc)
+            log.info("    data from VARARGS: %s" % (repper(self.stack)))
+            return retval
 
         # NOTE: the dis docs are completely wrong about the order of the
         # operands on the stack!
@@ -714,7 +726,7 @@ class VirtualMachine(object):
                 return 'exception'
                 # raise Exception("No active exception to reraise")
             return 'reraise'
-        elif type(exc) == type(type): # as in `raise ValueError`
+        elif type(exc) == type: # as in `raise ValueError`
             exc_type = exc
             val = exc() # make an instance
         elif isinstance(exc, BaseException): # as in `raise ValueError('foo')
@@ -727,7 +739,7 @@ class VirtualMachine(object):
         # if you reach this point, you're guaranteed that
         # val is a valid exception instance and exc_type is its class
         if cause:
-            if type(cause) == type(type):
+            if type(cause) == type:
                 cause = cause()
             elif not isinstance(cause, BaseException):
                 return 'exception'
@@ -764,26 +776,43 @@ class VirtualMachine(object):
         # Pull out the exit function, and leave the rest in place.
         v = w = None
         u = self.top()
-        if u is None:
+        if u is None: # same in 2/3
             exit_func = self.pop(1)
-        elif isinstance(u, str):
+        elif isinstance(u, str): # same in 2/3
             if u in ('return', 'continue'):
                 exit_func = self.pop(2)
             else:
                 exit_func = self.pop(1)
             u = None
         elif issubclass(u, BaseException):
-            w, v, u = self.popn(3)
-            exit_func = self.pop()
-            self.push(w, v, u)
+            if PY2:
+                w, v, u = self.popn(3)
+                exit_func = self.pop()
+                self.push(w, v, u)
+            if PY3:
+                w, v, u = self.popn(3)
+                tp, exc, tb = self.popn(3)
+                exit_func = self.pop()
+                self.push(tp, exc, tb)
+                self.push(None)
+                self.push(w, v, u)
+                block = self.pop_block()
+                # log.info("popping block here")
+                assert block.type == 'except-handler'
+                self.push_block(block.type, block.handler, block.level-1)
+
+
         else:       # pragma: no cover
             raise VirtualMachineError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
         err = (u is not None) and bool(exit_ret)
         if err:
-            # An error occurred, and was suppressed, pop it from the stack.
-            self.popn(3)
-            self.push(None)
+            if PY2:
+                # An error occurred, and was suppressed, pop it from the stack.
+                self.popn(3)
+                self.push(None)
+            if PY3:
+                self.push('silenced')
 
     ## Functions
 
