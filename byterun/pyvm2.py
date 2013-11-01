@@ -61,10 +61,6 @@ class VirtualMachine(object):
     def push(self, *vals):
         """Push values onto the value stack."""
         self.stack.extend(vals)
-        try:
-            log.info("pushed: %s" % (vals,))
-        except:
-            pass
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -218,7 +214,7 @@ class VirtualMachine(object):
             # Deal with any block management we need to do: fast_block_end
 
             if why == 'exception':
-                # TODO: ceval calls PyTraceBack_Here, not sure what that does.
+                #ceval calls PyTraceBack_Here, used for chaining tracebacks between frames
                 pass
 
             if why == 'reraise':
@@ -226,13 +222,10 @@ class VirtualMachine(object):
 
             if why != 'yield':
                 while why and frame.block_stack:
-                    log.info("  %swhy: %s" % (indent, why))
 
                     assert why != 'yield'
 
                     block = frame.block_stack[-1]
-                    log.info("  %sblock type: %s" % (indent, block.type))
-                    log.info("  %sblock handler: %s" % (indent, block.handler))
                     if block.type == 'loop' and why == 'continue':
                         self.jump(self.return_value)
                         why = None
@@ -240,7 +233,6 @@ class VirtualMachine(object):
 
                     self.pop_block()
 
-                    #foo
                     if block.type == 'except-handler':
                        self.unwind_except_handler(block)
                        continue
@@ -272,13 +264,11 @@ class VirtualMachine(object):
 
                             self.push_block('except-handler', -1)
                             exctype, value, tb = self.last_exception
-                            # self.last_exception = None, None, None
                             self.push(tb, value, exctype)
                             # PyErr_Normalize_Exception goes here
                             self.push(tb, value, exctype)
                             why = None
                             self.jump(block.handler)
-                            log.info("  data from inside fast_block_end: %s" %  (repper(self.stack)))
 
                         elif block.type == 'finally':
                             if why in ('return', 'continue'):
@@ -682,11 +672,8 @@ class VirtualMachine(object):
         # self.unwind_block(block) # this breaks a lot of things
 
     def byte_RAISE_VARARGS(self, argc):
-        log.info("  starting to raise var args")
         if PY3:
-            retval = self.byte_RAISE_VARARGS_py3(argc)
-            log.info("    data from VARARGS: %s" % (repper(self.stack)))
-            return retval
+            return self.byte_RAISE_VARARGS_py3(argc)
 
         # NOTE: the dis docs are completely wrong about the order of the
         # operands on the stack!
@@ -808,7 +795,6 @@ class VirtualMachine(object):
                 self.push(None)
                 self.push(w, v, u)
                 block = self.pop_block()
-                # log.info("popping block here")
                 assert block.type == 'except-handler'
                 self.push_block(block.type, block.handler, block.level-1)
 
