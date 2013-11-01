@@ -280,7 +280,7 @@ class VirtualMachine(object):
                             self.jump(block.handler)
                             log.info("  data from inside fast_block_end: %s" %  (repper(self.stack)))
 
-                        if block.type == 'finally':
+                        elif block.type == 'finally':
                             if why in ('return', 'continue'):
                                 self.push(self.return_value)
                             self.push(why)
