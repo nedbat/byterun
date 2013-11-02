@@ -87,9 +87,6 @@ class VirtualMachine(object):
     def pop_block(self):
         return self.frame.block_stack.pop()
 
-    def pop_block(self):
-        return self.frame.block_stack.pop()
-
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
@@ -648,9 +645,9 @@ class VirtualMachine(object):
         self.push_block('finally', dest)
 
     def byte_END_FINALLY(self):
-        status = self.pop()
-        if isinstance(status, str):
-            why = status
+        v = self.pop()
+        if isinstance(v, str):
+            why = v
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
             if why == 'silenced': # PY3
@@ -658,10 +655,10 @@ class VirtualMachine(object):
                 assert block.type == 'except-handler'
                 self.unwind_except_handler(block)
                 why = None
-        elif status is None:
+        elif v is None:
             why = None
-        elif issubclass(status, BaseException):
-            exctype = status
+        elif issubclass(v, BaseException):
+            exctype = v
             val = self.pop()
             tb = self.pop()
             self.last_exception = (exctype, val, tb)
@@ -701,12 +698,14 @@ class VirtualMachine(object):
         if isinstance(exctype, BaseException):
             val = exctype
             exctype = type(val)
-        elif val is None: # still needed?
-            val = exctype()
 
         self.last_exception = (exctype, val, tb)
 
-        return 'exception' #TODO: test coverage hole on reraise in PY2
+        if tb:
+            #TODO: test coverage hole on reraise in PY2
+            return 'reraise'
+        else:
+            return 'exception'
 
     def byte_RAISE_VARARGS_py3(self, argc):
         cause = exc = None
