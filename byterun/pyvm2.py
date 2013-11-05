@@ -241,21 +241,22 @@ class VirtualMachine(object):
                         self.jump(block.handler)
                         break
 
-                    if (block.type == 'finally' or
-                        (block.type == 'except' and why == 'exception') or
-                        block.type == 'with'):
+                    if PY2:
+                        if (block.type == 'finally' or
+                            (block.type == 'except' and why == 'exception') or
+                            block.type == 'with'):
 
-                        if why == 'exception':
-                            exctype, value, tb = self.last_exception
-                            self.push(tb, value, exctype)
-                        else:
-                            if why in ('return', 'continue'):
-                                self.push(self.return_value)
-                            self.push(why)
+                            if why == 'exception':
+                                exctype, value, tb = self.last_exception
+                                self.push(tb, value, exctype)
+                            else:
+                                if why in ('return', 'continue'):
+                                    self.push(self.return_value)
+                                self.push(why)
 
-                        why = None
-                        self.jump(block.handler)
-                        break
+                            why = None
+                            self.jump(block.handler)
+                            break
 
             if why:
                 break
