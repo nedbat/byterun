@@ -700,16 +700,47 @@ class VirtualMachine(object):
             else:
                 return 'exception'
 
-    def byte_RAISE_VARARGS_py3(self, argc):
-        cause = exc = None
-        if argc == 2:
-            cause = pop()
-            exc = pop()
-        elif argc == 1:
-            exc = pop()
-        # do raise
-        if exc is None:
-            derp
+    elif PY3:
+        def byte_RAISE_VARARGS(self, argc):
+            cause = exc = None
+            if argc == 2:
+                cause = self.pop()
+                exc = self.pop()
+            elif argc == 1:
+                exc = self.pop()
+            return self.do_raise(exc, cause)
+
+        def do_raise(self, exc, cause):
+            if exc == None: # reraise
+                exc_type, val, tb = self.last_exception
+                if exc_type == None:
+                    return 'exception' # error
+                else:
+                    return 'reraise'
+
+            elif type(exc) == type: # as in `raise ValueError`
+                exc_type = exc
+                val = exc() # Make an instance.
+            elif isinstance(exc, BaseException): # as in `raise ValueError('foo')
+                exc_type = type(exc)
+                val = exc
+            else:
+                return 'exception' # error
+
+            # If you reach this point, you're guaranteed that
+            # val is a valid exception instance and exc_type is its class.
+            # Now do a similar thing for the cause, if present.
+            if cause:
+                if type(cause) == type:
+                    cause = cause()
+                elif not isinstance(cause, BaseException):
+                    return 'exception' # error
+
+                val.__cause__ = cause
+
+            self.last_exception = exc_type, val, val.__traceback__
+            return 'exception'
+
 
     def byte_POP_EXCEPT(self):
         block = self.pop_block()
