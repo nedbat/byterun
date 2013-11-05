@@ -78,7 +78,7 @@ class VirtualMachine(object):
         """Move the bytecode pointer to `jump`, so it will execute next."""
         self.frame.f_lasti = jump
 
-    def push_block(self, type, handler):
+    def push_block(self, type, handler=None):
         self.frame.block_stack.append(Block(type, handler, len(self.stack)))
 
     def pop_block(self):
@@ -261,7 +261,7 @@ class VirtualMachine(object):
                         if (why == 'exception' and
                             block.type in ['setup-except', 'finally']):
 
-                            self.push_block('except-handler', -1)
+                            self.push_block('except-handler')
                             exctype, value, tb = self.last_exception
                             self.push(tb, value, exctype)
                             # PyErr_Normalize_Exception goes here
