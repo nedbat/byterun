@@ -720,7 +720,10 @@ class VirtualMachine(object):
         ctxmgr = self.pop()
         self.push(ctxmgr.__exit__)
         ctxmgr_obj = ctxmgr.__enter__()
-        self.push_block('with', dest)
+        if PY2:
+            self.push_block('with', dest)
+        elif PY3:
+            self.push_block('finally', dest)
         self.push(ctxmgr_obj)
 
     def byte_WITH_CLEANUP(self):
