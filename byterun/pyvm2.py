@@ -257,6 +257,26 @@ class VirtualMachine(object):
                             why = None
                             self.jump(block.handler)
                             break
+                    elif PY3:
+                        if (why == 'exception' and
+                            block.type in ['setup-except', 'finally']):
+
+                            self.push_block('except-handler', -1)
+                            exctype, value, tb = self.last_exception
+                            self.push(tb, value, exctype)
+                            # PyErr_Normalize_Exception goes here
+                            self.push(tb, value, exctype)
+                            why = None
+                            self.jump(block.handler)
+
+                        elif block.type == 'finally':
+                            if why in ('return', 'continue'):
+                                self.push(self.return_value)
+                            self.push(why)
+
+                            why = None
+                            self.jump(block.handler)
+                            break
 
             if why:
                 break
