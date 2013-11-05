@@ -671,33 +671,34 @@ class VirtualMachine(object):
     def byte_POP_BLOCK(self):
         self.pop_block()
 
-    def byte_RAISE_VARARGS(self, argc):
-        # NOTE: the dis docs are completely wrong about the order of the
-        # operands on the stack!
-        exctype = val = tb = None
-        if argc == 0:
-            exctype, val, tb = self.last_exception
-        elif argc == 1:
-            exctype = self.pop()
-        elif argc == 2:
-            val = self.pop()
-            exctype = self.pop()
-        elif argc == 3:
-            tb = self.pop()
-            val = self.pop()
-            exctype = self.pop()
+    if PY2:
+        def byte_RAISE_VARARGS(self, argc):
+            # NOTE: the dis docs are completely wrong about the order of the
+            # operands on the stack!
+            exctype = val = tb = None
+            if argc == 0:
+                exctype, val, tb = self.last_exception
+            elif argc == 1:
+                exctype = self.pop()
+            elif argc == 2:
+                val = self.pop()
+                exctype = self.pop()
+            elif argc == 3:
+                tb = self.pop()
+                val = self.pop()
+                exctype = self.pop()
 
-        # There are a number of forms of "raise", normalize them somewhat.
-        if isinstance(exctype, BaseException):
-            val = exctype
-            exctype = type(val)
+            # There are a number of forms of "raise", normalize them somewhat.
+            if isinstance(exctype, BaseException):
+                val = exctype
+                exctype = type(val)
 
-        self.last_exception = (exctype, val, tb)
+            self.last_exception = (exctype, val, tb)
 
-        if tb:
-            return 'reraise'
-        else:
-            return 'exception'
+            if tb:
+                return 'reraise'
+            else:
+                return 'exception'
 
     def byte_RAISE_VARARGS_py3(self, argc):
         cause = exc = None
