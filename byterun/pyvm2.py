@@ -129,6 +129,10 @@ class VirtualMachine(object):
 
         return val
 
+    def unwind_block(self, block):
+        while len(self.stack) > block.level:
+            self.pop()
+
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
 
@@ -227,8 +231,7 @@ class VirtualMachine(object):
                     #    self.unwind_except_handler(block)
                     #    continue
 
-                    while len(self.stack) > block.level:
-                        self.pop()
+                    self.unwind_block(block)
 
                     if block.type == 'loop' and why == 'break':
                         why = None
