@@ -78,8 +78,10 @@ class VirtualMachine(object):
         """Move the bytecode pointer to `jump`, so it will execute next."""
         self.frame.f_lasti = jump
 
-    def push_block(self, type, handler=None):
-        self.frame.block_stack.append(Block(type, handler, len(self.stack)))
+    def push_block(self, type, handler=None, level=None):
+        if level is None:
+            level = len(self.stack)
+        self.frame.block_stack.append(Block(type, handler, level))
 
     def pop_block(self):
         return self.frame.block_stack.pop()
@@ -731,17 +733,31 @@ class VirtualMachine(object):
                 exit_func = self.pop(1)
             u = None
         elif issubclass(u, BaseException):
-            w, v, u = self.popn(3)
-            exit_func = self.pop()
-            self.push(w, v, u)
+            if PY2:
+                w, v, u = self.popn(3)
+                exit_func = self.pop()
+                self.push(w, v, u)
+            elif PY3:
+                w, v, u = self.popn(3)
+                tp, exc, tb = self.popn(3)
+                exit_func = self.pop()
+                self.push(tp, exc, tb)
+                self.push(None)
+                self.push(w, v, u)
+                block = self.pop_block()
+                assert block.type == 'except-handler'
+                self.push_block(block.type, block.handler, block.level-1)
         else:       # pragma: no cover
             raise VirtualMachineError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
         err = (u is not None) and bool(exit_ret)
         if err:
-            # An error occurred, and was suppressed, pop it from the stack.
-            self.popn(3)
-            self.push(None)
+            # An error occurred, and was suppressed
+            if PY2:
+                self.popn(3)
+                self.push(None)
+            elif PY3:
+                self.push('silenced')
 
     ## Functions
 
