@@ -230,9 +230,9 @@ class VirtualMachine(object):
 
                     self.pop_block()
 
-                    #if block.type == 'except':
-                    #    self.unwind_except_handler(block)
-                    #    continue
+                    if block.type == 'except-handler':
+                        self.unwind_except_handler(block)
+                        continue
 
                     self.unwind_block(block)
 
@@ -684,7 +684,7 @@ class VirtualMachine(object):
 
     def byte_POP_EXCEPT(self):
         block = self.pop_block()
-        if block.type != 'except':
+        if block.type != 'except-handler':
             raise Exception("popped block is not an except handler")
         self.unwind_except_handler(block)
 
