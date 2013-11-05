@@ -243,7 +243,7 @@ class VirtualMachine(object):
 
                     if PY2:
                         if (block.type == 'finally' or
-                            (block.type == 'except' and why == 'exception') or
+                            (block.type == 'setup-except' and why == 'exception') or
                             block.type == 'with'):
 
                             if why == 'exception':
@@ -638,7 +638,7 @@ class VirtualMachine(object):
         return 'continue'
 
     def byte_SETUP_EXCEPT(self, dest):
-        self.push_block('except', dest)
+        self.push_block('setup-except', dest)
 
     def byte_SETUP_FINALLY(self, dest):
         self.push_block('finally', dest)
