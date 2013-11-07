@@ -78,8 +78,13 @@ class VirtualMachine(object):
         """Move the bytecode pointer to `jump`, so it will execute next."""
         self.frame.f_lasti = jump
 
-    def push_block(self, type, handler):
-        self.frame.block_stack.append(Block(type, handler, len(self.stack)))
+    def push_block(self, type, handler=None, level=None):
+        if level is None:
+            level = len(self.stack)
+        self.frame.block_stack.append(Block(type, handler, level))
+
+    def pop_block(self):
+        return self.frame.block_stack.pop()
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
@@ -128,6 +133,10 @@ class VirtualMachine(object):
             raise VirtualMachineError("Data left on stack! %r" % self.stack)
 
         return val
+
+    def unwind_block(self, block):
+        while len(self.stack) > block.level:
+            self.pop()
 
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
@@ -221,35 +230,55 @@ class VirtualMachine(object):
                         why = None
                         break
 
-                    frame.block_stack.pop()
+                    self.pop_block()
 
-                    #if block.type == 'except':
-                    #    self.unwind_except_handler(block)
-                    #    continue
+                    if block.type == 'except-handler':
+                        self.unwind_except_handler(block)
+                        continue
 
-                    while len(self.stack) > block.level:
-                        self.pop()
+                    self.unwind_block(block)
 
                     if block.type == 'loop' and why == 'break':
                         why = None
                         self.jump(block.handler)
                         break
 
-                    if (block.type == 'finally' or
-                        (block.type == 'except' and why == 'exception') or
-                        block.type == 'with'):
+                    if PY2:
+                        if (block.type == 'finally' or
+                            (block.type == 'setup-except' and why == 'exception') or
+                            block.type == 'with'):
 
-                        if why == 'exception':
+                            if why == 'exception':
+                                exctype, value, tb = self.last_exception
+                                self.push(tb, value, exctype)
+                            else:
+                                if why in ('return', 'continue'):
+                                    self.push(self.return_value)
+                                self.push(why)
+
+                            why = None
+                            self.jump(block.handler)
+                            break
+                    elif PY3:
+                        if (why == 'exception' and
+                            block.type in ['setup-except', 'finally']):
+
+                            self.push_block('except-handler')
                             exctype, value, tb = self.last_exception
                             self.push(tb, value, exctype)
-                        else:
+                            # PyErr_Normalize_Exception goes here
+                            self.push(tb, value, exctype)
+                            why = None
+                            self.jump(block.handler)
+
+                        elif block.type == 'finally':
                             if why in ('return', 'continue'):
                                 self.push(self.return_value)
                             self.push(why)
 
-                        why = None
-                        self.jump(block.handler)
-                        break
+                            why = None
+                            self.jump(block.handler)
+                            break
 
             if why:
                 break
@@ -611,7 +640,7 @@ class VirtualMachine(object):
         return 'continue'
 
     def byte_SETUP_EXCEPT(self, dest):
-        self.push_block('except', dest)
+        self.push_block('setup-except', dest)
 
     def byte_SETUP_FINALLY(self, dest):
         self.push_block('finally', dest)
@@ -622,6 +651,11 @@ class VirtualMachine(object):
             why = v
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
+            if why == 'silenced': # PY3
+                block = self.pop_block()
+                assert block.type == 'except-handler'
+                self.unwind_except_handler(block)
+                why = None
         elif v is None:
             why = None
         elif issubclass(v, BaseException):
@@ -635,50 +669,82 @@ class VirtualMachine(object):
         return why
 
     def byte_POP_BLOCK(self):
-        self.frame.block_stack.pop()
+        self.pop_block()
 
-    def byte_RAISE_VARARGS(self, argc):
-        # NOTE: the dis docs are completely wrong about the order of the
-        # operands on the stack!
-        exctype = val = tb = None
-        if argc == 0:
-            exctype, val, tb = self.last_exception
-        elif argc == 1:
-            exctype = self.pop()
-        elif argc == 2:
-            val = self.pop()
-            exctype = self.pop()
-        elif argc == 3:
-            tb = self.pop()
-            val = self.pop()
-            exctype = self.pop()
+    if PY2:
+        def byte_RAISE_VARARGS(self, argc):
+            # NOTE: the dis docs are completely wrong about the order of the
+            # operands on the stack!
+            exctype = val = tb = None
+            if argc == 0:
+                exctype, val, tb = self.last_exception
+            elif argc == 1:
+                exctype = self.pop()
+            elif argc == 2:
+                val = self.pop()
+                exctype = self.pop()
+            elif argc == 3:
+                tb = self.pop()
+                val = self.pop()
+                exctype = self.pop()
 
-        # There are a number of forms of "raise", normalize them somewhat.
-        if isinstance(exctype, BaseException):
-            val = exctype
-            exctype = type(val)
+            # There are a number of forms of "raise", normalize them somewhat.
+            if isinstance(exctype, BaseException):
+                val = exctype
+                exctype = type(val)
 
-        self.last_exception = (exctype, val, tb)
+            self.last_exception = (exctype, val, tb)
 
-        if tb:
-            return 'reraise'
-        else:
+            if tb:
+                return 'reraise'
+            else:
+                return 'exception'
+
+    elif PY3:
+        def byte_RAISE_VARARGS(self, argc):
+            cause = exc = None
+            if argc == 2:
+                cause = self.pop()
+                exc = self.pop()
+            elif argc == 1:
+                exc = self.pop()
+            return self.do_raise(exc, cause)
+
+        def do_raise(self, exc, cause):
+            if exc == None: # reraise
+                exc_type, val, tb = self.last_exception
+                if exc_type == None:
+                    return 'exception' # error
+                else:
+                    return 'reraise'
+
+            elif type(exc) == type: # as in `raise ValueError`
+                exc_type = exc
+                val = exc() # Make an instance.
+            elif isinstance(exc, BaseException): # as in `raise ValueError('foo')
+                exc_type = type(exc)
+                val = exc
+            else:
+                return 'exception' # error
+
+            # If you reach this point, you're guaranteed that
+            # val is a valid exception instance and exc_type is its class.
+            # Now do a similar thing for the cause, if present.
+            if cause:
+                if type(cause) == type:
+                    cause = cause()
+                elif not isinstance(cause, BaseException):
+                    return 'exception' # error
+
+                val.__cause__ = cause
+
+            self.last_exception = exc_type, val, val.__traceback__
             return 'exception'
 
-    def byte_RAISE_VARARGS_py3(self, argc):
-        cause = exc = None
-        if argc == 2:
-            cause = pop()
-            exc = pop()
-        elif argc == 1:
-            exc = pop()
-        # do raise
-        if exc is None:
-            derp
 
     def byte_POP_EXCEPT(self):
-        block = self.frame.block_stack.pop()
-        if block.type != 'except':
+        block = self.pop_block()
+        if block.type != 'except-handler':
             raise Exception("popped block is not an except handler")
         self.unwind_except_handler(block)
 
@@ -686,7 +752,10 @@ class VirtualMachine(object):
         ctxmgr = self.pop()
         self.push(ctxmgr.__exit__)
         ctxmgr_obj = ctxmgr.__enter__()
-        self.push_block('with', dest)
+        if PY2:
+            self.push_block('with', dest)
+        elif PY3:
+            self.push_block('finally', dest)
         self.push(ctxmgr_obj)
 
     def byte_WITH_CLEANUP(self):
@@ -704,17 +773,31 @@ class VirtualMachine(object):
                 exit_func = self.pop(1)
             u = None
         elif issubclass(u, BaseException):
-            w, v, u = self.popn(3)
-            exit_func = self.pop()
-            self.push(w, v, u)
+            if PY2:
+                w, v, u = self.popn(3)
+                exit_func = self.pop()
+                self.push(w, v, u)
+            elif PY3:
+                w, v, u = self.popn(3)
+                tp, exc, tb = self.popn(3)
+                exit_func = self.pop()
+                self.push(tp, exc, tb)
+                self.push(None)
+                self.push(w, v, u)
+                block = self.pop_block()
+                assert block.type == 'except-handler'
+                self.push_block(block.type, block.handler, block.level-1)
         else:       # pragma: no cover
             raise VirtualMachineError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
         err = (u is not None) and bool(exit_ret)
         if err:
-            # An error occurred, and was suppressed, pop it from the stack.
-            self.popn(3)
-            self.push(None)
+            # An error occurred, and was suppressed
+            if PY2:
+                self.popn(3)
+                self.push(None)
+            elif PY3:
+                self.push('silenced')
 
     ## Functions
 
