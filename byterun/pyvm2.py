@@ -874,6 +874,14 @@ class VirtualMachine(object):
         args, kwargs = self.popn(2)
         return self.call_function(arg, args, kwargs)
 
+    def isinstance(self, obj, cls):
+        if isinstance(obj, Object):
+            return issubclass(obj._class, cls)
+        elif isinstance(cls, Class):
+            return False
+        else:
+            return isinstance(obj, cls)
+
     def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
         namedargs = {}
@@ -891,16 +899,15 @@ class VirtualMachine(object):
             if func.im_self:
                 posargs.insert(0, func.im_self)
             # The first parameter must be the correct type.
-            if 0:   # TODO: do we need to do this check?
-                if not isinstance(posargs[0], func.im_class):
-                    raise TypeError(
-                        'unbound method %s() must be called with %s instance '
-                        'as first argument (got %s instance instead)' % (
-                            func.im_func.func_name,
-                            func.im_class.__name__,
-                            type(posargs[0]).__name__,
-                        )
+            if not self.isinstance(posargs[0], func.im_class):
+                raise TypeError(
+                    'unbound method %s() must be called with %s instance '
+                    'as first argument (got %s instance instead)' % (
+                        func.im_func.func_name,
+                        func.im_class.__name__,
+                        type(posargs[0]).__name__,
                     )
+                )
             func = func.im_func
         retval = func(*posargs, **namedargs)
         self.push(retval)

@@ -37,7 +37,7 @@ class Function(object):
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
         self.func_closure = closure
-        self.__doc__ = code.co_consts[0]
+        self.__doc__ = code.co_consts[0] if code.co_consts else None
 
         # Sometimes, we need a real Python function.  This is for that.
         kw = {
@@ -77,15 +77,27 @@ class Function(object):
 
 class Class(object):
     def __init__(self, name, bases, methods):
-        self.name = name
-        self.bases = bases
+        self.__name__ = name
+        self.__bases__ = bases
         self.locals = methods
 
     def __call__(self, *args, **kw):
         return Object(self, self.locals, args, kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<Class %s at 0x%08X>' % (self.name, id(self))
+        return '<Class %s at 0x%08X>' % (self.__name__, id(self))
+
+    def __getattr__(self, name):
+        try:
+            val = self.locals[name]
+        except KeyError:
+            raise AttributeError("Fooey: %r" % (name,))
+        # Check if we have a descriptor
+        get = getattr(val, '__get__', None)
+        if get:
+            return get(None, self)
+        # Not a descriptor, return the value.
+        return val
 
 
 class Object(object):
@@ -96,7 +108,7 @@ class Object(object):
             methods['__init__'](self, *args, **kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<%s Instance at 0x%08X>' % (self._class.name, id(self))
+        return '<%s Instance at 0x%08X>' % (self._class.__name__, id(self))
 
     def __getattr__(self, name):
         try:
@@ -113,14 +125,14 @@ class Object(object):
         return val
 
 
-class Method:
+class Method(object):
     def __init__(self, obj, _class, func):
         self.im_self = obj
         self.im_class = _class
         self.im_func = func
 
     def __repr__(self):         # pragma: no cover
-        name = "%s.%s" % (self.im_class.name, self.im_func.func_name)
+        name = "%s.%s" % (self.im_class.__name__, self.im_func.func_name)
         if self.im_self:
             return '<Bound Method %s of %s>' % (name, self.im_self)
         else:
