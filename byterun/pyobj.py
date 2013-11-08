@@ -48,8 +48,8 @@ class Function(object):
         self._func = types.FunctionType(code, globs, **kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<Function %s code=%s at 0x%08X>' % (
-            self.func_name, repr(self.func_code), id(self)
+        return '<Function %s at 0x%08x>' % (
+            self.func_name, id(self)
         )
 
     def __get__(self, instance, owner):
@@ -85,7 +85,7 @@ class Class(object):
         return Object(self, self.locals, args, kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<Class %s at 0x%08X>' % (self.__name__, id(self))
+        return '<Class %s at 0x%08x>' % (self.__name__, id(self))
 
     def __getattr__(self, name):
         try:
@@ -108,7 +108,7 @@ class Object(object):
             methods['__init__'](self, *args, **kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<%s Instance at 0x%08X>' % (self._class.__name__, id(self))
+        return '<%s Instance at 0x%08x>' % (self._class.__name__, id(self))
 
     def __getattr__(self, name):
         try:
@@ -216,7 +216,7 @@ class Frame(object):
         self.generator = None
 
     def __repr__(self):         # pragma: no cover
-        return '<Frame at 0x%08X>' % id(self)
+        return '<Frame at 0x%08x>' % id(self)
 
 
 class Generator(object):
