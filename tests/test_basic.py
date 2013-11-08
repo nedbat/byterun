@@ -12,18 +12,6 @@ class TestIt(vmtest.VmTestCase):
     def test_constant(self):
         self.assert_ok("17")
 
-    def test_printing(self):
-        self.assert_ok("print('hello')")
-        self.assert_ok("a = 3; print(a+4)")
-
-    def test_printing_in_a_function(self):
-        self.assert_ok("""\
-            def fn():
-                print("hello")
-            fn()
-            print("bye")
-            """)
-
     def test_for_loop(self):
         self.assert_ok("""\
             out = ""
@@ -338,6 +326,31 @@ class TestIt(vmtest.VmTestCase):
 
             add(7, 3)
             """)
+
+
+if PY2:
+    class TestPrinting(vmtest.VmTestCase):
+        def test_printing(self):
+            self.assert_ok("print 'hello'")
+            self.assert_ok("a = 3; print a+4")
+            self.assert_ok("""
+                print 'hi', 17, u'bye', 23,
+                print "", "\t", "the end"
+                """)
+
+        def test_printing_in_a_function(self):
+            self.assert_ok("""\
+                def fn():
+                    print "hello"
+                fn()
+                print "bye"
+                """)
+
+        def test_printing_to_a_file(self):
+            self.assert_ok("""\
+                import sys
+                print >>sys.stdout, 'hello', 'there'
+                """)
 
 
 class TestLoops(vmtest.VmTestCase):

@@ -563,19 +563,39 @@ class VirtualMachine(object):
             print(self.pop())
 
     def byte_PRINT_ITEM(self):
-        print(self.pop(), end="")
+        item = self.pop()
+        self.print_item(item)
 
     def byte_PRINT_ITEM_TO(self):
+        to = self.pop()
         item = self.pop()
-        to = self.top()
-        print(item, end="", file=to)
+        self.print_item(item, to)
 
     def byte_PRINT_NEWLINE(self):
-        print()
+        self.print_newline()
 
     def byte_PRINT_NEWLINE_TO(self):
-        to = self.top()
+        to = self.pop()
+        self.print_newline(to)
+
+    def print_item(self, item, to=None):
+        if to is None:
+            to = sys.stdout
+        if to.softspace:
+            print(" ", end="", file=to)
+            to.softspace = 0
+        print(item, end="", file=to)
+        if isinstance(item, str):
+            if (not item) or (not item[-1].isspace()) or (item[-1] == " "):
+                to.softspace = 1
+        else:
+            to.softspace = 1
+
+    def print_newline(self, to=None):
+        if to is None:
+            to = sys.stdout
         print("", file=to)
+        to.softspace = 0
 
     ## Jumps
 
