@@ -3,6 +3,7 @@
 from __future__ import print_function
 from . import vmtest
 
+
 class TestWithStatement(vmtest.VmTestCase):
 
     def test_simple_context_manager(self):
@@ -37,7 +38,8 @@ class TestWithStatement(vmtest.VmTestCase):
                     return self
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
-                    assert exc_type is ValueError, "Expected ValueError: %r" % exc_type
+                    assert exc_type is ValueError, \\
+                        "Expected ValueError: %r" % exc_type
                     l.append('o')
                     return False
 
@@ -63,7 +65,8 @@ class TestWithStatement(vmtest.VmTestCase):
                     return self
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
-                    assert exc_type is ValueError, "Expected ValueError: %r" % exc_type
+                    assert exc_type is ValueError, \\
+                        "Expected ValueError: %r" % exc_type
                     l.append('o')
                     return True
 
@@ -210,7 +213,9 @@ class TestWithStatement(vmtest.VmTestCase):
                             value = type()
                         try:
                             self.gen.throw(type, value, traceback)
-                            raise RuntimeError("generator didn't stop after throw()")
+                            raise RuntimeError(
+                                "generator didn't stop after throw()"
+                            )
                         except StopIteration as exc:
                             return exc is not value
                         except:
@@ -247,7 +252,8 @@ class TestWithStatement(vmtest.VmTestCase):
                     setattr(wrapper, attr, getattr(wrapped, attr))
                 for attr in updated:
                     getattr(wrapper, attr).update(getattr(wrapped, attr, {}))
-                # Return the wrapper so this can be used as a decorator via partial()
+                # Return the wrapper so this can be used as a decorator
+                # via partial().
                 return wrapper
 
             def wraps(wrapped,
@@ -279,7 +285,9 @@ class TestWithStatement(vmtest.VmTestCase):
                             value = type()
                         try:
                             self.gen.throw(type, value, traceback)
-                            raise RuntimeError("generator didn't stop after throw()")
+                            raise RuntimeError(
+                                "generator didn't stop after throw()"
+                            )
                         except StopIteration as exc:
                             return exc is not value
                         except:

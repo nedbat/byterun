@@ -32,7 +32,7 @@ def dis_code(code):
 class VmTestCase(unittest.TestCase):
 
     def assert_ok(self, code, raises=None):
-        """Run `code` in the VM, and in the real Python, and see that they behave the same."""
+        """Run `code` in our VM and in real Python: they behave the same."""
 
         code = textwrap.dedent(code)
         code = compile(code, "<%s>" % self.id(), "exec")

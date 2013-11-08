@@ -17,7 +17,7 @@ else:
     run_fn = execfile.run_python_file
 
 logging.basicConfig(
-    level = logging.INFO,
+    level=logging.INFO,
 )
 
 argv = [args.to_run] + args.arg

@@ -197,6 +197,7 @@ class TestClosures(vmtest.VmTestCase):
             assert answer == 54
             """)
 
+
 class TestGenerators(vmtest.VmTestCase):
     def test_first(self):
         self.assert_ok("""\

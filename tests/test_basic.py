@@ -329,7 +329,6 @@ class TestIt(vmtest.VmTestCase):
         self.assert_ok("""\
             def verbose(func):
                 def _wrapper(*args, **kwargs):
-                    print("Calling %s(*%r, **%r)" % (func.__name__, args, kwargs))
                     return func(*args, **kwargs)
                 return _wrapper
 
@@ -339,6 +338,7 @@ class TestIt(vmtest.VmTestCase):
 
             add(7, 3)
             """)
+
 
 class TestLoops(vmtest.VmTestCase):
     def test_for(self):

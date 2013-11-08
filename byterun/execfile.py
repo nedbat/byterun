@@ -1,8 +1,12 @@
 """Execute files of Python code."""
 
-import imp, os, sys, tokenize
+import imp
+import os
+import sys
+import tokenize
 
 from .pyvm2 import VirtualMachine
+
 
 # This code is ripped off from coverage.py.  Define things it expects.
 try:
@@ -13,6 +17,7 @@ except:
         return open(fname, "rU")
 
 NoSource = Exception
+
 
 def exec_code_object(code, env):
     vm = VirtualMachine()

@@ -33,6 +33,7 @@ class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
     pass
 
+
 class VirtualMachine(object):
     def __init__(self):
         # The call stack of frames.
@@ -155,14 +156,15 @@ class VirtualMachine(object):
             if byteCode >= dis.HAVE_ARGUMENT:
                 arg = frame.f_code.co_code[frame.f_lasti:frame.f_lasti+2]
                 frame.f_lasti += 2
-                intArg = byteint(arg[0]) + (byteint(arg[1])<<8)
+                intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
                 if byteCode in dis.hasconst:
                     arg = frame.f_code.co_consts[intArg]
                 elif byteCode in dis.hasfree:
                     if intArg < len(frame.f_code.co_cellvars):
                         arg = frame.f_code.co_cellvars[intArg]
                     else:
-                        arg = frame.f_code.co_freevars[intArg-len(frame.f_code.co_cellvars)]
+                        var_idx = intArg - len(frame.f_code.co_cellvars)
+                        arg = frame.f_code.co_freevars[var_idx]
                 elif byteCode in dis.hasname:
                     arg = frame.f_code.co_names[intArg]
                 elif byteCode in dis.hasjrel:
@@ -180,8 +182,11 @@ class VirtualMachine(object):
                 if arguments:
                     op += " %r" % (arguments[0],)
                 indent = "    "*(len(self.frames)-1)
-                log.info("  %sdata: %s" % (indent, repper(self.stack)))
-                log.info("  %sblks: %s" % (indent, repper(self.frame.block_stack)))
+                stack_rep = repper(self.stack)
+                block_stack_rep = repper(self.frame.block_stack)
+
+                log.info("  %sdata: %s" % (indent, stack_rep))
+                log.info("  %sblks: %s" % (indent, block_stack_rep))
                 log.info("%s%s" % (indent, op))
 
             # When unwinding the block stack, we need to keep track of why we
@@ -201,7 +206,9 @@ class VirtualMachine(object):
                     # dispatch
                     bytecode_fn = getattr(self, 'byte_%s' % byteName, None)
                     if not bytecode_fn:            # pragma: no cover
-                        raise VirtualMachineError("unknown bytecode type: %s" % byteName)
+                        raise VirtualMachineError(
+                            "unknown bytecode type: %s" % byteName
+                        )
                     why = bytecode_fn(*arguments)
 
             except:
@@ -244,10 +251,11 @@ class VirtualMachine(object):
                         break
 
                     if PY2:
-                        if (block.type == 'finally' or
+                        if (
+                            block.type == 'finally' or
                             (block.type == 'setup-except' and why == 'exception') or
-                            block.type == 'with'):
-
+                            block.type == 'with'
+                        ):
                             if why == 'exception':
                                 exctype, value, tb = self.last_exception
                                 self.push(tb, value, exctype)
@@ -260,9 +268,10 @@ class VirtualMachine(object):
                             self.jump(block.handler)
                             break
                     elif PY3:
-                        if (why == 'exception' and
-                            block.type in ['setup-except', 'finally']):
-
+                        if (
+                            why == 'exception' and
+                            block.type in ['setup-except', 'finally']
+                        ):
                             self.push_block('except-handler')
                             exctype, value, tb = self.last_exception
                             self.push(tb, value, exctype)
@@ -355,7 +364,9 @@ class VirtualMachine(object):
         if name in self.frame.f_locals:
             val = self.frame.f_locals[name]
         else:
-            raise UnboundLocalError("local variable '%s' referenced before assignment" % name)
+            raise UnboundLocalError(
+                "local variable '%s' referenced before assignment" % name
+            )
         self.push(val)
 
     def byte_STORE_FAST(self, name):
@@ -400,7 +411,7 @@ class VirtualMachine(object):
     BINARY_OPERATORS = {
         'POWER':    pow,
         'MULTIPLY': operator.mul,
-        'DIVIDE':   getattr(operator, 'div', lambda x,y:None),
+        'DIVIDE':   getattr(operator, 'div', lambda x, y: None),
         'FLOOR_DIVIDE': operator.floordiv,
         'TRUE_DIVIDE':  operator.truediv,
         'MODULO':   operator.mod,
@@ -450,7 +461,7 @@ class VirtualMachine(object):
 
     def sliceOperator(self, op):
         start = 0
-        end = None # we will take this to mean end
+        end = None          # we will take this to mean end
         op, count = op[:-2], int(op[-1])
         if count == 1:
             start = self.pop()
@@ -460,7 +471,7 @@ class VirtualMachine(object):
             end = self.pop()
             start = self.pop()
         l = self.pop()
-        if end == None:
+        if end is None:
             end = len(l)
         if op.startswith('STORE_'):
             l[start:end] = self.pop()
@@ -477,10 +488,10 @@ class VirtualMachine(object):
         operator.gt,
         operator.ge,
         operator.contains,
-        lambda x,y: x not in y,
-        lambda x,y: x is y,
-        lambda x,y: x is not y,
-        lambda x,y: issubclass(x, Exception) and issubclass(x, y)
+        lambda x, y: x not in y,
+        lambda x, y: x is y,
+        lambda x, y: x is not y,
+        lambda x, y: issubclass(x, Exception) and issubclass(x, y),
     ]
 
     def byte_COMPARE_OP(self, opnum):
@@ -651,7 +662,7 @@ class VirtualMachine(object):
             why = v
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
-            if why == 'silenced': # PY3
+            if why == 'silenced':       # PY3
                 block = self.pop_block()
                 assert block.type == 'except-handler'
                 self.unwind_except_handler(block)
@@ -711,21 +722,23 @@ class VirtualMachine(object):
             return self.do_raise(exc, cause)
 
         def do_raise(self, exc, cause):
-            if exc == None: # reraise
+            if exc is None:         # reraise
                 exc_type, val, tb = self.last_exception
-                if exc_type == None:
-                    return 'exception' # error
+                if exc_type is None:
+                    return 'exception'      # error
                 else:
                     return 'reraise'
 
-            elif type(exc) == type: # as in `raise ValueError`
+            elif type(exc) == type:
+                # As in `raise ValueError`
                 exc_type = exc
-                val = exc() # Make an instance.
-            elif isinstance(exc, BaseException): # as in `raise ValueError('foo')
+                val = exc()             # Make an instance.
+            elif isinstance(exc, BaseException):
+                # As in `raise ValueError('foo')`
                 exc_type = type(exc)
                 val = exc
             else:
-                return 'exception' # error
+                return 'exception'      # error
 
             # If you reach this point, you're guaranteed that
             # val is a valid exception instance and exc_type is its class.
@@ -734,13 +747,12 @@ class VirtualMachine(object):
                 if type(cause) == type:
                     cause = cause()
                 elif not isinstance(cause, BaseException):
-                    return 'exception' # error
+                    return 'exception'  # error
 
                 val.__cause__ = cause
 
             self.last_exception = exc_type, val, val.__traceback__
             return 'exception'
-
 
     def byte_POP_EXCEPT(self):
         block = self.pop_block()
@@ -862,8 +874,12 @@ class VirtualMachine(object):
             if 0:   # TODO: do we need to do this check?
                 if not isinstance(posargs[0], func.im_class):
                     raise TypeError(
-                        'unbound method %s() must be called with %s instance as first argument (got %s instance instead)' %
-                        (func.im_func.func_name, func.im_class.__name__, type(posargs[0]).__name__)
+                        'unbound method %s() must be called with %s instance '
+                        'as first argument (got %s instance instead)' % (
+                            func.im_func.func_name,
+                            func.im_class.__name__,
+                            type(posargs[0]).__name__,
+                        )
                     )
             func = func.im_func
         retval = func(*posargs, **namedargs)
@@ -884,7 +900,9 @@ class VirtualMachine(object):
     def byte_IMPORT_NAME(self, name):
         level, fromlist = self.popn(2)
         frame = self.frame
-        self.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
+        self.push(
+            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+        )
 
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.

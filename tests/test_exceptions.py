@@ -66,7 +66,10 @@ class TestExceptions(vmtest.VmTestCase):
 
     if PY3:
         def test_raise_exception_from(self):
-            self.assert_ok("""raise ValueError from NameError""", raises=ValueError)
+            self.assert_ok(
+                "raise ValueError from NameError",
+                raises=ValueError
+            )
 
     def test_raise_and_catch_exception_in_function(self):
         self.assert_ok("""\
@@ -156,4 +159,3 @@ class TestExceptions(vmtest.VmTestCase):
             print(l)
             assert l == [0, 'f', 'e', 1, 'f', 'e', 2, 'f', 'e', 'r']
             """)
-

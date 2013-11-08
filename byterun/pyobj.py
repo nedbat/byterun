@@ -19,9 +19,11 @@ def make_cell(value):
     else:
         return fn.func_closure[0]
 
+
 class Function(object):
     __slots__ = [
-        'func_code', 'func_name', 'func_defaults', 'func_globals', 'func_locals', 'func_dict', 'func_closure',
+        'func_code', 'func_name', 'func_defaults', 'func_globals',
+        'func_locals', 'func_dict', 'func_closure',
         '__name__', '__dict__', '__doc__',
         '_vm', '_func',
     ]
@@ -38,13 +40,17 @@ class Function(object):
         self.__doc__ = code.co_consts[0]
 
         # Sometimes, we need a real Python function.  This is for that.
-        kw = {}
+        kw = {
+            'argdefs': self.func_defaults,
+        }
         if closure:
             kw['closure'] = tuple(make_cell(0) for _ in closure)
-        self._func = types.FunctionType(code, globs, argdefs=self.func_defaults, **kw)
+        self._func = types.FunctionType(code, globs, **kw)
 
     def __repr__(self):         # pragma: no cover
-        return '<Function %s code=%s at 0x%08X>' % (self.func_name, repr(self.func_code), id(self))
+        return '<Function %s code=%s at 0x%08X>' % (
+            self.func_name, repr(self.func_code), id(self)
+        )
 
     def __get__(self, instance, owner):
         if instance is not None:
@@ -56,8 +62,10 @@ class Function(object):
 
     def __call__(self, *args, **kwargs):
         callargs = inspect.getcallargs(self._func, *args, **kwargs)
-        frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, self.func_locals)
-        CO_GENERATOR = 32 # flag for "this code uses yield"
+        frame = self._vm.make_frame(
+            self.func_code, callargs, self.func_globals, self.func_locals
+        )
+        CO_GENERATOR = 32           # flag for "this code uses yield"
         if self.func_code.co_flags & CO_GENERATOR:
             gen = Generator(frame, self._vm)
             frame.generator = gen
@@ -65,6 +73,7 @@ class Function(object):
         else:
             retval = self._vm.run_frame(frame)
         return retval
+
 
 class Class(object):
     def __init__(self, name, bases, methods):
@@ -93,7 +102,9 @@ class Object(object):
         try:
             val = self.locals[name]
         except KeyError:
-            raise AttributeError("Object %r has no attribute %r" % (self, name))
+            raise AttributeError(
+                "Object %r has no attribute %r" % (self, name)
+            )
         # Check if we have a descriptor
         get = getattr(val, '__get__', None)
         if get:
@@ -152,6 +163,7 @@ class Cell(object):
 
 
 Block = collections.namedtuple("Block", "type, handler, level")
+
 
 class Frame(object):
     def __init__(self, f_code, f_globals, f_locals, f_back):
