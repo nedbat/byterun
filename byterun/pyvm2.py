@@ -200,7 +200,7 @@ class VirtualMachine(object):
                     self.binaryOperator(byteName[7:])
                 elif byteName.startswith('INPLACE_'):
                     self.inplaceOperator(byteName[8:])
-                elif PY2 and 'SLICE' in byteName:
+                elif 'SLICE+' in byteName:
                     self.sliceOperator(byteName)
                 else:
                     # dispatch
@@ -546,7 +546,6 @@ class VirtualMachine(object):
             self.push(x)
 
     def byte_BUILD_SLICE(self, count):
-        # New in Py3
         if count == 2:
             x, y = self.popn(2)
             self.push(slice(x, y))

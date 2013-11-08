@@ -85,6 +85,12 @@ class TestIt(vmtest.VmTestCase):
         self.assert_ok("""\
             print("hello, world"[:])
             """)
+        self.assert_ok("""\
+            print("hello, world"[::-1])
+            """)
+        self.assert_ok("""\
+            print("hello, world"[3:8:2])
+            """)
 
     def test_slice_assignment(self):
         self.assert_ok("""\
@@ -127,6 +133,11 @@ class TestIt(vmtest.VmTestCase):
         self.assert_ok("""\
             l = list(range(10))
             del l[:]
+            print(l)
+            """)
+        self.assert_ok("""\
+            l = list(range(10))
+            del l[::2]
             print(l)
             """)
 
