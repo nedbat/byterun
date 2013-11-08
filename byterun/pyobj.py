@@ -115,7 +115,7 @@ class Object(object):
             val = self.locals[name]
         except KeyError:
             raise AttributeError(
-                "Object %r has no attribute %r" % (self, name)
+                "%r object has no attribute %r" % (self._class.__name__, name)
             )
         # Check if we have a descriptor
         get = getattr(val, '__get__', None)
@@ -133,13 +133,13 @@ class Method(object):
 
     def __repr__(self):         # pragma: no cover
         name = "%s.%s" % (self.im_class.__name__, self.im_func.func_name)
-        if self.im_self:
+        if self.im_self is not None:
             return '<Bound Method %s of %s>' % (name, self.im_self)
         else:
             return '<Unbound Method %s>' % (name,)
 
     def __call__(self, *args, **kwargs):
-        if self.im_self:
+        if self.im_self is not None:
             return self.im_func(self.im_self, *args, **kwargs)
         else:
             return self.im_func(*args, **kwargs)

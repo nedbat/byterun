@@ -263,6 +263,50 @@ class TestIt(vmtest.VmTestCase):
             print(st.foo())
             """)
 
+    def test_attribute_access(self):
+        self.assert_ok("""\
+            class Thing(object):
+                z = 17
+                def __init__(self):
+                    self.x = 23
+            t = Thing()
+            print(Thing.z)
+            print(t.z)
+            print(t.x)
+            """)
+
+        self.assert_ok("""\
+            class Thing(object):
+                z = 17
+                def __init__(self):
+                    self.x = 23
+            t = Thing()
+            print(t.xyzzy)
+            """, raises=AttributeError)
+
+    def test_staticmethods(self):
+        self.assert_ok("""\
+            class Thing(object):
+                @staticmethod
+                def smeth(x):
+                    print(x)
+                @classmethod
+                def cmeth(cls, x):
+                    print(x)
+
+            Thing.smeth(1492)
+            Thing.cmeth(1776)
+            """)
+
+    def test_unbound_methods(self):
+        self.assert_ok("""\
+            class Thing(object):
+                def meth(self, x):
+                    print(x)
+            m = Thing.meth
+            m(Thing(), 1815)
+            """)
+
     def test_callback(self):
         self.assert_ok("""\
             def lcase(s):
