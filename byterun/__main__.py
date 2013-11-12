@@ -8,7 +8,7 @@ from . import execfile
 parser = argparse.ArgumentParser()
 parser.add_argument('-m', dest='module', action='store_true')
 parser.add_argument('to_run')
-parser.add_argument('arg', nargs='*')
+parser.add_argument('arg', nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
 if args.module:
