@@ -75,6 +75,10 @@ class VirtualMachine(object):
         else:
             return []
 
+    def peek(self, n):
+        """Get a value `n` entries down in the stack, without changing the stack."""
+        return self.stack[-n]
+
     def jump(self, jump):
         """Move the bytecode pointer to `jump`, so it will execute next."""
         self.frame.f_lasti = jump
@@ -531,6 +535,11 @@ class VirtualMachine(object):
         elts = self.popn(count)
         self.push(elts)
 
+    def byte_BUILD_SET(self, count):
+        # TODO: Not documented in Py2 docs.
+        elts = self.popn(count)
+        self.push(set(elts))
+
     def byte_BUILD_MAP(self, size):
         # size is ignored.
         self.push({})
@@ -554,6 +563,21 @@ class VirtualMachine(object):
             self.push(slice(x, y, z))
         else:           # pragma: no cover
             raise VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
+
+    def byte_LIST_APPEND(self, count):
+        val = self.pop()
+        the_list = self.peek(count)
+        the_list.append(val)
+
+    def byte_SET_ADD(self, count):
+        val = self.pop()
+        the_set = self.peek(count)
+        the_set.add(val)
+
+    def byte_MAP_ADD(self, count):
+        val, key = self.popn(2)
+        the_map = self.peek(count)
+        the_map[key] = val
 
     ## Printing
 
