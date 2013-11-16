@@ -61,7 +61,7 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if PY2 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexp>"]:
+        if PY2 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexpr>"]:
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,
