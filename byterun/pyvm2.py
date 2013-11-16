@@ -181,7 +181,7 @@ class VirtualMachine(object):
                     arg = intArg
                 arguments = [arg]
 
-            if 1:
+            if log.isEnabledFor(logging.INFO):
                 op = "%d: %s" % (opoffset, byteName)
                 if arguments:
                     op += " %r" % (arguments[0],)
