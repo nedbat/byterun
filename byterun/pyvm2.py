@@ -491,7 +491,7 @@ class VirtualMachine(object):
         operator.ne,
         operator.gt,
         operator.ge,
-        operator.contains,
+        lambda x, y: x in y,
         lambda x, y: x not in y,
         lambda x, y: x is y,
         lambda x, y: x is not y,

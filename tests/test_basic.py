@@ -507,3 +507,29 @@ class TestLoops(vmtest.VmTestCase):
                     print(".")
             print("done")
             """)
+
+
+class TestComparisons(vmtest.VmTestCase):
+    def test_in(self):
+        self.assert_ok("""\
+            assert "x" in "xyz"
+            assert "x" not in "abc"
+            assert "x" in ("x", "y", "z")
+            assert "x" not in ("a", "b", "c")
+            """)
+
+    def test_less(self):
+        self.assert_ok("""\
+            assert 1 < 3
+            assert 1 <= 2 and 1 <= 1
+            assert "a" < "b"
+            assert "a" <= "b" and "a" <= "a"
+            """)
+
+    def test_greater(self):
+        self.assert_ok("""\
+            assert 3 > 1
+            assert 3 >= 1 and 3 >= 3
+            assert "z" > "a"
+            assert "z" >= "a" and "z" >= "z"
+            """)

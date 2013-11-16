@@ -69,7 +69,11 @@ class Function(object):
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
         else:
-            callargs = inspect.getcallargs(self._func, *args, **kwargs)
+            try:
+                callargs = inspect.getcallargs(self._func, *args, **kwargs)
+            except Exception as e:
+                import pudb;pudb.set_trace() # -={XX}=-={XX}=-={XX}=- 
+                raise
         frame = self._vm.make_frame(
             self.func_code, callargs, self.func_globals, self.func_locals
         )
