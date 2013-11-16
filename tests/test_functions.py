@@ -116,17 +116,12 @@ class TestFunctions(vmtest.VmTestCase):
                 wrapper = dec(wrapper)
                 return wrapper
 
-            #print(my_decorator, my_decorator.func_code)
-
             @my_decorator
             def example():
                 '''Docstring'''
                 return 17
 
-            #print(example, example.func_code)
             assert example() == 17
-            #assert example.__name__ == 'example'
-            #assert example.__doc__ == 'Docstring'
             """)
 
 
