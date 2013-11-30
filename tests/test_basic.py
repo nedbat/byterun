@@ -431,6 +431,26 @@ class TestIt(vmtest.VmTestCase):
             add(7, 3)
             """)
 
+    def test_multiple_classes(self):
+        # Making classes used to mix together all the class-scoped values
+        # across classes.  This test would fail because A.__init__ would be
+        # over-written with B.__init__, and A(1, 2, 3) would complain about
+        # too many arguments.
+        self.assert_ok("""\
+            class A(object):
+                def __init__(self, a, b, c):
+                    self.sum = a + b + c
+
+            class B(object):
+                def __init__(self, x):
+                    self.x = x
+
+            a = A(1, 2, 3)
+            b = B(7)
+            print(a.sum)
+            print(b.x)
+            """)
+
 
 if PY2:
     class TestPrinting(vmtest.VmTestCase):

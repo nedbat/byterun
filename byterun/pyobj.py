@@ -91,7 +91,7 @@ class Class(object):
     def __init__(self, name, bases, methods):
         self.__name__ = name
         self.__bases__ = bases
-        self.locals = methods
+        self.locals = dict(methods)
 
     def __call__(self, *args, **kw):
         return Object(self, self.locals, args, kw)
