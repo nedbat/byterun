@@ -228,7 +228,28 @@ class Frame(object):
         self.generator = None
 
     def __repr__(self):         # pragma: no cover
-        return '<Frame at 0x%08x>' % id(self)
+        return '<Frame at 0x%08x: %r @ %d>' % (
+            id(self), self.f_code.co_filename, self.f_lineno
+        )
+
+    def line_number(self):
+        """Get the current line number the frame is executing."""
+        # We don't keep f_lineno up to date, so calculate it based on the
+        # instruction address and the line number table.
+        lnotab = self.f_code.co_lnotab
+        byte_increments = six.iterbytes(lnotab[0::2])
+        line_increments = six.iterbytes(lnotab[1::2])
+
+        byte_num = 0
+        line_num = self.f_code.co_firstlineno
+
+        for byte_incr, line_incr in zip(byte_increments, line_increments):
+            byte_num += byte_incr
+            if byte_num > self.f_lasti:
+                break
+            line_num += line_incr
+
+        return line_num
 
 
 class Generator(object):

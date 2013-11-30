@@ -5,6 +5,7 @@
 from __future__ import print_function, division
 import dis
 import inspect
+import linecache
 import logging
 import operator
 import sys
@@ -121,6 +122,19 @@ class VirtualMachine(object):
             self.frame = self.frames[-1]
         else:
             self.frame = None
+
+    def print_frames(self):
+        """Print the call stack, for debugging."""
+        for f in self.frames:
+            filename = f.f_code.co_filename
+            lineno = f.line_number()
+            print('  File "%s", line %d, in %s' % (
+                filename, lineno, f.f_code.co_name
+            ))
+            linecache.checkcache(filename)
+            line = linecache.getline(filename, lineno, f.f_globals)
+            if line:
+                print('    ' + line.strip())
 
     def resume_frame(self, frame):
         frame.f_back = self.frame

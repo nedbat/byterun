@@ -1,2 +1,2 @@
 tox
-six
+six>=1.4
