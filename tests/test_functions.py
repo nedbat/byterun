@@ -232,7 +232,10 @@ class TestGenerators(vmtest.VmTestCase):
         self.assert_ok("""\
             g = (x*x for x in range(3))
             print(list(g))
+            """)
 
+    def test_generator_from_generator3(self):
+        self.assert_ok("""
             g = (x*x for x in range(5))
             g = (y+1 for y in g)
             print(list(g))
