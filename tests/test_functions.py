@@ -217,3 +217,44 @@ class TestGenerators(vmtest.VmTestCase):
             three = f2(1)
             assert list(three) == [3,2,1]
             """)
+
+    def test_yield_multiple_values(self):
+        self.assert_ok("""\
+            def triples():
+                yield 1, 2, 3
+                yield 4, 5, 6
+
+            for a, b, c in triples():
+                print(a, b, c)
+            """)
+
+    def test_generator_from_generator2(self):
+        self.assert_ok("""\
+            g = (x*x for x in range(3))
+            print(list(g))
+
+            g = (x*x for x in range(5))
+            g = (y+1 for y in g)
+            print(list(g))
+            """)
+
+    def test_generator_from_generator(self):
+        self.assert_ok("""\
+            class Thing(object):
+                RESOURCES = ('abc', 'def')
+                def get_abc(self):
+                    return "ABC"
+                def get_def(self):
+                    return "DEF"
+                def resource_info(self):
+                    for name in self.RESOURCES:
+                        get_name = 'get_' + name
+                        yield name, getattr(self, get_name)
+
+                def boom(self):
+                    #d = list((name, get()) for name, get in self.resource_info())
+                    d = [(name, get()) for name, get in self.resource_info()]
+                    return d
+
+            print(Thing().boom())
+            """)
