@@ -3,6 +3,7 @@
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
 from __future__ import print_function, division
+
 import dis
 import inspect
 import linecache
@@ -13,16 +14,10 @@ import sys
 import six
 from six.moves import reprlib
 
-PY3, PY2 = six.PY3, not six.PY3
-
+from ._compat import PY2, PY3, byteint
 from .pyobj import Frame, Block, Method, Object, Function, Class, Generator
 
 log = logging.getLogger(__name__)
-
-if six.PY3:
-    byteint = lambda b: b
-else:
-    byteint = ord
 
 # Create a repr that won't overflow.
 repr_obj = reprlib.Repr()
@@ -32,7 +27,6 @@ repper = repr_obj.repr
 
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
-    pass
 
 
 class VirtualMachine(object):
@@ -229,7 +223,7 @@ class VirtualMachine(object):
                         )
                     why = bytecode_fn(*arguments)
 
-            except:
+            except Exception:
                 # deal with exceptions encountered while executing the op.
                 self.last_exception = sys.exc_info()[:2] + (None,)
                 log.exception("Caught exception during execution")
@@ -642,7 +636,7 @@ class VirtualMachine(object):
     def byte_JUMP_ABSOLUTE(self, jump):
         self.jump(jump)
 
-    if 0:   # Not in py2.7
+    if PY3:   # Not in py2.7
         def byte_JUMP_IF_TRUE(self, jump):
             val = self.top()
             if val:

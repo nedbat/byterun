@@ -6,7 +6,7 @@ import types
 
 import six
 
-PY3, PY2 = six.PY3, not six.PY3
+from ._compat import PY2, PY3
 
 
 def make_cell(value):

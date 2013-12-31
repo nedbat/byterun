@@ -11,4 +11,4 @@ setup(
     url='http://github.com/nedbat/byterun',
     packages=['byterun'],
     install_requires=['six'],
-    )
+)
