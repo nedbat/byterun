@@ -11,7 +11,7 @@ from .pyvm2 import VirtualMachine
 # This code is ripped off from coverage.py.  Define things it expects.
 try:
     open_source = tokenize.open     # pylint: disable=E1101
-except:
+except Exception:
     def open_source(fname):
         """Open a source file the best way."""
         return open(fname, "rU")
