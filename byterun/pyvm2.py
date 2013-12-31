@@ -3,6 +3,7 @@
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
 from __future__ import print_function, division
+
 import dis
 import inspect
 import linecache
@@ -26,7 +27,6 @@ repper = repr_obj.repr
 
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
-    pass
 
 
 class VirtualMachine(object):
