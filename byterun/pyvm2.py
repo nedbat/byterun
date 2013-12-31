@@ -13,16 +13,10 @@ import sys
 import six
 from six.moves import reprlib
 
-PY3, PY2 = six.PY3, not six.PY3
-
+from ._compat import PY2, PY3, byteint
 from .pyobj import Frame, Block, Method, Object, Function, Class, Generator
 
 log = logging.getLogger(__name__)
-
-if six.PY3:
-    byteint = lambda b: b
-else:
-    byteint = ord
 
 # Create a repr that won't overflow.
 repr_obj = reprlib.Repr()
@@ -642,7 +636,7 @@ class VirtualMachine(object):
     def byte_JUMP_ABSOLUTE(self, jump):
         self.jump(jump)
 
-    if 0:   # Not in py2.7
+    if PY3:   # Not in py2.7
         def byte_JUMP_IF_TRUE(self, jump):
             val = self.top()
             if val:
