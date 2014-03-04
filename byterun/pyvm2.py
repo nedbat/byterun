@@ -157,6 +157,14 @@ class VirtualMachine(object):
         while len(self.stack) > block.level:
             self.pop()
 
+    def unwind_except_handler(self, block):
+        while len(self.stack) > block.level + 3:
+            self.pop()
+        exctype = self.pop()
+        value = self.pop()
+        tb = self.pop()
+        self.last_exception = exctype, value, tb
+
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
 
@@ -317,13 +325,7 @@ class VirtualMachine(object):
 
         return self.return_value
 
-    def unwind_except_handler(self, block):
-        while len(self.stack) > block.level + 3:
-            self.pop()
-        exctype = self.pop()
-        value = self.pop()
-        tb = self.pop()
-        self.last_exception = exctype, value, tb
+
 
     ## Stack manipulation
 
