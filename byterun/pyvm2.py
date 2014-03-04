@@ -154,16 +154,17 @@ class VirtualMachine(object):
         return val
 
     def unwind_block(self, block):
-        while len(self.stack) > block.level:
+        if block.type == 'except-handler':
+            offset = 3
+        else:
+            offset = 0
+
+        while len(self.stack) > block.level + offset:
             self.pop()
 
-    def unwind_except_handler(self, block):
-        while len(self.stack) > block.level + 3:
-            self.pop()
-        exctype = self.pop()
-        value = self.pop()
-        tb = self.pop()
-        self.last_exception = exctype, value, tb
+        if block.type == 'except-handler':
+            tb, value, exctype = self.popn(3)
+            self.last_exception = exctype, value, tb
 
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
@@ -264,11 +265,6 @@ class VirtualMachine(object):
                         break
 
                     self.pop_block()
-
-                    if block.type == 'except-handler':
-                        self.unwind_except_handler(block)
-                        continue
-
                     self.unwind_block(block)
 
                     if block.type == 'loop' and why == 'break':
@@ -724,7 +720,7 @@ class VirtualMachine(object):
             if why == 'silenced':       # PY3
                 block = self.pop_block()
                 assert block.type == 'except-handler'
-                self.unwind_except_handler(block)
+                self.unwind_block(block)
                 why = None
         elif v is None:
             why = None
@@ -817,7 +813,7 @@ class VirtualMachine(object):
         block = self.pop_block()
         if block.type != 'except-handler':
             raise Exception("popped block is not an except handler")
-        self.unwind_except_handler(block)
+        self.unwind_block(block)
 
     def byte_SETUP_WITH(self, dest):
         ctxmgr = self.pop()
