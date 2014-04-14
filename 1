@@ -1,0 +1,36 @@
+GLOB sdist-make: /Users/afk/Dropbox/python/byterun_env/byterun/setup.py
+py27 inst-nodeps: /Users/afk/Dropbox/python/byterun_env/byterun/.tox/dist/Byterun-1.0.zip
+py27 runtests: commands[0] | nosetests 2
+E
+======================================================================
+ERROR: Failure: OSError (No such file /Users/afk/Dropbox/python/byterun_env/byterun/2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/afk/Dropbox/python/byterun_env/byterun/.tox/py27/lib/python2.7/site-packages/nose/failure.py", line 41, in runTest
+    raise self.exc_class(self.exc_val)
+OSError: No such file /Users/afk/Dropbox/python/byterun_env/byterun/2
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+FAILED (errors=1)
+ERROR: InvocationError: '/Users/afk/Dropbox/python/byterun_env/byterun/.tox/py27/bin/nosetests 2'
+py33 inst-nodeps: /Users/afk/Dropbox/python/byterun_env/byterun/.tox/dist/Byterun-1.0.zip
+py33 runtests: commands[0] | nosetests 2
+E
+======================================================================
+ERROR: Failure: OSError (No such file /Users/afk/Dropbox/python/byterun_env/byterun/2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/afk/Dropbox/python/byterun_env/byterun/.tox/py33/lib/python3.3/site-packages/nose/failure.py", line 41, in runTest
+    raise self.exc_class(self.exc_val)
+OSError: No such file /Users/afk/Dropbox/python/byterun_env/byterun/2
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+FAILED (errors=1)
+ERROR: InvocationError: '/Users/afk/Dropbox/python/byterun_env/byterun/.tox/py33/bin/nosetests 2'
+___________________________________ summary ____________________________________
+ERROR:   py27: commands failed
+ERROR:   py33: commands failed
