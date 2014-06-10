@@ -249,9 +249,9 @@ class TestGenerators(vmtest.VmTestCase):
 
     def test_generator_from_generator3(self):
         self.assert_ok("""
-            g = (x*x for x in range(5))
-            g = (y+1 for y in g)
-            print(list(g))
+            g = (x*x for x in range(3,10))
+            g2 = (y+1 for y in g)
+            print(list(g2))
             """)
 
     def test_generator_from_generator(self):

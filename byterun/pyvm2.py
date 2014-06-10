@@ -42,13 +42,13 @@ class VirtualMachine(object):
         # The current frame.
         self.frame = None
         # The data stack.
-        self.stack = []
+        # self.frame.stack = []
         self.return_value = None
         self.last_exception = None
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
-        return self.stack[-1]
+        return self.frame.stack[-1]
 
     def pop(self, i=0):
         """Pop a value from the stack.
@@ -57,11 +57,11 @@ class VirtualMachine(object):
         instead.
 
         """
-        return self.stack.pop(-1-i)
+        return self.frame.stack.pop(-1-i)
 
     def push(self, *vals):
         """Push values onto the value stack."""
-        self.stack.extend(vals)
+        self.frame.stack.extend(vals)
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -70,15 +70,15 @@ class VirtualMachine(object):
 
         """
         if n:
-            ret = self.stack[-n:]
-            self.stack[-n:] = []
+            ret = self.frame.stack[-n:]
+            self.frame.stack[-n:] = []
             return ret
         else:
             return []
 
     def peek(self, n):
         """Get a value `n` entries down in the stack, without changing the stack."""
-        return self.stack[-n]
+        return self.frame.stack[-n]
 
     def jump(self, jump):
         """Move the bytecode pointer to `jump`, so it will execute next."""
@@ -86,7 +86,7 @@ class VirtualMachine(object):
 
     def push_block(self, type, handler=None, level=None):
         if level is None:
-            level = len(self.stack)
+            level = len(self.frame.stack)
         self.frame.block_stack.append(Block(type, handler, level))
 
     def pop_block(self):
@@ -148,13 +148,13 @@ class VirtualMachine(object):
         # Check some invariants
         if self.frames:            # pragma: no cover
             raise VirtualMachineError("Frames left over!")
-        if self.stack:             # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self.stack)
+        if self.frame and self.frame.stack:          # pragma: no cover
+            raise VirtualMachineError("Data left on stack! %r" % self.frame.stack)
 
         return val
 
     def unwind_block(self, block):
-        while len(self.stack) > block.level:
+        while len(self.frame.stack) > block.level:
             self.pop()
 
     def run_frame(self, frame):
@@ -200,7 +200,7 @@ class VirtualMachine(object):
                 if arguments:
                     op += " %r" % (arguments[0],)
                 indent = "    "*(len(self.frames)-1)
-                stack_rep = repper(self.stack)
+                stack_rep = repper(self.frame.stack)
                 block_stack_rep = repper(self.frame.block_stack)
 
                 log.info("  %sdata: %s" % (indent, stack_rep))
@@ -328,7 +328,7 @@ class VirtualMachine(object):
         return self.return_value
 
     def unwind_except_handler(self, block):
-        while len(self.stack) > block.level + 3:
+        while len(self.frame.stack) > block.level + 3:
             self.pop()
         exctype = self.pop()
         value = self.pop()
