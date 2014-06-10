@@ -124,6 +124,19 @@ class TestFunctions(vmtest.VmTestCase):
             assert example() == 17
             """)
 
+    def test_nested_names(self):
+        self.assert_ok("""\
+            def one():
+                x = 1
+                def two():
+                    x = 2
+                    print(x)
+                two()
+                print(x)
+            one()
+            """)
+
+
 
 class TestClosures(vmtest.VmTestCase):
     def test_closures(self):
