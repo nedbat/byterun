@@ -311,14 +311,7 @@ class VirtualMachine(object):
                 break
                 old_frame = self.pop_frame()
 
-        #fast_yield
-
-        #handle generator exception state
-        if False and (why == 'return' or why == 'yield' and conditions):
-            if not any(b.type == 'except_handler' for b in frame.block_stack[:-1]):
-                restore_and_clear_exc_state
-            else:
-                swap_exc_state
+        #TODO: handle generator exception state
 
         self.pop_frame()
 
@@ -969,8 +962,7 @@ class VirtualMachine(object):
         self.return_value = self.pop()
         return "yield"
 
-    def byte_YIELD_FROM(self):
-        pass
+    #TODO: implement YIELD_FROM for 3.3+
 
     ## Importing
 
