@@ -41,8 +41,6 @@ class VirtualMachine(object):
         self.frames = []
         # The current frame.
         self.frame = None
-        # The data stack.
-        # self.frame.stack = []
         self.return_value = None
         self.last_exception = None
 
