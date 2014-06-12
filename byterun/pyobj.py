@@ -75,7 +75,7 @@ class Function(object):
                 # import pudb;pudb.set_trace() # -={XX}=-={XX}=-={XX}=-
                 raise
         frame = self._vm.make_frame(
-            self.func_code, callargs, self.func_globals, self.func_locals
+            self.func_code, callargs, self.func_globals, {}
         )
         CO_GENERATOR = 32           # flag for "this code uses yield"
         if self.func_code.co_flags & CO_GENERATOR:
