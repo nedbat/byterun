@@ -29,6 +29,18 @@ class TestFunctions(vmtest.VmTestCase):
             assert f6 == 720
             """)
 
+    def test_nested_names(self):
+        self.assert_ok("""\
+            def one():
+                x = 1
+                def two():
+                    x = 2
+                    print(x)
+                two()
+                print(x)
+            one()
+            """)
+
     def test_calling_functions_with_args_kwargs(self):
         self.assert_ok("""\
             def fn(a, b=17, c="Hello", d=[]):
