@@ -893,7 +893,7 @@ class VirtualMachine(object):
         closure, code = self.popn(2)
         defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(None, code, globs, defaults, closure, self)
+        fn = Function(name, code, globs, defaults, closure, self)
         self.push(fn)
 
     def byte_CALL_FUNCTION(self, arg):
