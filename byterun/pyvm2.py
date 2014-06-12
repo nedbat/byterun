@@ -15,7 +15,9 @@ from six.moves import reprlib
 
 PY3, PY2 = six.PY3, not six.PY3
 
-from .pyobj import Frame, Block, Method, Object, Function, Class, Generator
+from .pyobj import Frame, Block, Method, Function, Generator
+if PY2:
+    from .pyobj import Class, Object
 
 log = logging.getLogger(__name__)
 
@@ -910,12 +912,12 @@ class VirtualMachine(object):
         return self.call_function(arg, args, kwargs)
 
     def isinstance(self, obj, cls):
-        if isinstance(obj, Object):
-            return issubclass(obj._class, cls)
-        elif isinstance(cls, Class):
-            return False
-        else:
-            return isinstance(obj, cls)
+        if PY2:
+            if isinstance(obj, Object):
+                return issubclass(obj._class, cls)
+            elif isinstance(cls, Class):
+                return False
+        return isinstance(obj, cls)
 
     def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
@@ -983,16 +985,18 @@ class VirtualMachine(object):
         stmt, globs, locs = self.popn(3)
         six.exec_(stmt, globs, locs)
 
-    def byte_BUILD_CLASS(self):
-        name, bases, methods = self.popn(3)
-        self.push(Class(name, bases, methods))
+    if PY2:
+        def byte_BUILD_CLASS(self):
+            name, bases, methods = self.popn(3)
+            self.push(Class(name, bases, methods))
 
-    def byte_LOAD_BUILD_CLASS(self):
-        # New in py3
-        self.push(__build_class__)
+    elif PY3:
+        def byte_LOAD_BUILD_CLASS(self):
+            # New in py3
+            self.push(__build_class__)
 
-    def byte_STORE_LOCALS(self):
-        self.frame.f_locals = self.pop()
+        def byte_STORE_LOCALS(self):
+            self.frame.f_locals = self.pop()
 
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):

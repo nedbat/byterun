@@ -72,7 +72,7 @@ class Function(object):
             try:
                 callargs = inspect.getcallargs(self._func, *args, **kwargs)
             except Exception as e:
-                import pudb;pudb.set_trace() # -={XX}=-={XX}=-={XX}=- 
+                # import pudb;pudb.set_trace() # -={XX}=-={XX}=-={XX}=-
                 raise
         frame = self._vm.make_frame(
             self.func_code, callargs, self.func_globals, self.func_locals
@@ -86,55 +86,55 @@ class Function(object):
             retval = self._vm.run_frame(frame)
         return retval
 
+if PY2:
+    class Class(object):
+        def __init__(self, name, bases, methods):
+            self.__name__ = name
+            self.__bases__ = bases
+            self.locals = dict(methods)
 
-class Class(object):
-    def __init__(self, name, bases, methods):
-        self.__name__ = name
-        self.__bases__ = bases
-        self.locals = dict(methods)
+        def __call__(self, *args, **kw):
+            return Object(self, self.locals, args, kw)
 
-    def __call__(self, *args, **kw):
-        return Object(self, self.locals, args, kw)
+        def __repr__(self):         # pragma: no cover
+            return '<Class %s at 0x%08x>' % (self.__name__, id(self))
 
-    def __repr__(self):         # pragma: no cover
-        return '<Class %s at 0x%08x>' % (self.__name__, id(self))
-
-    def __getattr__(self, name):
-        try:
-            val = self.locals[name]
-        except KeyError:
-            raise AttributeError("Fooey: %r" % (name,))
-        # Check if we have a descriptor
-        get = getattr(val, '__get__', None)
-        if get:
-            return get(None, self)
-        # Not a descriptor, return the value.
-        return val
+        def __getattr__(self, name):
+            try:
+                val = self.locals[name]
+            except KeyError:
+                raise AttributeError("Fooey: %r" % (name,))
+            # Check if we have a descriptor
+            get = getattr(val, '__get__', None)
+            if get:
+                return get(None, self)
+            # Not a descriptor, return the value.
+            return val
 
 
-class Object(object):
-    def __init__(self, _class, methods, args, kw):
-        self._class = _class
-        self.locals = methods
-        if '__init__' in methods:
-            methods['__init__'](self, *args, **kw)
+    class Object(object):
+        def __init__(self, _class, methods, args, kw):
+            self._class = _class
+            self.locals = methods
+            if '__init__' in methods:
+                methods['__init__'](self, *args, **kw)
 
-    def __repr__(self):         # pragma: no cover
-        return '<%s Instance at 0x%08x>' % (self._class.__name__, id(self))
+        def __repr__(self):         # pragma: no cover
+            return '<%s Instance at 0x%08x>' % (self._class.__name__, id(self))
 
-    def __getattr__(self, name):
-        try:
-            val = self.locals[name]
-        except KeyError:
-            raise AttributeError(
-                "%r object has no attribute %r" % (self._class.__name__, name)
-            )
-        # Check if we have a descriptor
-        get = getattr(val, '__get__', None)
-        if get:
-            return get(self, self._class)
-        # Not a descriptor, return the value.
-        return val
+        def __getattr__(self, name):
+            try:
+                val = self.locals[name]
+            except KeyError:
+                raise AttributeError(
+                    "%r object has no attribute %r" % (self._class.__name__, name)
+                )
+            # Check if we have a descriptor
+            get = getattr(val, '__get__', None)
+            if get:
+                return get(self, self._class)
+            # Not a descriptor, return the value.
+            return val
 
 
 class Method(object):
