@@ -195,6 +195,7 @@ class Frame(object):
         self.f_globals = f_globals
         self.f_locals = f_locals
         self.f_back = f_back
+        self.stack = []
         if f_back:
             self.f_builtins = f_back.f_builtins
         else:
@@ -265,7 +266,7 @@ class Generator(object):
     def next(self):
         # Ordinary iteration is like sending None into a generator.
         if not self.first:
-            self.vm.push(None)
+            self.gi_frame.stack.append(None)
         self.first = False
         # To get the next value from an iterator, push its frame onto the
         # stack, and let it run.
