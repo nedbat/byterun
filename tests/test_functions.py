@@ -240,17 +240,20 @@ class TestGenerators(vmtest.VmTestCase):
                 print(a, b, c)
             """)
 
-    def test_generator_from_generator2(self):
+    def test_simple_generator(self):
         self.assert_ok("""\
             g = (x*x for x in range(3))
             print(list(g))
+            """)
 
+    def test_generator_from_generator(self):
+        self.assert_ok("""\
             g = (x*x for x in range(5))
             g = (y+1 for y in g)
             print(list(g))
             """)
 
-    def test_generator_from_generator(self):
+    def test_generator_from_generator2(self):
         self.assert_ok("""\
             class Thing(object):
                 RESOURCES = ('abc', 'def')
