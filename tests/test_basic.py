@@ -333,6 +333,14 @@ class TestIt(vmtest.VmTestCase):
             assert t.foo == 17
             """)
 
+    def test_object_attrs_not_shared_with_class(self):
+        self.assert_ok("""\
+            class Thing(object):
+                pass
+            t = Thing()
+            t.foo = 1
+            Thing.foo""", raises=AttributeError)
+
     def test_subclass_attributes_dynamic(self):
         self.assert_ok("""\
             class Foo(object):
