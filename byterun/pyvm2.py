@@ -16,8 +16,6 @@ from six.moves import reprlib
 PY3, PY2 = six.PY3, not six.PY3
 
 from .pyobj import Frame, Block, Method, Function, Generator
-if PY2:
-    from .pyobj import Class, Object
 
 log = logging.getLogger(__name__)
 
@@ -911,14 +909,6 @@ class VirtualMachine(object):
         args, kwargs = self.popn(2)
         return self.call_function(arg, args, kwargs)
 
-    def isinstance(self, obj, cls):
-        if PY2:
-            if isinstance(obj, Object):
-                return issubclass(obj._class, cls)
-            elif isinstance(cls, Class):
-                return False
-        return isinstance(obj, cls)
-
     def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
         namedargs = {}
@@ -936,7 +926,7 @@ class VirtualMachine(object):
             if func.im_self:
                 posargs.insert(0, func.im_self)
             # The first parameter must be the correct type.
-            if not self.isinstance(posargs[0], func.im_class):
+            if not isinstance(posargs[0], func.im_class):
                 raise TypeError(
                     'unbound method %s() must be called with %s instance '
                     'as first argument (got %s instance instead)' % (
@@ -990,7 +980,8 @@ class VirtualMachine(object):
     if PY2:
         def byte_BUILD_CLASS(self):
             name, bases, methods = self.popn(3)
-            self.push(Class(name, bases, methods))
+            self.push(type(name, bases, methods))
+
 
     elif PY3:
         def byte_LOAD_BUILD_CLASS(self):
