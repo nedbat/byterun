@@ -167,6 +167,8 @@ class VirtualMachine(object):
             self.last_exception = exctype, value, tb
 
     def parse_byte_and_args(self):
+        """ Parse 1 - 3 bytes of bytecode into
+        an instruction and optionally arguments."""
         f = self.frame
         opoffset = f.f_lasti
         byteCode = byteint(f.f_code.co_code[opoffset])
@@ -201,6 +203,7 @@ class VirtualMachine(object):
         return byteName, arguments, opoffset
 
     def log(self, byteName, arguments, opoffset):
+        """ Log arguments, block stack, and data stack for each opcode."""
         op = "%d: %s" % (opoffset, byteName)
         if arguments:
             op += " %r" % (arguments[0],)
@@ -213,6 +216,8 @@ class VirtualMachine(object):
         log.info("%s%s" % (indent, op))
 
     def dispatch(self, byteName, arguments):
+        """ Dispatch by bytename to the corresponding methods.
+        Exceptions are caught and set on the virtual machine."""
         why = None
         try:
             if byteName.startswith('UNARY_'):
@@ -241,6 +246,9 @@ class VirtualMachine(object):
         return why
 
     def manage_block_stack(self, why):
+        """ Manage a frame's block stack.
+        Manipulate the block stack and data stack for looping,
+        exception handling, or returning."""
         assert why != 'yield'
 
         block = self.frame.block_stack[-1]
