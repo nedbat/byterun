@@ -41,14 +41,12 @@ class VirtualMachine(object):
         self.frames = []
         # The current frame.
         self.frame = None
-        # The data stack.
-        self.stack = []
         self.return_value = None
         self.last_exception = None
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
-        return self.stack[-1]
+        return self.frame.data_stack[-1]
 
     def pop(self, i=0):
         """Pop a value from the stack.
@@ -57,11 +55,11 @@ class VirtualMachine(object):
         instead.
 
         """
-        return self.stack.pop(-1-i)
+        return self.frame.data_stack.pop(-1-i)
 
     def push(self, *vals):
         """Push values onto the value stack."""
-        self.stack.extend(vals)
+        self.frame.push(*vals)
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -70,15 +68,17 @@ class VirtualMachine(object):
 
         """
         if n:
-            ret = self.stack[-n:]
-            self.stack[-n:] = []
+            ret = self.frame.data_stack[-n:]
+            self.frame.data_stack[-n:] = []
             return ret
         else:
             return []
 
     def peek(self, n):
-        """Get a value `n` entries down in the stack, without changing the stack."""
-        return self.stack[-n]
+        """
+        Get a value `n` entries down in the stack, without changing the stack.
+        """
+        return self.frame.data_stack[-n]
 
     def jump(self, jump):
         """Move the bytecode pointer to `jump`, so it will execute next."""
@@ -86,14 +86,16 @@ class VirtualMachine(object):
 
     def push_block(self, type, handler=None, level=None):
         if level is None:
-            level = len(self.stack)
+            level = len(self.frame.data_stack)
         self.frame.block_stack.append(Block(type, handler, level))
 
     def pop_block(self):
         return self.frame.block_stack.pop()
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
-        log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
+        log.info("make_frame: code=%r, callargs=%s, f_globals=%r, f_locals=%r",
+                 code, repper(callargs), (type(f_globals), id(f_globals)),
+                  (type(f_locals), id(f_locals)))
         if f_globals is not None:
             f_globals = f_globals
             if f_locals is None:
@@ -108,8 +110,15 @@ class VirtualMachine(object):
                 '__doc__': None,
                 '__package__': None,
             }
+
+        # Implement NEWLOCALS flag. See Objects/frameobject.c in CPython.
+        CO_NEWLOCALS = 2
+        if code.co_flags & CO_NEWLOCALS:
+            f_locals = {}
+
         f_locals.update(callargs)
         frame = Frame(code, f_globals, f_locals, self.frame)
+        log.info("%r", frame)
         return frame
 
     def push_frame(self, frame):
@@ -138,6 +147,7 @@ class VirtualMachine(object):
 
     def resume_frame(self, frame):
         frame.f_back = self.frame
+        log.info("resume_frame: %r", frame)
         val = self.run_frame(frame)
         frame.f_back = None
         return val
@@ -148,8 +158,9 @@ class VirtualMachine(object):
         # Check some invariants
         if self.frames:            # pragma: no cover
             raise VirtualMachineError("Frames left over!")
-        if self.stack:             # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self.stack)
+        if self.frame is not None and self.frame.data_stack:  # pragma: no cover
+            raise VirtualMachineError("Data left on stack! %r" %
+                                      self.frame.data_stack)
 
         return val
 
@@ -159,7 +170,7 @@ class VirtualMachine(object):
         else:
             offset = 0
 
-        while len(self.stack) > block.level + offset:
+        while len(self.frame.data_stack) > block.level + offset:
             self.pop()
 
         if block.type == 'except-handler':
@@ -175,7 +186,13 @@ class VirtualMachine(object):
         self.push_frame(frame)
         while True:
             opoffset = frame.f_lasti
-            byteCode = byteint(frame.f_code.co_code[opoffset])
+            try:
+                byteCode = byteint(frame.f_code.co_code[opoffset])
+            except IndexError:
+                raise VirtualMachineError(
+                    "Bad bytecode offset %d in %s (len=%d)" %
+                    (opoffset, str(frame.f_code), len(frame.f_code.co_code))
+                )
             frame.f_lasti += 1
             byteName = dis.opname[byteCode]
             arg = None
@@ -209,7 +226,7 @@ class VirtualMachine(object):
                 if arguments:
                     op += " %r" % (arguments[0],)
                 indent = "    "*(len(self.frames)-1)
-                stack_rep = repper(self.stack)
+                stack_rep = repper(self.frame.data_stack)
                 block_stack_rep = repper(self.frame.block_stack)
 
                 log.info("  %sdata: %s" % (indent, stack_rep))
@@ -321,8 +338,6 @@ class VirtualMachine(object):
 
         return self.return_value
 
-
-
     ## Stack manipulation
 
     def byte_LOAD_CONST(self, const):
@@ -379,6 +394,7 @@ class VirtualMachine(object):
     def byte_LOAD_FAST(self, name):
         if name in self.frame.f_locals:
             val = self.frame.f_locals[name]
+            log.info("LOAD_FAST: %s from %r -> %r", name, self.frame, val)
         else:
             raise UnboundLocalError(
                 "local variable '%s' referenced before assignment" % name
@@ -395,8 +411,12 @@ class VirtualMachine(object):
         f = self.frame
         if name in f.f_globals:
             val = f.f_globals[name]
+            log.info("LOAD_GLOBAL: %s from %r.f_globals -> %r",
+                     name, self.frame, val)
         elif name in f.f_builtins:
             val = f.f_builtins[name]
+            log.info("LOAD_GLOBAL: %s from %r.f_builtins -> %r",
+                     name, self.frame, val)
         else:
             raise NameError("global name '%s' is not defined" % name)
         self.push(val)
@@ -518,6 +538,7 @@ class VirtualMachine(object):
 
     def byte_LOAD_ATTR(self, attr):
         obj = self.pop()
+        log.info("LOAD_ATTR: %r %s", type(obj), attr)
         val = getattr(obj, attr)
         self.push(val)
 

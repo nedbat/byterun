@@ -1,7 +1,9 @@
 """Test the with statement for Byterun."""
 
 from __future__ import print_function
-from . import vmtest
+
+import unittest
+from byterun.tests import vmtest
 
 
 class TestWithStatement(vmtest.VmTestCase):
@@ -307,3 +309,6 @@ class TestWithStatement(vmtest.VmTestCase):
             with my_context_manager(17) as x:
                 assert x == 17
             """)
+
+if __name__ == "__main__":
+    unittest.main()

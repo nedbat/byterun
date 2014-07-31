@@ -69,11 +69,7 @@ class Function(object):
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
         else:
-            try:
-                callargs = inspect.getcallargs(self._func, *args, **kwargs)
-            except Exception as e:
-                import pudb;pudb.set_trace() # -={XX}=-={XX}=-={XX}=- 
-                raise
+            callargs = inspect.getcallargs(self._func, *args, **kwargs)
         frame = self._vm.make_frame(
             self.func_code, callargs, self.func_globals, self.func_locals
         )
@@ -88,10 +84,55 @@ class Function(object):
 
 
 class Class(object):
+    """
+    The VM level mirror of python class type objects.
+    """
+
     def __init__(self, name, bases, methods):
         self.__name__ = name
         self.__bases__ = bases
+        self.__mro__ = Class._compute_mro(self)
         self.locals = dict(methods)
+        self.locals['__name__'] = self.__name__
+        self.locals['__mro__'] = self.__mro__
+        self.locals['__bases__'] = self.__bases__
+
+    @classmethod
+    def _mro_merge(cls, seqs):
+        """
+        Merge a sequence of MROs into a single resulting MRO.
+        This code is copied from the following URL with print statments removed.
+        https://www.python.org/download/releases/2.3/mro/
+        """
+        res = []
+        while True:
+            nonemptyseqs = [seq for seq in seqs if seq]
+            if not nonemptyseqs:
+                return res
+            for seq in nonemptyseqs:  # find merge candidates among seq heads
+                cand = seq[0]
+                nothead = [s for s in nonemptyseqs if cand in s[1:]]
+                if nothead:
+                    cand = None  # reject candidate
+                else:
+                    break
+            if not cand:
+                raise TypeError("Illegal inheritance.")
+            res.append(cand)
+            for seq in nonemptyseqs:  # remove candidate
+                if seq[0] == cand:
+                    del seq[0]
+
+    @classmethod
+    def _compute_mro(cls, C):
+        """
+        Compute the class precedence list (mro) according to C3.
+        This code is copied from the following URL with print statments removed.
+        https://www.python.org/download/releases/2.3/mro/
+        """
+        return tuple(cls._mro_merge([[C]] +
+                                    [list(c.__mro__) for c in C.__bases__] +
+                                    [list(C.__bases__)]))
 
     def __call__(self, *args, **kw):
         return Object(self, self.locals, args, kw)
@@ -99,11 +140,29 @@ class Class(object):
     def __repr__(self):         # pragma: no cover
         return '<Class %s at 0x%08x>' % (self.__name__, id(self))
 
+    def resolve_attr(self, name):
+        """
+        Find an attribute in self and return it raw. This does not handle
+        properties or method wrapping.
+        """
+        for base in self.__mro__:
+            # The following code does a double lookup on the dict, however
+            # measurements show that this is faster than either a special
+            # sentinel value or catching KeyError.
+            # Handle both VM classes and python host environment classes.
+            if isinstance(base, Class):
+                if name in base.locals:
+                    return base.locals[name]
+            else:
+                if name in base.__dict__:
+                    # Avoid using getattr so we can handle method wrapping
+                    return base.__dict__[name]
+        raise AttributeError(
+            "%r class has no attribute %r" % (self.__name__, name)
+        )
+
     def __getattr__(self, name):
-        try:
-            val = self.locals[name]
-        except KeyError:
-            raise AttributeError("Fooey: %r" % (name,))
+        val = self.resolve_attr(name)
         # Check if we have a descriptor
         get = getattr(val, '__get__', None)
         if get:
@@ -113,9 +172,10 @@ class Class(object):
 
 
 class Object(object):
+
     def __init__(self, _class, methods, args, kw):
         self._class = _class
-        self.locals = methods
+        self.locals = {}
         if '__init__' in methods:
             methods['__init__'](self, *args, **kw)
 
@@ -126,9 +186,13 @@ class Object(object):
         try:
             val = self.locals[name]
         except KeyError:
-            raise AttributeError(
-                "%r object has no attribute %r" % (self._class.__name__, name)
-            )
+            try:
+                val = self._class.resolve_attr(name)
+            except AttributeError:
+                raise AttributeError(
+                    "%r object has no attribute %r" %
+                    (self._class.__name__, name)
+                )
         # Check if we have a descriptor
         get = getattr(val, '__get__', None)
         if get:
@@ -138,6 +202,7 @@ class Object(object):
 
 
 class Method(object):
+
     def __init__(self, obj, _class, func):
         self.im_self = obj
         self.im_class = _class
@@ -176,6 +241,7 @@ class Cell(object):
            actual value.
 
     """
+
     def __init__(self, value):
         self.contents = value
 
@@ -190,6 +256,14 @@ Block = collections.namedtuple("Block", "type, handler, level")
 
 
 class Frame(object):
+    """
+    An interpreter frame. This contains the local value and block
+    stacks and the associated code and pointer. The most complex usage
+    is with generators in which a frame is stored and then repeatedly
+    reactivated. Other than that frames are created executed and then
+    discarded.
+    """
+
     def __init__(self, f_code, f_globals, f_locals, f_back):
         self.f_code = f_code
         self.f_globals = f_globals
@@ -224,8 +298,15 @@ class Frame(object):
                 assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
                 self.cells[var] = f_back.cells[var]
 
+        # The stack holding exception and generator handling information
         self.block_stack = []
+        # The stack holding input and output of bytecode instructions
+        self.data_stack = []
         self.generator = None
+
+    def push(self, *vals):
+        """Push values onto the value stack."""
+        self.data_stack.extend(vals)
 
     def __repr__(self):         # pragma: no cover
         return '<Frame at 0x%08x: %r @ %d>' % (
@@ -253,6 +334,7 @@ class Frame(object):
 
 
 class Generator(object):
+
     def __init__(self, g_frame, vm):
         self.gi_frame = g_frame
         self.vm = vm
@@ -263,9 +345,13 @@ class Generator(object):
         return self
 
     def next(self):
+        if self.finished:
+            raise StopIteration
+
         # Ordinary iteration is like sending None into a generator.
+        # Push the value onto the frame stack.
         if not self.first:
-            self.vm.push(None)
+            self.gi_frame.push(None)
         self.first = False
         # To get the next value from an iterator, push its frame onto the
         # stack, and let it run.
