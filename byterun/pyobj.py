@@ -1,5 +1,9 @@
 """Implementations of Python fundamental objects for Byterun."""
 
+
+# TODO(ampere): Add doc strings and remove this.
+# pylint: disable=missing-docstring
+
 import collections
 import inspect
 import types
@@ -27,6 +31,19 @@ class Function(object):
         '__name__', '__dict__', '__doc__',
         '_vm', '_func',
     ]
+
+    CO_OPTIMIZED = 0x0001
+    CO_NEWLOCALS = 0x0002
+    CO_VARARGS = 0x0004
+    CO_VARKEYWORDS = 0x0008
+    CO_NESTED = 0x0010
+    CO_GENERATOR = 0x0020
+    CO_NOFREE = 0x0040
+    CO_FUTURE_DIVISION = 0x2000
+    CO_FUTURE_ABSOLUTE_IMPORT = 0x4000
+    CO_FUTURE_WITH_STATEMENT = 0x8000
+    CO_FUTURE_PRINT_FUNCTION = 0x10000
+    CO_FUTURE_UNICODE_LITERALS = 0x20000
 
     def __init__(self, name, code, globs, defaults, closure, vm):
         self._vm = vm
@@ -61,20 +78,19 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if PY2 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexpr>"]:
+        if PY2 and self.func_name in ['<setcomp>', '<dictcomp>', '<genexpr>']:
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,
             # so just do the right thing.
-            assert len(args) == 1 and not kwargs, "Surprising comprehension!"
-            callargs = {".0": args[0]}
+            assert len(args) == 1 and not kwargs, 'Surprising comprehension!'
+            callargs = {'.0': args[0]}
         else:
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
         frame = self._vm.make_frame(
             self.func_code, callargs, self.func_globals, self.func_locals
         )
-        CO_GENERATOR = 32           # flag for "this code uses yield"
-        if self.func_code.co_flags & CO_GENERATOR:
+        if self.func_code.co_flags & self.CO_GENERATOR:
             gen = Generator(frame, self._vm)
             frame.generator = gen
             retval = gen
@@ -88,17 +104,18 @@ class Class(object):
     The VM level mirror of python class type objects.
     """
 
-    def __init__(self, name, bases, methods):
+    def __init__(self, name, bases, methods, vm):
+        self._vm = vm
         self.__name__ = name
         self.__bases__ = bases
-        self.__mro__ = Class._compute_mro(self)
+        self.__mro__ = self._compute_mro(self)
         self.locals = dict(methods)
         self.locals['__name__'] = self.__name__
         self.locals['__mro__'] = self.__mro__
         self.locals['__bases__'] = self.__bases__
 
     @classmethod
-    def _mro_merge(cls, seqs):
+    def mro_merge(cls, seqs):
         """
         Merge a sequence of MROs into a single resulting MRO.
         This code is copied from the following URL with print statments removed.
@@ -124,18 +141,18 @@ class Class(object):
                     del seq[0]
 
     @classmethod
-    def _compute_mro(cls, C):
+    def _compute_mro(cls, c):
         """
         Compute the class precedence list (mro) according to C3.
         This code is copied from the following URL with print statments removed.
         https://www.python.org/download/releases/2.3/mro/
         """
-        return tuple(cls._mro_merge([[C]] +
-                                    [list(c.__mro__) for c in C.__bases__] +
-                                    [list(C.__bases__)]))
+        return tuple(cls.mro_merge([[c]] +
+                                   [list(base.__mro__) for base in c.__bases__]
+                                   + [list(c.__bases__)]))
 
     def __call__(self, *args, **kw):
-        return Object(self, self.locals, args, kw)
+        return self._vm.make_instance(self, args, kw)
 
     def __repr__(self):         # pragma: no cover
         return '<Class %s at 0x%08x>' % (self.__name__, id(self))
@@ -173,19 +190,21 @@ class Class(object):
 
 class Object(object):
 
-    def __init__(self, _class, methods, args, kw):
+    def __init__(self, _class, args, kw):
+        # pylint: disable=protected-access
+        self._vm = _class._vm
         self._class = _class
         self.locals = {}
-        if '__init__' in methods:
-            methods['__init__'](self, *args, **kw)
+        if '__init__' in _class.locals:
+            _class.locals['__init__'](self, *args, **kw)
 
     def __repr__(self):         # pragma: no cover
         return '<%s Instance at 0x%08x>' % (self._class.__name__, id(self))
 
     def __getattr__(self, name):
-        try:
+        if name in self.locals:
             val = self.locals[name]
-        except KeyError:
+        else:
             try:
                 val = self._class.resolve_attr(name)
             except AttributeError:
@@ -199,6 +218,8 @@ class Object(object):
             return get(self, self._class)
         # Not a descriptor, return the value.
         return val
+
+    # TODO(ampere): Does this need a __setattr__ and __delattr__ implementation?
 
 
 class Method(object):
@@ -262,6 +283,20 @@ class Frame(object):
     is with generators in which a frame is stored and then repeatedly
     reactivated. Other than that frames are created executed and then
     discarded.
+
+    Attributes:
+      f_code: The code object this frame is executing.
+      f_globals: The globals dict used for global name resolution.
+      f_locals: Similar for locals.
+      f_builtins: Similar for builtins.
+      f_back: The frame above self on the stack.
+      f_lineno: The first line number of the code object.
+      f_lasti: The instruction pointer. Despite its name (which matches actual
+      python frames) this points to the next instruction that will be executed.
+      block_stack: A stack of blocks used to manage exceptions, loops, and
+      "with"s.
+      data_stack: The value stack that is used for instruction operands.
+      generator: None or a Generator object if this frame is a generator frame.
     """
 
     def __init__(self, f_code, f_globals, f_locals, f_back):
@@ -279,16 +314,14 @@ class Frame(object):
         self.f_lineno = f_code.co_firstlineno
         self.f_lasti = 0
 
+        self.cells = {}
         if f_code.co_cellvars:
-            self.cells = {}
             if not f_back.cells:
                 f_back.cells = {}
             for var in f_code.co_cellvars:
                 # Make a cell for the variable in our locals, or None.
                 cell = Cell(self.f_locals.get(var))
                 f_back.cells[var] = self.cells[var] = cell
-        else:
-            self.cells = None
 
         if f_code.co_freevars:
             if not self.cells:

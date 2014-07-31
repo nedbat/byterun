@@ -3,22 +3,20 @@
 from __future__ import print_function
 
 import dis
-import logging
 import sys
 import textwrap
 import types
 import unittest
 
 
+from byterun.abstractvm import AbstractVirtualMachine
 from byterun.pyvm2 import VirtualMachine, VirtualMachineError
 import six
 
 # Make this false if you need to run the debugger inside a test.
-CAPTURE_STDOUT = ('-s' not in sys.argv)
+CAPTURE_STDOUT = ("-s" not in sys.argv)
 # Make this false to see the traceback from a failure inside pyvm2.
 CAPTURE_EXCEPTION = True
-
-# logging.basicConfig(level=logging.DEBUG)
 
 
 def dis_code(code):
@@ -33,14 +31,14 @@ def dis_code(code):
     sys.stdout.flush()
 
 
-def run_with_byterun(code):
+def run_with_byterun(code, vmclass=VirtualMachine):
     real_stdout = sys.stdout
     try:
         # Run the code through our VM.
         vm_stdout = six.StringIO()
         if CAPTURE_STDOUT:              # pragma: no branch
             sys.stdout = vm_stdout
-        vm = VirtualMachine()
+        vm = vmclass()
 
         vm_value = vm_exc = None
         try:
@@ -96,15 +94,22 @@ class VmTestCase(unittest.TestCase):
         dis_code(code)
 
         vm_value, vm_stdout_value, vm_exc = run_with_byterun(code)
+        abstractvm_value, abstractvm_stdout_value, abstractvm_exc = (
+            run_with_byterun(code, AbstractVirtualMachine))
         py_value, py_stdout_value, py_exc = run_with_eval(code)
 
         self.assert_same_exception(vm_exc, py_exc)
+        self.assert_same_exception(abstractvm_exc, py_exc)
         self.assertEqual(vm_stdout_value, py_stdout_value)
+        self.assertEqual(abstractvm_stdout_value, py_stdout_value)
         self.assertEqual(vm_value, py_value)
+        self.assertEqual(abstractvm_value, py_value)
         if raises:
             self.assertIsInstance(vm_exc, raises)
+            self.assertIsInstance(abstractvm_exc, raises)
         else:
             self.assertIsNone(vm_exc)
+            self.assertIsNone(abstractvm_exc)
 
     def assert_same_exception(self, e1, e2):
         """Exceptions don't implement __eq__, check it ourselves."""
