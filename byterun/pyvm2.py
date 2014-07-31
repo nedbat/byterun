@@ -1180,24 +1180,32 @@ class VirtualMachine(object):
 
     ## Importing
 
+    def import_name(self, name, fromlist, level):
+        """Import the module and return the module object."""
+        return __import__(name, self.get_globals_dict(), self.get_locals_dict(),
+                          fromlist, level)
+
+    def get_module_attributes(self, mod):
+        """Return the modules members as a dict."""
+        return {name: getattr(mod, name) for name in dir(mod)}
+
     def byte_IMPORT_NAME(self, name):
         level, fromlist = self.popn(2)
         frame = self.frame
-        self.push(
-            __import__(name, self.get_globals_dict(), self.get_locals_dict(),
-                       fromlist, level)
-        )
+        self.push(self.import_name(name, fromlist, level))
 
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.
         mod = self.pop()
-        for attr in dir(mod):
+        attrs = self.get_module_attributes(mod)
+        for attr, val in attrs.iteritems():
             if attr[0] != '_':
-                self.store_local(attr, getattr(mod, attr))
+                self.store_local(attr, val)
 
     def byte_IMPORT_FROM(self, name):
         mod = self.top()
-        self.push(getattr(mod, name))
+        attrs = self.get_module_attributes(mod)
+        self.push(attrs[name])
 
     ## And the rest...
 

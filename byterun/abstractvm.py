@@ -60,12 +60,21 @@ class AbstractVirtualMachine(pyvm2.VirtualMachine):
                                       [y], {})
         return magic_operator_wrapper
 
+    reversable_operators = set([
+        "__add__", "__sub__", "__mul__",
+        "__div__", "__truediv__", "__floordiv__",
+        "__mod__", "__divmod__", "__pow__",
+        "__lshift__", "__rshift__", "__and__", "__or__", "__xor__"
+        ])
+
     @staticmethod
     def reverse_operator_name(name):
-        if name.startswith("__"):
+        if name in AbstractVirtualMachine.reversable_operators:
             return "__r" + name[2:]
-        raise ValueError(
-            "Operator name not in a known format: {}".format(name))
+        return None
+
+    def build_slice(self, start, stop, step):
+        return slice(start, stop, step)
 
     def byte_GET_ITER(self):
         self.push(self.load_attr(self.pop(), "__iter__"))
@@ -79,6 +88,58 @@ class AbstractVirtualMachine(pyvm2.VirtualMachine):
         except StopIteration:
             self.pop()
             self.jump(jump)
+
+    def byte_STORE_MAP(self):
+        # pylint: disable=unbalanced-tuple-unpacking
+        the_map, val, key = self.popn(3)
+        self.store_subscr(the_map, key, val)
+        self.push(the_map)
+
+    def del_subscr(self, obj, key):
+        self.call_function(self.load_attr(obj, "__delitem__"),
+                           [key], {})
+
+    def store_subscr(self, obj, key, val):
+        self.call_function(self.load_attr(obj, "__setitem__"),
+                           [key, val], {})
+
+    def sliceOperator(self, op):  # pylint: disable=invalid-name
+        start = 0
+        end = None          # we will take this to mean end
+        op, count = op[:-2], int(op[-1])
+        if count == 1:
+            start = self.pop()
+        elif count == 2:
+            end = self.pop()
+        elif count == 3:
+            end = self.pop()
+            start = self.pop()
+        l = self.pop()
+        if end is None:
+            end = self.call_function(self.load_attr(l, "__len__"), [], {})
+        if op.startswith('STORE_'):
+            self.call_function(self.load_attr(l, "__setitem__"),
+                               [self.build_slice(start, end, 1), self.pop()],
+                               {})
+        elif op.startswith('DELETE_'):
+            self.call_function(self.load_attr(l, "__delitem__"),
+                               [self.build_slice(start, end, 1)],
+                               {})
+        else:
+            self.push(self.call_function(self.load_attr(l, "__getitem__"),
+                                         [self.build_slice(start, end, 1)],
+                                         {}))
+
+    def byte_UNPACK_SEQUENCE(self, count):
+        seq = self.pop()
+        itr = self.call_function(self.load_attr(seq, "__iter__"), [], {})
+        values = []
+        for _ in range(count):
+            # TODO(ampere): Fix for python 3
+            values.append(self.call_function(self.load_attr(itr, "next"),
+                                             [], {}))
+        for value in reversed(values):
+            self.push(value)
 
 
 class AncestorTraversalVirtualMachine(AbstractVirtualMachine):

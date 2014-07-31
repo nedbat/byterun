@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import unittest
-from byterun.tests import vmtest
+from tests import vmtest
 
 
 class TestFunctions(vmtest.VmTestCase):

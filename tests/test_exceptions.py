@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import unittest
-from byterun.tests import vmtest
+from tests import vmtest
 import six
 
 PY3, PY2 = six.PY3, not six.PY3
