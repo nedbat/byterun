@@ -234,67 +234,61 @@ class VirtualMachine(object):
             tb, value, exctype = self.popn(3)
             self.last_exception = exctype, value, tb
 
-    def run_instruction(self):
-        """
-        Evaluate a single instruction in the current frame.
-
-        Return None if the frame should continue executing otherwise return the
-        reason it should stop.
-        """
-        frame = self.frame
-        opoffset = frame.f_lasti
+    def parse_byte_and_args(self):
+        f = self.frame
+        opoffset = f.f_lasti
         try:
-            byteCode = byteint(frame.f_code.co_code[opoffset])
+            byteCode = byteint(f.f_code.co_code[opoffset])
         except IndexError:
             raise VirtualMachineError(
                 "Bad bytecode offset %d in %s (len=%d)" %
-                (opoffset, str(frame.f_code), len(frame.f_code.co_code))
+                (opoffset, str(f.f_code), len(f.f_code.co_code))
             )
-        frame.f_lasti += 1
+        f.f_lasti += 1
         byteName = dis.opname[byteCode]
         arg = None
         arguments = []
         if byteCode >= dis.HAVE_ARGUMENT:
-            arg = frame.f_code.co_code[frame.f_lasti:frame.f_lasti+2]
-            frame.f_lasti += 2
+            arg = f.f_code.co_code[f.f_lasti:f.f_lasti+2]
+            f.f_lasti += 2
             intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
             if byteCode in dis.hasconst:
-                arg = frame.f_code.co_consts[intArg]
+                arg = f.f_code.co_consts[intArg]
             elif byteCode in dis.hasfree:
-                if intArg < len(frame.f_code.co_cellvars):
-                    arg = frame.f_code.co_cellvars[intArg]
+                if intArg < len(f.f_code.co_cellvars):
+                    arg = f.f_code.co_cellvars[intArg]
                 else:
-                    var_idx = intArg - len(frame.f_code.co_cellvars)
-                    arg = frame.f_code.co_freevars[var_idx]
+                    var_idx = intArg - len(f.f_code.co_cellvars)
+                    arg = f.f_code.co_freevars[var_idx]
             elif byteCode in dis.hasname:
-                arg = frame.f_code.co_names[intArg]
+                arg = f.f_code.co_names[intArg]
             elif byteCode in dis.hasjrel:
-                arg = frame.f_lasti + intArg
+                arg = f.f_lasti + intArg
             elif byteCode in dis.hasjabs:
                 arg = intArg
             elif byteCode in dis.haslocal:
-                arg = frame.f_code.co_varnames[intArg]
+                arg = f.f_code.co_varnames[intArg]
             else:
                 arg = intArg
             arguments = [arg]
 
-        if log.isEnabledFor(logging.INFO):
-            # pylint: disable=logging-not-lazy
-            op = "%d: %s" % (opoffset, byteName)
-            if arguments:
-                op += " %r" % (arguments[0],)
-            indent = "    "*(len(self.frames)-1)
-            stack_rep = repper(self.frame.data_stack)
-            block_stack_rep = repper(self.frame.block_stack)
+        return byteName, arguments, opoffset
 
-            log.info("  %sdata: %s" % (indent, stack_rep))
-            log.info("  %sblks: %s" % (indent, block_stack_rep))
-            log.info("%s%s" % (indent, op))
+    def log(self, byteName, arguments, opoffset):
+        # pylint: disable=logging-not-lazy
+        op = "%d: %s" % (opoffset, byteName)
+        if arguments:
+            op += " %r" % (arguments[0],)
+        indent = "    "*(len(self.frames)-1)
+        stack_rep = repper(self.frame.data_stack)
+        block_stack_rep = repper(self.frame.block_stack)
 
-        # When unwinding the block stack, we need to keep track of why we
-        # are doing it.
+        log.info("  %sdata: %s" % (indent, stack_rep))
+        log.info("  %sblks: %s" % (indent, block_stack_rep))
+        log.info("%s%s" % (indent, op))
+
+    def dispatch(self, byteName, arguments):
         why = None
-
         try:
             if byteName.startswith('UNARY_'):
                 self.unaryOperator(byteName[6:])
@@ -318,8 +312,82 @@ class VirtualMachine(object):
             log.exception("Caught exception during execution")
             why = 'exception'
 
-        # Deal with any block management we need to do.
+        return why
 
+    def manage_block_stack(self, why):
+        assert why != 'yield'
+
+        block = self.frame.block_stack[-1]
+        if block.type == 'loop' and why == 'continue':
+            self.jump(self.return_value)
+            why = None
+            return why
+
+        self.pop_block()
+        self.unwind_block(block)
+
+        if block.type == 'loop' and why == 'break':
+            why = None
+            self.jump(block.handler)
+            return why
+
+        if PY2:
+            if (
+                block.type == 'finally' or
+                (block.type == 'setup-except' and why == 'exception') or
+                block.type == 'with'
+            ):
+                if why == 'exception':
+                    exctype, value, tb = self.last_exception
+                    self.push(tb, value, exctype)
+                else:
+                    if why in ('return', 'continue'):
+                        self.push(self.return_value)
+                    self.push(why)
+
+                why = None
+                self.jump(block.handler)
+                return why
+
+        elif PY3:
+            if (
+                why == 'exception' and
+                block.type in ['setup-except', 'finally']
+            ):
+                self.push_block('except-handler')
+                exctype, value, tb = self.last_exception
+                self.push(tb, value, exctype)
+                # PyErr_Normalize_Exception goes here
+                self.push(tb, value, exctype)
+                why = None
+                self.jump(block.handler)
+                return why
+
+            elif block.type == 'finally':
+                if why in ('return', 'continue'):
+                    self.push(self.return_value)
+                self.push(why)
+
+                why = None
+                self.jump(block.handler)
+                return why
+
+        return why
+
+    def run_instruction(self):
+        """Run one instruction in the current frame.
+
+        Return None if the frame should continue executing otherwise return the
+        reason it should stop.
+        """
+        frame = self.frame
+        byteName, arguments, opoffset = self.parse_byte_and_args()
+        if log.isEnabledFor(logging.INFO):
+            self.log(byteName, arguments, opoffset)
+
+        # When unwinding the block stack, we need to keep track of why we
+        # are doing it.
+        why = self.dispatch(byteName, arguments)
         if why == 'exception':
             # TODO: ceval calls PyTraceBack_Here, not sure what that does.
             pass
@@ -327,64 +395,10 @@ class VirtualMachine(object):
         if why == 'reraise':
             why = 'exception'
 
-        # TODO(ampere): This may not call jump in all cases where an
-        #               exception could have caused a jump.
         if why != 'yield':
             while why and frame.block_stack:
-                assert why != 'yield'
-
-                block = frame.block_stack[-1]
-                if block.type == 'loop' and why == 'continue':
-                    self.jump(self.return_value)
-                    why = None
-                    break
-
-                self.pop_block()
-                self.unwind_block(block)
-
-                if block.type == 'loop' and why == 'break':
-                    why = None
-                    self.jump(block.handler)
-                    break
-
-                if PY2:
-                    if (
-                        block.type == 'finally' or
-                        (block.type == 'setup-except' and why == 'exception') or
-                        block.type == 'with'
-                    ):
-                        if why == 'exception':
-                            exctype, value, tb = self.last_exception
-                            self.push(tb, value, exctype)
-                        else:
-                            if why in ('return', 'continue'):
-                                self.push(self.return_value)
-                            self.push(why)
-
-                        why = None
-                        self.jump(block.handler)
-                        break
-                elif PY3:
-                    if (
-                        why == 'exception' and
-                        block.type in ['setup-except', 'finally']
-                    ):
-                        self.push_block('except-handler')
-                        exctype, value, tb = self.last_exception
-                        self.push(tb, value, exctype)
-                        # PyErr_Normalize_Exception goes here
-                        self.push(tb, value, exctype)
-                        why = None
-                        self.jump(block.handler)
-
-                    elif block.type == 'finally':
-                        if why in ('return', 'continue'):
-                            self.push(self.return_value)
-                        self.push(why)
-
-                        why = None
-                        self.jump(block.handler)
-                        break
+                # Deal with any block management we need to do.
+                why = self.manage_block_stack(why)
 
         return why
 
@@ -396,7 +410,6 @@ class VirtualMachine(object):
         self.push_frame(frame)
         while True:
             why = self.run_instruction()
-
             if why:
                 break
         self.pop_frame()
@@ -436,6 +449,7 @@ class VirtualMachine(object):
 
     def isinstance(self, obj, cls):
         if isinstance(obj, Object):
+            # pylint: disable=protected-access
             return issubclass(obj._class, cls)
         elif isinstance(cls, Class):
             return False

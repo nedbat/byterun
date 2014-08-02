@@ -551,7 +551,7 @@ class CFG(object):
   code objects.
   """
 
-  # TODO(ampere): This need to cache the results.
+  @memoize.Memoize()
   def get_block_table(self, code):
     """Get (building if needed) the BlockTable for a given code object."""
     return BlockTable(code)

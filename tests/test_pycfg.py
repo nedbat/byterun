@@ -2,6 +2,7 @@
 """
 
 import dis
+import inspect
 import logging
 import unittest
 
@@ -19,6 +20,11 @@ from byterun import pycfg
 #
 # The <arg> is a decoded version of the argument. This is more useful for
 # relative jumps.
+
+
+def line_number():
+  """Returns the line number of the call site."""
+  return inspect.currentframe().f_back.f_lineno
 
 
 class CFGTest(unittest.TestCase):
@@ -70,6 +76,12 @@ class CFGTest(unittest.TestCase):
     if y > 10:
       x -= 2
     return x
+  codeTriangleLineNumber = line_number() - 4
+  # codeTriangleLineNumber is used to compute the correct line numbers for code
+  # in codeTriangle. This makes the tests less brittle if other tests in the
+  # file are changed. However the "- 4" will need to be changed if codeTriangle
+  # is changed or anything is inserted between the line_number() call and the
+  # definition of codeTriangle.
 
   codeTriangleBytecode = pycfg._list_to_string([
       dis.opmap["LOAD_FAST"], 0, 0,           # 0, arg=0
@@ -108,8 +120,9 @@ class CFGTest(unittest.TestCase):
     self.assertItemsEqual(bb(0).incoming, [])
     # Check incoming of the merge block.
     self.assertItemsEqual(bb(44).incoming, [bb(28), bb(15)])
-    self.assertEndsWith(bb(21).get_name(),
-                        "byterun/tests/test_pycfg.py:72-72")
+    self.assertEndsWith(
+        bb(21).get_name(),
+        "tests/test_pycfg.py:{0}-{0}".format(self.codeTriangleLineNumber+2))
 
   def testTriangleDominators(self):
     cfg = pycfg.CFG()
@@ -289,6 +302,8 @@ class CFGTest(unittest.TestCase):
       for x in y:
         z += x*x
     return z
+  codeNestedLoopsLineNumber = line_number() - 5
+  # See comment on codeTriangleLineNumber above.
 
   codeNestedLoopsBytecode = pycfg._list_to_string([
       dis.opmap["LOAD_CONST"], 1, 0,       # 0, arg=1
@@ -346,8 +361,10 @@ class CFGTest(unittest.TestCase):
     self.assertItemsEqual(bb(13).outgoing, [bb(16), bb(53)])
     self.assertItemsEqual(bb(26).incoming, [bb(25), bb(46)])
     self.assertItemsEqual(bb(26).outgoing, [bb(29), bb(49)])
-    self.assertEndsWith(bb(43).get_name(),
-                        "byterun/tests/test_pycfg.py:290-291")
+    self.assertEndsWith(
+        bb(43).get_name(),
+        "tests/test_pycfg.py:{}-{}".format(self.codeNestedLoopsLineNumber + 2,
+                                           self.codeNestedLoopsLineNumber + 3))
 
   def testNestedLoopsDominators(self):
     cfg = pycfg.CFG()
