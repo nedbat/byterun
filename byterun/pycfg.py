@@ -551,10 +551,18 @@ class CFG(object):
   code objects.
   """
 
-  @memoize.Memoize()
+  def __init__(self):
+    """Initialize a CFG object."""
+    self._block_tables = {}
+
   def get_block_table(self, code):
     """Get (building if needed) the BlockTable for a given code object."""
-    return BlockTable(code)
+    if code in self._block_tables:
+      ret = self._block_tables[code]
+    else:
+      ret = BlockTable(code)
+      self._block_tables[code] = ret
+    return ret
 
   def get_basic_block(self, code, index):
     """Get a basic block by code object and index."""
