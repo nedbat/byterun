@@ -105,6 +105,7 @@ def run_python_file(filename, args, package=None):
     main_mod.__file__ = filename
     if package:
         main_mod.__package__ = package
+    # TODO(ampere): This may be incorrect if we are overriding builtins
     main_mod.__builtins__ = BUILTINS
 
     # Set sys.argv and the first path element properly.

@@ -2,6 +2,14 @@
 # Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
+
+# Disable because there are enough false positives to make it useless
+# pylint: disable=unbalanced-tuple-unpacking
+# pylint: disable=unpacking-non-sequence
+
+# TODO(ampere): Add doc strings and remove this.
+# pylint: disable=missing-docstring
+
 from __future__ import print_function, division
 import dis
 import inspect
@@ -13,11 +21,11 @@ import sys
 import six
 from six.moves import reprlib
 
-PY3, PY2 = six.PY3, not six.PY3
-
 from .pyobj import Frame, Block, Method, Object, Function, Class, Generator
 
 log = logging.getLogger(__name__)
+
+PY3, PY2 = six.PY3, not six.PY3
 
 if six.PY3:
     byteint = lambda b: b
@@ -36,19 +44,58 @@ class VirtualMachineError(Exception):
 
 
 class VirtualMachine(object):
+
     def __init__(self):
         # The call stack of frames.
         self.frames = []
         # The current frame.
         self.frame = None
-        # The data stack.
-        self.stack = []
         self.return_value = None
         self.last_exception = None
+        self.vmbuiltins = dict(__builtins__)
+        self.vmbuiltins["isinstance"] = self.isinstance
+        # Operator tables. These are overriden by subclasses to replace the
+        # meta-cyclic implemenations.
+        self.unary_operators = {
+            'POSITIVE': operator.pos,
+            'NEGATIVE': operator.neg,
+            'NOT':      operator.not_,
+            'CONVERT':  repr,
+            'INVERT':   operator.invert,
+        }
+        self.binary_operators = {
+            'POWER':    pow,
+            'MULTIPLY': operator.mul,
+            'DIVIDE':   getattr(operator, 'div', lambda x, y: None),
+            'FLOOR_DIVIDE': operator.floordiv,
+            'TRUE_DIVIDE':  operator.truediv,
+            'MODULO':   operator.mod,
+            'ADD':      operator.add,
+            'SUBTRACT': operator.sub,
+            'SUBSCR':   operator.getitem,
+            'LSHIFT':   operator.lshift,
+            'RSHIFT':   operator.rshift,
+            'AND':      operator.and_,
+            'XOR':      operator.xor,
+            'OR':       operator.or_,
+        }
+        self.compare_operators = [
+            operator.lt,
+            operator.le,
+            operator.eq,
+            operator.ne,
+            operator.gt,
+            operator.ge,
+            lambda x, y: x in y,
+            lambda x, y: x not in y,
+            lambda x, y: x is y,
+            lambda x, y: x is not y,
+            lambda x, y: issubclass(x, Exception) and issubclass(x, y),
+        ]
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
-        return self.stack[-1]
+        return self.frame.data_stack[-1]
 
     def pop(self, i=0):
         """Pop a value from the stack.
@@ -57,11 +104,11 @@ class VirtualMachine(object):
         instead.
 
         """
-        return self.stack.pop(-1-i)
+        return self.frame.data_stack.pop(-1-i)
 
     def push(self, *vals):
         """Push values onto the value stack."""
-        self.stack.extend(vals)
+        self.frame.push(*vals)
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -70,30 +117,42 @@ class VirtualMachine(object):
 
         """
         if n:
-            ret = self.stack[-n:]
-            self.stack[-n:] = []
+            ret = self.frame.data_stack[-n:]
+            self.frame.data_stack[-n:] = []
             return ret
         else:
             return []
 
     def peek(self, n):
-        """Get a value `n` entries down in the stack, without changing the stack."""
-        return self.stack[-n]
+        """
+        Get a value `n` entries down in the stack, without changing the stack.
+        """
+        return self.frame.data_stack[-n]
 
     def jump(self, jump):
-        """Move the bytecode pointer to `jump`, so it will execute next."""
+        """
+        Move the bytecode pointer to `jump`, so it will execute next.
+
+        Jump may be the very next instruction and hence already the value of
+        f_lasti. This is used to notify a subclass when a jump was not taken and
+        instead we continue to the next instruction.
+        """
         self.frame.f_lasti = jump
 
     def push_block(self, type, handler=None, level=None):
         if level is None:
-            level = len(self.stack)
+            level = len(self.frame.data_stack)
         self.frame.block_stack.append(Block(type, handler, level))
 
     def pop_block(self):
         return self.frame.block_stack.pop()
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
-        log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
+        # The callargs default is safe because we never modify the dict.
+        # pylint: disable=dangerous-default-value
+        log.info("make_frame: code=%r, callargs=%s, f_globals=%r, f_locals=%r",
+                 code, repper(callargs), (type(f_globals), id(f_globals)),
+                  (type(f_locals), id(f_locals)))
         if f_globals is not None:
             f_globals = f_globals
             if f_locals is None:
@@ -102,14 +161,21 @@ class VirtualMachine(object):
             f_globals = self.frame.f_globals
             f_locals = {}
         else:
+            # TODO(ampere): __name__, __doc__, __package__ below are not correct
             f_globals = f_locals = {
-                '__builtins__': __builtins__,
+                '__builtins__': self.vmbuiltins,
                 '__name__': '__main__',
                 '__doc__': None,
                 '__package__': None,
             }
+
+        # Implement NEWLOCALS flag. See Objects/frameobject.c in CPython.
+        if code.co_flags & Function.CO_NEWLOCALS:
+            f_locals = {}
+
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame)
+        frame = self.make_frame_with_dicts(code, f_globals, f_locals)
+        log.info("%r", frame)
         return frame
 
     def push_frame(self, frame):
@@ -138,6 +204,7 @@ class VirtualMachine(object):
 
     def resume_frame(self, frame):
         frame.f_back = self.frame
+        log.info("resume_frame: %r", frame)
         val = self.run_frame(frame)
         frame.f_back = None
         return val
@@ -148,8 +215,9 @@ class VirtualMachine(object):
         # Check some invariants
         if self.frames:            # pragma: no cover
             raise VirtualMachineError("Frames left over!")
-        if self.stack:             # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self.stack)
+        if self.frame is not None and self.frame.data_stack:  # pragma: no cover
+            raise VirtualMachineError("Data left on stack! %r" %
+                                      self.frame.data_stack)
 
         return val
 
@@ -159,7 +227,7 @@ class VirtualMachine(object):
         else:
             offset = 0
 
-        while len(self.stack) > block.level + offset:
+        while len(self.frame.data_stack) > block.level + offset:
             self.pop()
 
         if block.type == 'except-handler':
@@ -169,7 +237,13 @@ class VirtualMachine(object):
     def parse_byte_and_args(self):
         f = self.frame
         opoffset = f.f_lasti
-        byteCode = byteint(f.f_code.co_code[opoffset])
+        try:
+            byteCode = byteint(f.f_code.co_code[opoffset])
+        except IndexError:
+            raise VirtualMachineError(
+                "Bad bytecode offset %d in %s (len=%d)" %
+                (opoffset, str(f.f_code), len(f.f_code.co_code))
+            )
         f.f_lasti += 1
         byteName = dis.opname[byteCode]
         arg = None
@@ -201,11 +275,12 @@ class VirtualMachine(object):
         return byteName, arguments, opoffset
 
     def log(self, byteName, arguments, opoffset):
+        # pylint: disable=logging-not-lazy
         op = "%d: %s" % (opoffset, byteName)
         if arguments:
             op += " %r" % (arguments[0],)
         indent = "    "*(len(self.frames)-1)
-        stack_rep = repper(self.stack)
+        stack_rep = repper(self.frame.data_stack)
         block_stack_rep = repper(self.frame.block_stack)
 
         log.info("  %sdata: %s" % (indent, stack_rep))
@@ -231,8 +306,7 @@ class VirtualMachine(object):
                         "unknown bytecode type: %s" % byteName
                     )
                 why = bytecode_fn(*arguments)
-
-        except:
+        except:  # pylint: disable=bare-except
             # deal with exceptions encountered while executing the op.
             self.last_exception = sys.exc_info()[:2] + (None,)
             log.exception("Caught exception during execution")
@@ -300,37 +374,44 @@ class VirtualMachine(object):
 
         return why
 
+    def run_instruction(self):
+        """Run one instruction in the current frame.
+
+        Return None if the frame should continue executing otherwise return the
+        reason it should stop.
+        """
+        frame = self.frame
+        byteName, arguments, opoffset = self.parse_byte_and_args()
+        if log.isEnabledFor(logging.INFO):
+            self.log(byteName, arguments, opoffset)
+
+        # When unwinding the block stack, we need to keep track of why we
+        # are doing it.
+        why = self.dispatch(byteName, arguments)
+        if why == 'exception':
+            # TODO: ceval calls PyTraceBack_Here, not sure what that does.
+            pass
+
+        if why == 'reraise':
+            why = 'exception'
+
+        if why != 'yield':
+            while why and frame.block_stack:
+                # Deal with any block management we need to do.
+                why = self.manage_block_stack(why)
+
+        return why
 
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
 
         Exceptions are raised, the return value is returned.
-
         """
         self.push_frame(frame)
         while True:
-            byteName, arguments, opoffset = self.parse_byte_and_args()
-            if log.isEnabledFor(logging.INFO):
-                self.log(byteName, arguments, opoffset)
-
-            # When unwinding the block stack, we need to keep track of why we
-            # are doing it.
-            why = self.dispatch(byteName, arguments)
-            if why == 'exception':
-                # TODO: ceval calls PyTraceBack_Here, not sure what that does.
-                pass
-
-            if why == 'reraise':
-                why = 'exception'
-
-            if why != 'yield':
-                while why and frame.block_stack:
-                    # Deal with any block management we need to do.
-                    why = self.manage_block_stack(why)
-
+            why = self.run_instruction()
             if why:
                 break
-
         self.pop_frame()
 
         if why == 'exception':
@@ -338,10 +419,169 @@ class VirtualMachine(object):
 
         return self.return_value
 
+    ## Builders for objects that subclasses may want to replace with subclasses
+
+    def make_instance(self, cls, args, kw):
+        """
+        Create an instance of the given class with the given constructor args.
+        """
+        return Object(cls, args, kw)
+
+    def make_class(self, name, bases, methods):
+        """
+        Create a class with the name bases and methods given.
+        """
+        return Class(name, bases, methods, self)
+
+    def make_function(self, name, code, globs, defaults, closure):
+        """
+        Create a function or closure given the arguments.
+        """
+        return Function(name, code, globs, defaults, closure, self)
+
+    def make_frame_with_dicts(self, code, f_globals, f_locals):
+        """
+        Create a frame with the given code, globals, and locals.
+        """
+        return Frame(code, f_globals, f_locals, self.frame)
+
+    ## Built-in overrides
+
+    def isinstance(self, obj, cls):
+        if isinstance(obj, Object):
+            # pylint: disable=protected-access
+            return issubclass(obj._class, cls)
+        elif isinstance(cls, Class):
+            return False
+        else:
+            return isinstance(obj, cls)
+
+    ## Abstraction hooks
+
+    def load_constant(self, value):
+        """
+        Called when the constant value is loaded onto the stack.
+        The returned value is pushed onto the stack instead.
+        """
+        return value
+
+    def get_locals_dict(self):
+        """Get a real python dict of the locals."""
+        return self.frame.f_locals
+
+    def get_locals_dict_bytecode(self):
+        """Get a possibly abstract bytecode level representation of the locals.
+        """
+        return self.frame.f_locals
+
+    def set_locals_dict_bytecode(self, lcls):
+        """Set the locals from a possibly abstract bytecode level dict.
+        """
+        self.frame.f_locals = lcls
+
+    def get_globals_dict(self):
+        """Get a real python dict of the globals."""
+        return self.frame.f_globals
+
+    def load_local(self, name):
+        """
+        Called when a local is loaded onto the stack.
+        The returned value is pushed onto the stack instead of the actual loaded
+        value.
+        """
+        return self.frame.f_locals[name]
+
+    def load_builtin(self, name):
+        return self.frame.f_builtins[name]
+
+    def load_global(self, name):
+        """
+        Same as load_local except for globals.
+        """
+        return self.frame.f_globals[name]
+
+    def load_deref(self, name):
+        """
+        Same as load_local except for closure cells.
+        """
+        return self.frame.cells[name].get()
+
+    def store_local(self, name, value):
+        """
+        Called when a local is written.
+        The returned value is stored instead of the value on the stack.
+        """
+        self.frame.f_locals[name] = value
+
+    def store_deref(self, name, value):
+        """
+        Same as store_local except for closure cells.
+        """
+        self.frame.cells[name].set(value)
+
+    def del_local(self, name):
+        """
+        Called when a local is deleted.
+        """
+        del self.frame.f_locals[name]
+
+    def load_attr(self, obj, attr):
+        """
+        Perform the actual attribute load on an object. This must support all
+        objects that may appear in the VM. This defaults to just get attr.
+        """
+        return getattr(obj, attr)
+
+    def store_attr(self, obj, attr, value):
+        """
+        Same as load_attr except for setting attributes. Defaults to setattr.
+        """
+        setattr(obj, attr, value)
+
+    def del_attr(self, obj, attr):
+        """
+        Same as load_attr except for deleting attributes. Defaults to delattr.
+        """
+        delattr(obj, attr)
+
+    def build_tuple(self, content):
+        """
+        Create a VM tuple from the given sequence.
+        The returned object must support the tuple interface.
+        """
+        return tuple(content)
+
+    def build_list(self, content):
+        """
+        Create a VM list from the given sequence.
+        The returned object must support the list interface.
+        """
+        return list(content)
+
+    def build_set(self, content):
+        """
+        Create a VM set from the given sequence.
+        The returned object must support the set interface.
+        """
+        return set(content)
+
+    def build_map(self):
+        """
+        Create an empty VM dict.
+        The returned object must support the dict interface.
+        """
+        return dict()
+
+    def store_subscr(self, obj, subscr, val):
+        obj[subscr] = val
+
+    def del_subscr(self, obj, subscr):
+        del obj[subscr]
+
     ## Stack manipulation
 
     def byte_LOAD_CONST(self, const):
-        self.push(const)
+        self.push(self.load_constant(const))
 
     def byte_POP_TOP(self):
         self.pop()
@@ -374,91 +614,68 @@ class VirtualMachine(object):
     ## Names
 
     def byte_LOAD_NAME(self, name):
-        frame = self.frame
-        if name in frame.f_locals:
-            val = frame.f_locals[name]
-        elif name in frame.f_globals:
-            val = frame.f_globals[name]
-        elif name in frame.f_builtins:
-            val = frame.f_builtins[name]
-        else:
-            raise NameError("name '%s' is not defined" % name)
+        try:
+            val = self.load_local(name)
+        except KeyError:
+            try:
+                val = self.load_global(name)
+            except KeyError:
+                try:
+                    val = self.load_builtin(name)
+                except KeyError:
+                    raise NameError("name '%s' is not defined" % name)
         self.push(val)
 
     def byte_STORE_NAME(self, name):
-        self.frame.f_locals[name] = self.pop()
+        self.store_local(name, self.pop())
 
     def byte_DELETE_NAME(self, name):
-        del self.frame.f_locals[name]
+        self.del_local(name)
 
     def byte_LOAD_FAST(self, name):
-        if name in self.frame.f_locals:
-            val = self.frame.f_locals[name]
-        else:
+        try:
+            val = self.load_local(name)
+            log.info("LOAD_FAST: %s from %r -> %r", name, self.frame, val)
+        except KeyError:
             raise UnboundLocalError(
                 "local variable '%s' referenced before assignment" % name
             )
         self.push(val)
 
     def byte_STORE_FAST(self, name):
-        self.frame.f_locals[name] = self.pop()
+        self.byte_STORE_NAME(name)
 
     def byte_DELETE_FAST(self, name):
-        del self.frame.f_locals[name]
+        self.byte_DELETE_NAME(name)
 
     def byte_LOAD_GLOBAL(self, name):
-        f = self.frame
-        if name in f.f_globals:
-            val = f.f_globals[name]
-        elif name in f.f_builtins:
-            val = f.f_builtins[name]
-        else:
-            raise NameError("global name '%s' is not defined" % name)
+        try:
+            val = self.load_global(name)
+        except KeyError:
+            try:
+                val = self.load_builtin(name)
+            except KeyError:
+                raise NameError("global name '%s' is not defined" % name)
         self.push(val)
 
     def byte_LOAD_DEREF(self, name):
-        self.push(self.frame.cells[name].get())
+        self.push(self.load_deref(name))
 
     def byte_STORE_DEREF(self, name):
-        self.frame.cells[name].set(self.pop())
+        self.store_deref(name, self.pop())
 
     def byte_LOAD_LOCALS(self):
-        self.push(self.frame.f_locals)
+        self.push(self.get_locals_dict_bytecode())
 
     ## Operators
 
-    UNARY_OPERATORS = {
-        'POSITIVE': operator.pos,
-        'NEGATIVE': operator.neg,
-        'NOT':      operator.not_,
-        'CONVERT':  repr,
-        'INVERT':   operator.invert,
-    }
-
     def unaryOperator(self, op):
         x = self.pop()
-        self.push(self.UNARY_OPERATORS[op](x))
-
-    BINARY_OPERATORS = {
-        'POWER':    pow,
-        'MULTIPLY': operator.mul,
-        'DIVIDE':   getattr(operator, 'div', lambda x, y: None),
-        'FLOOR_DIVIDE': operator.floordiv,
-        'TRUE_DIVIDE':  operator.truediv,
-        'MODULO':   operator.mod,
-        'ADD':      operator.add,
-        'SUBTRACT': operator.sub,
-        'SUBSCR':   operator.getitem,
-        'LSHIFT':   operator.lshift,
-        'RSHIFT':   operator.rshift,
-        'AND':      operator.and_,
-        'XOR':      operator.xor,
-        'OR':       operator.or_,
-    }
+        self.push(self.unary_operators[op](x))
 
     def binaryOperator(self, op):
         x, y = self.popn(2)
-        self.push(self.BINARY_OPERATORS[op](x, y))
+        self.push(self.binary_operators[op](x, y))
 
     def inplaceOperator(self, op):
         x, y = self.popn(2)
@@ -511,65 +728,52 @@ class VirtualMachine(object):
         else:
             self.push(l[start:end])
 
-    COMPARE_OPERATORS = [
-        operator.lt,
-        operator.le,
-        operator.eq,
-        operator.ne,
-        operator.gt,
-        operator.ge,
-        lambda x, y: x in y,
-        lambda x, y: x not in y,
-        lambda x, y: x is y,
-        lambda x, y: x is not y,
-        lambda x, y: issubclass(x, Exception) and issubclass(x, y),
-    ]
-
     def byte_COMPARE_OP(self, opnum):
         x, y = self.popn(2)
-        self.push(self.COMPARE_OPERATORS[opnum](x, y))
+        self.push(self.compare_operators[opnum](x, y))
 
     ## Attributes and indexing
 
     def byte_LOAD_ATTR(self, attr):
         obj = self.pop()
-        val = getattr(obj, attr)
+        log.info("LOAD_ATTR: %r %s", type(obj), attr)
+        val = self.load_attr(obj, attr)
         self.push(val)
 
     def byte_STORE_ATTR(self, name):
         val, obj = self.popn(2)
-        setattr(obj, name, val)
+        self.store_attr(obj, name, val)
 
     def byte_DELETE_ATTR(self, name):
         obj = self.pop()
-        delattr(obj, name)
+        self.del_attr(obj, name)
 
     def byte_STORE_SUBSCR(self):
         val, obj, subscr = self.popn(3)
-        obj[subscr] = val
+        self.store_subscr(obj, subscr, val)
 
     def byte_DELETE_SUBSCR(self):
         obj, subscr = self.popn(2)
-        del obj[subscr]
+        self.del_subscr(obj, subscr)
 
     ## Building
 
     def byte_BUILD_TUPLE(self, count):
         elts = self.popn(count)
-        self.push(tuple(elts))
+        self.push(self.build_tuple(elts))
 
     def byte_BUILD_LIST(self, count):
         elts = self.popn(count)
-        self.push(elts)
+        self.push(self.build_list(elts))
 
     def byte_BUILD_SET(self, count):
         # TODO: Not documented in Py2 docs.
         elts = self.popn(count)
-        self.push(set(elts))
+        self.push(self.build_set(elts))
 
     def byte_BUILD_MAP(self, size):
         # size is ignored.
-        self.push({})
+        self.push(self.build_map())
 
     def byte_STORE_MAP(self):
         the_map, val, key = self.popn(3)
@@ -660,21 +864,29 @@ class VirtualMachine(object):
             val = self.top()
             if val:
                 self.jump(jump)
+            else:
+                self.jump(self.frame.f_lasti)
 
         def byte_JUMP_IF_FALSE(self, jump):
             val = self.top()
             if not val:
                 self.jump(jump)
+            else:
+                self.jump(self.frame.f_lasti)
 
     def byte_POP_JUMP_IF_TRUE(self, jump):
         val = self.pop()
         if val:
             self.jump(jump)
+        else:
+            self.jump(self.frame.f_lasti)
 
     def byte_POP_JUMP_IF_FALSE(self, jump):
         val = self.pop()
         if not val:
             self.jump(jump)
+        else:
+            self.jump(self.frame.f_lasti)
 
     def byte_JUMP_IF_TRUE_OR_POP(self, jump):
         val = self.top()
@@ -682,6 +894,7 @@ class VirtualMachine(object):
             self.jump(jump)
         else:
             self.pop()
+            self.jump(self.frame.f_lasti)
 
     def byte_JUMP_IF_FALSE_OR_POP(self, jump):
         val = self.top()
@@ -689,6 +902,7 @@ class VirtualMachine(object):
             self.jump(jump)
         else:
             self.pop()
+            self.jump(self.frame.f_lasti)
 
     ## Blocks
 
@@ -703,6 +917,7 @@ class VirtualMachine(object):
         try:
             v = next(iterobj)
             self.push(v)
+            self.jump(self.frame.f_lasti)
         except StopIteration:
             self.pop()
             self.jump(jump)
@@ -890,8 +1105,8 @@ class VirtualMachine(object):
             name = None
         code = self.pop()
         defaults = self.popn(argc)
-        globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, None, self)
+        globs = self.get_globals_dict()
+        fn = self.make_function(name, code, globs, defaults, None)
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
@@ -905,34 +1120,26 @@ class VirtualMachine(object):
             name = None
         closure, code = self.popn(2)
         defaults = self.popn(argc)
-        globs = self.frame.f_globals
-        fn = Function(None, code, globs, defaults, closure, self)
+        globs = self.get_globals_dict()
+        fn = self.make_function(None, code, globs, defaults, closure)
         self.push(fn)
 
     def byte_CALL_FUNCTION(self, arg):
-        return self.call_function(arg, [], {})
+        return self.call_function_from_stack(arg, [], {})
 
     def byte_CALL_FUNCTION_VAR(self, arg):
         args = self.pop()
-        return self.call_function(arg, args, {})
+        return self.call_function_from_stack(arg, args, {})
 
     def byte_CALL_FUNCTION_KW(self, arg):
         kwargs = self.pop()
-        return self.call_function(arg, [], kwargs)
+        return self.call_function_from_stack(arg, [], kwargs)
 
     def byte_CALL_FUNCTION_VAR_KW(self, arg):
         args, kwargs = self.popn(2)
-        return self.call_function(arg, args, kwargs)
+        return self.call_function_from_stack(arg, args, kwargs)
 
-    def isinstance(self, obj, cls):
-        if isinstance(obj, Object):
-            return issubclass(obj._class, cls)
-        elif isinstance(cls, Class):
-            return False
-        else:
-            return isinstance(obj, cls)
-
-    def call_function(self, arg, args, kwargs):
+    def call_function_from_stack(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
         namedargs = {}
         for i in range(lenKw):
@@ -941,8 +1148,22 @@ class VirtualMachine(object):
         namedargs.update(kwargs)
         posargs = self.popn(lenPos)
         posargs.extend(args)
-
         func = self.pop()
+        self.push(self.call_function(func, posargs, namedargs))
+
+    def call_function(self, func, posargs, namedargs=None):
+        """Call a VM function with the given arguments and return the result.
+
+        This is were subclass override should occur as well.
+
+        Args:
+          func: The function to call.
+          posargs: The positional arguments.
+          namedargs: The keyword arguments (defaults to {}).
+        Returns:
+          The return value of the function.
+        """
+        namedargs = namedargs or {}
         frame = self.frame
         if hasattr(func, 'im_func'):
             # Methods get self as an implicit first parameter.
@@ -959,8 +1180,7 @@ class VirtualMachine(object):
                     )
                 )
             func = func.im_func
-        retval = func(*posargs, **namedargs)
-        self.push(retval)
+        return func(*posargs, **namedargs)
 
     def byte_RETURN_VALUE(self):
         self.return_value = self.pop()
@@ -974,23 +1194,32 @@ class VirtualMachine(object):
 
     ## Importing
 
+    def import_name(self, name, fromlist, level):
+        """Import the module and return the module object."""
+        return __import__(name, self.get_globals_dict(), self.get_locals_dict(),
+                          fromlist, level)
+
+    def get_module_attributes(self, mod):
+        """Return the modules members as a dict."""
+        return {name: getattr(mod, name) for name in dir(mod)}
+
     def byte_IMPORT_NAME(self, name):
         level, fromlist = self.popn(2)
         frame = self.frame
-        self.push(
-            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
-        )
+        self.push(self.import_name(name, fromlist, level))
 
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.
         mod = self.pop()
-        for attr in dir(mod):
+        attrs = self.get_module_attributes(mod)
+        for attr, val in attrs.iteritems():
             if attr[0] != '_':
-                self.frame.f_locals[attr] = getattr(mod, attr)
+                self.store_local(attr, val)
 
     def byte_IMPORT_FROM(self, name):
         mod = self.top()
-        self.push(getattr(mod, name))
+        attrs = self.get_module_attributes(mod)
+        self.push(attrs[name])
 
     ## And the rest...
 
@@ -1000,14 +1229,14 @@ class VirtualMachine(object):
 
     def byte_BUILD_CLASS(self):
         name, bases, methods = self.popn(3)
-        self.push(Class(name, bases, methods))
+        self.push(self.make_class(name, bases, methods))
 
     def byte_LOAD_BUILD_CLASS(self):
         # New in py3
         self.push(__build_class__)
 
     def byte_STORE_LOCALS(self):
-        self.frame.f_locals = self.pop()
+        self.set_locals_dict_bytecode(self.pop())
 
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):
