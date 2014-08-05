@@ -55,7 +55,7 @@ class VirtualMachine(object):
         self.vmbuiltins = dict(__builtins__)
         self.vmbuiltins["isinstance"] = self.isinstance
         # Operator tables. These are overriden by subclasses to replace the
-        # meta-cyclic implemenations.
+        # meta-cyclic implementations.
         self.unary_operators = {
             'POSITIVE': operator.pos,
             'NEGATIVE': operator.neg,
