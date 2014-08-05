@@ -1,7 +1,10 @@
 """Test functions etc, for Byterun."""
 
+
 from __future__ import print_function
-from . import vmtest
+
+import unittest
+from tests import vmtest
 
 
 class TestFunctions(vmtest.VmTestCase):
@@ -16,6 +19,22 @@ class TestFunctions(vmtest.VmTestCase):
             fn(4, d=["What?"])
             fn(5, "b", "c")
             """)
+
+    def test_function_locals(self):
+        self.assert_ok("""\
+            def f():
+                x = "Spite"
+                print(x)
+            def g():
+                x = "Malice"
+                print(x)
+            x = "Humility"
+            f()
+            print(x)
+            g()
+            print(x)
+            """)
+
 
     def test_recursion(self):
         self.assert_ok("""\
@@ -228,6 +247,13 @@ class TestGenerators(vmtest.VmTestCase):
                 print(a, b, c)
             """)
 
+    def test_generator_reuse(self):
+        self.assert_ok("""\
+            g = (x*x for x in range(5))
+            print(list(g))
+            print(list(g))
+            """)
+
     def test_generator_from_generator2(self):
         self.assert_ok("""\
             g = (x*x for x in range(3))
@@ -258,3 +284,6 @@ class TestGenerators(vmtest.VmTestCase):
 
             print(Thing().boom())
             """)
+
+if __name__ == "__main__":
+    unittest.main()

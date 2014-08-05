@@ -1,14 +1,17 @@
 """Basic tests for Byterun."""
 
-from __future__ import print_function
-from . import vmtest
 
+from __future__ import print_function
+
+import unittest
+from tests import vmtest
 import six
 
 PY3, PY2 = six.PY3, not six.PY3
 
 
 class TestIt(vmtest.VmTestCase):
+
     def test_constant(self):
         self.assert_ok("17")
 
@@ -186,6 +189,7 @@ class TestIt(vmtest.VmTestCase):
                         initial_indent=blanks, subsequent_indent=blanks)
             print(res)
             """)
+
     def test_list_comprehension(self):
         self.assert_ok("""\
             x = [z*z for z in range(5)]
@@ -286,6 +290,28 @@ class TestIt(vmtest.VmTestCase):
             print(thing1.meth(4), thing2.meth(5))
             """)
 
+    def test_class_mros(self):
+        self.assert_ok("""\
+            class A(object): pass
+            class B(A): pass
+            class C(A): pass
+            class D(B, C): pass
+            class E(C, B): pass
+            print([c.__name__ for c in D.__mro__])
+            print([c.__name__ for c in E.__mro__])
+            """)
+
+    def test_class_mro_method_calls(self):
+        self.assert_ok("""\
+            class A(object):
+                def f(self): return 'A'
+            class B(A): pass
+            class C(A):
+                def f(self): return 'C'
+            class D(B, C): pass
+            print(D().f())
+            """)
+
     def test_calling_methods_wrong(self):
         self.assert_ok("""\
             class Thing(object):
@@ -309,6 +335,20 @@ class TestIt(vmtest.VmTestCase):
             st = SubThing()
             print(st.foo())
             """)
+
+    def test_other_class_methods(self):
+        self.assert_ok("""\
+            class Thing(object):
+                def foo(self):
+                    return 17
+
+            class SubThing(object):
+                def bar(self):
+                    return 9
+
+            st = SubThing()
+            print(st.foo())
+            """, raises=AttributeError)
 
     def test_attribute_access(self):
         self.assert_ok("""\
@@ -454,6 +494,7 @@ class TestIt(vmtest.VmTestCase):
 
 if PY2:
     class TestPrinting(vmtest.VmTestCase):
+
         def test_printing(self):
             self.assert_ok("print 'hello'")
             self.assert_ok("a = 3; print a+4")
@@ -478,6 +519,7 @@ if PY2:
 
 
 class TestLoops(vmtest.VmTestCase):
+
     def test_for(self):
         self.assert_ok("""\
             for i in range(10):
@@ -530,6 +572,7 @@ class TestLoops(vmtest.VmTestCase):
 
 
 class TestComparisons(vmtest.VmTestCase):
+
     def test_in(self):
         self.assert_ok("""\
             assert "x" in "xyz"
@@ -553,3 +596,6 @@ class TestComparisons(vmtest.VmTestCase):
             assert "z" > "a"
             assert "z" >= "a" and "z" >= "z"
             """)
+
+if __name__ == "__main__":
+    unittest.main()

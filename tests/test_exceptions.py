@@ -1,14 +1,17 @@
 """Test exceptions for Byterun."""
 
-from __future__ import print_function
-from . import vmtest
 
+from __future__ import print_function
+
+import unittest
+from tests import vmtest
 import six
 
 PY3, PY2 = six.PY3, not six.PY3
 
 
 class TestExceptions(vmtest.VmTestCase):
+
     def test_catching_exceptions(self):
         # Catch the exception precisely
         self.assert_ok("""\
@@ -159,3 +162,6 @@ class TestExceptions(vmtest.VmTestCase):
             print(l)
             assert l == [0, 'f', 'e', 1, 'f', 'e', 2, 'f', 'e', 'r']
             """)
+
+if __name__ == "__main__":
+    unittest.main()
