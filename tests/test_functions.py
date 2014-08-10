@@ -29,6 +29,18 @@ class TestFunctions(vmtest.VmTestCase):
             assert f6 == 720
             """)
 
+    def test_nested_names(self):
+        self.assert_ok("""\
+            def one():
+                x = 1
+                def two():
+                    x = 2
+                    print(x)
+                two()
+                print(x)
+            one()
+            """)
+
     def test_calling_functions_with_args_kwargs(self):
         self.assert_ok("""\
             def fn(a, b=17, c="Hello", d=[]):
@@ -228,17 +240,20 @@ class TestGenerators(vmtest.VmTestCase):
                 print(a, b, c)
             """)
 
-    def test_generator_from_generator2(self):
+    def test_simple_generator(self):
         self.assert_ok("""\
             g = (x*x for x in range(3))
             print(list(g))
+            """)
 
+    def test_generator_from_generator(self):
+        self.assert_ok("""\
             g = (x*x for x in range(5))
             g = (y+1 for y in g)
             print(list(g))
             """)
 
-    def test_generator_from_generator(self):
+    def test_generator_from_generator2(self):
         self.assert_ok("""\
             class Thing(object):
                 RESOURCES = ('abc', 'def')

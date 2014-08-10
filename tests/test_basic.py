@@ -310,6 +310,76 @@ class TestIt(vmtest.VmTestCase):
             print(st.foo())
             """)
 
+    def test_subclass_attribute(self):
+        self.assert_ok("""\
+            class Thing(object):
+                def __init__(self):
+                    self.foo = 17
+            class SubThing(Thing):
+                pass
+            st = SubThing()
+            print(st.foo)
+            """)
+
+    def test_subclass_attributes_not_shared(self):
+        self.assert_ok("""\
+            class Thing(object):
+                foo = 17
+            class SubThing(Thing):
+                foo = 25
+            st = SubThing()
+            t = Thing()
+            assert st.foo == 25
+            assert t.foo == 17
+            """)
+
+    def test_object_attrs_not_shared_with_class(self):
+        self.assert_ok("""\
+            class Thing(object):
+                pass
+            t = Thing()
+            t.foo = 1
+            Thing.foo""", raises=AttributeError)
+
+    def test_data_descriptors_precede_instance_attributes(self):
+        self.assert_ok("""\
+            class Foo(object):
+                pass
+            f = Foo()
+            f.des = 3
+            class Descr(object):
+                def __get__(self, obj, cls=None):
+                    return 2
+                def __set__(self, obj, val):
+                    raise NotImplementedError
+            Foo.des = Descr()
+            assert f.des == 2
+            """)
+
+    def test_instance_attrs_precede_non_data_descriptors(self):
+        self.assert_ok("""\
+            class Foo(object):
+                pass
+            f = Foo()
+            f.des = 3
+            class Descr(object):
+                def __get__(self, obj, cls=None):
+                    return 2
+            Foo.des = Descr()
+            assert f.des == 3
+            """)
+
+    def test_subclass_attributes_dynamic(self):
+        self.assert_ok("""\
+            class Foo(object):
+                pass
+            class Bar(Foo):
+                pass
+            b = Bar()
+            Foo.baz = 3
+            assert b.baz == 3
+            """)
+
     def test_attribute_access(self):
         self.assert_ok("""\
             class Thing(object):
@@ -352,6 +422,16 @@ class TestIt(vmtest.VmTestCase):
                     print(x)
             m = Thing.meth
             m(Thing(), 1815)
+            """)
+
+    def test_bound_methods(self):
+        self.assert_ok("""\
+            class Thing(object):
+                def meth(self, x):
+                    print(x)
+            t = Thing()
+            m = t.meth
+            m(1815)
             """)
 
     def test_callback(self):
