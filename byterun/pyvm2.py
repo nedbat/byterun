@@ -15,7 +15,7 @@ from six.moves import reprlib
 
 PY3, PY2 = six.PY3, not six.PY3
 
-from .pyobj import Frame, Block, Method, Object, Function, Class, Generator
+from .pyobj import Frame, Block, Method, Function, Generator
 
 log = logging.getLogger(__name__)
 
@@ -41,14 +41,12 @@ class VirtualMachine(object):
         self.frames = []
         # The current frame.
         self.frame = None
-        # The data stack.
-        self.stack = []
         self.return_value = None
         self.last_exception = None
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
-        return self.stack[-1]
+        return self.frame.stack[-1]
 
     def pop(self, i=0):
         """Pop a value from the stack.
@@ -57,11 +55,11 @@ class VirtualMachine(object):
         instead.
 
         """
-        return self.stack.pop(-1-i)
+        return self.frame.stack.pop(-1-i)
 
     def push(self, *vals):
         """Push values onto the value stack."""
-        self.stack.extend(vals)
+        self.frame.stack.extend(vals)
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -70,15 +68,15 @@ class VirtualMachine(object):
 
         """
         if n:
-            ret = self.stack[-n:]
-            self.stack[-n:] = []
+            ret = self.frame.stack[-n:]
+            self.frame.stack[-n:] = []
             return ret
         else:
             return []
 
     def peek(self, n):
         """Get a value `n` entries down in the stack, without changing the stack."""
-        return self.stack[-n]
+        return self.frame.stack[-n]
 
     def jump(self, jump):
         """Move the bytecode pointer to `jump`, so it will execute next."""
@@ -86,7 +84,7 @@ class VirtualMachine(object):
 
     def push_block(self, type, handler=None, level=None):
         if level is None:
-            level = len(self.stack)
+            level = len(self.frame.stack)
         self.frame.block_stack.append(Block(type, handler, level))
 
     def pop_block(self):
@@ -148,8 +146,8 @@ class VirtualMachine(object):
         # Check some invariants
         if self.frames:            # pragma: no cover
             raise VirtualMachineError("Frames left over!")
-        if self.stack:             # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self.stack)
+        if self.frame and self.frame.stack:             # pragma: no cover
+            raise VirtualMachineError("Data left on stack! %r" % self.frame.stack)
 
         return val
 
@@ -159,7 +157,7 @@ class VirtualMachine(object):
         else:
             offset = 0
 
-        while len(self.stack) > block.level + offset:
+        while len(self.frame.stack) > block.level + offset:
             self.pop()
 
         if block.type == 'except-handler':
@@ -208,7 +206,7 @@ class VirtualMachine(object):
         if arguments:
             op += " %r" % (arguments[0],)
         indent = "    "*(len(self.frames)-1)
-        stack_rep = repper(self.stack)
+        stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
 
         log.info("  %sdata: %s" % (indent, stack_rep))
@@ -338,6 +336,8 @@ class VirtualMachine(object):
 
             if why:
                 break
+
+        # TODO: handle generator exception state
 
         self.pop_frame()
 
@@ -914,7 +914,7 @@ class VirtualMachine(object):
         closure, code = self.popn(2)
         defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(None, code, globs, defaults, closure, self)
+        fn = Function(name, code, globs, defaults, closure, self)
         self.push(fn)
 
     def byte_CALL_FUNCTION(self, arg):
@@ -931,14 +931,6 @@ class VirtualMachine(object):
     def byte_CALL_FUNCTION_VAR_KW(self, arg):
         args, kwargs = self.popn(2)
         return self.call_function(arg, args, kwargs)
-
-    def isinstance(self, obj, cls):
-        if isinstance(obj, Object):
-            return issubclass(obj._class, cls)
-        elif isinstance(cls, Class):
-            return False
-        else:
-            return isinstance(obj, cls)
 
     def call_function(self, arg, args, kwargs):
         lenKw, lenPos = divmod(arg, 256)
@@ -957,7 +949,7 @@ class VirtualMachine(object):
             if func.im_self:
                 posargs.insert(0, func.im_self)
             # The first parameter must be the correct type.
-            if not self.isinstance(posargs[0], func.im_class):
+            if not isinstance(posargs[0], func.im_class):
                 raise TypeError(
                     'unbound method %s() must be called with %s instance '
                     'as first argument (got %s instance instead)' % (
@@ -979,6 +971,8 @@ class VirtualMachine(object):
     def byte_YIELD_VALUE(self):
         self.return_value = self.pop()
         return "yield"
+
+        #TODO: implement byte_YIELD_FROM for 3.3+
 
     ## Importing
 
@@ -1006,16 +1000,19 @@ class VirtualMachine(object):
         stmt, globs, locs = self.popn(3)
         six.exec_(stmt, globs, locs)
 
-    def byte_BUILD_CLASS(self):
-        name, bases, methods = self.popn(3)
-        self.push(Class(name, bases, methods))
+    if PY2:
+        def byte_BUILD_CLASS(self):
+            name, bases, methods = self.popn(3)
+            self.push(type(name, bases, methods))
 
-    def byte_LOAD_BUILD_CLASS(self):
-        # New in py3
-        self.push(__build_class__)
 
-    def byte_STORE_LOCALS(self):
-        self.frame.f_locals = self.pop()
+    elif PY3:
+        def byte_LOAD_BUILD_CLASS(self):
+            # New in py3
+            self.push(__build_class__)
+
+        def byte_STORE_LOCALS(self):
+            self.frame.f_locals = self.pop()
 
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):

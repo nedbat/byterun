@@ -69,13 +69,9 @@ class Function(object):
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
         else:
-            try:
-                callargs = inspect.getcallargs(self._func, *args, **kwargs)
-            except Exception as e:
-                import pudb;pudb.set_trace() # -={XX}=-={XX}=-={XX}=- 
-                raise
+            callargs = inspect.getcallargs(self._func, *args, **kwargs)
         frame = self._vm.make_frame(
-            self.func_code, callargs, self.func_globals, self.func_locals
+            self.func_code, callargs, self.func_globals, {}
         )
         CO_GENERATOR = 32           # flag for "this code uses yield"
         if self.func_code.co_flags & CO_GENERATOR:
@@ -85,57 +81,6 @@ class Function(object):
         else:
             retval = self._vm.run_frame(frame)
         return retval
-
-
-class Class(object):
-    def __init__(self, name, bases, methods):
-        self.__name__ = name
-        self.__bases__ = bases
-        self.locals = dict(methods)
-
-    def __call__(self, *args, **kw):
-        return Object(self, self.locals, args, kw)
-
-    def __repr__(self):         # pragma: no cover
-        return '<Class %s at 0x%08x>' % (self.__name__, id(self))
-
-    def __getattr__(self, name):
-        try:
-            val = self.locals[name]
-        except KeyError:
-            raise AttributeError("Fooey: %r" % (name,))
-        # Check if we have a descriptor
-        get = getattr(val, '__get__', None)
-        if get:
-            return get(None, self)
-        # Not a descriptor, return the value.
-        return val
-
-
-class Object(object):
-    def __init__(self, _class, methods, args, kw):
-        self._class = _class
-        self.locals = methods
-        if '__init__' in methods:
-            methods['__init__'](self, *args, **kw)
-
-    def __repr__(self):         # pragma: no cover
-        return '<%s Instance at 0x%08x>' % (self._class.__name__, id(self))
-
-    def __getattr__(self, name):
-        try:
-            val = self.locals[name]
-        except KeyError:
-            raise AttributeError(
-                "%r object has no attribute %r" % (self._class.__name__, name)
-            )
-        # Check if we have a descriptor
-        get = getattr(val, '__get__', None)
-        if get:
-            return get(self, self._class)
-        # Not a descriptor, return the value.
-        return val
-
 
 class Method(object):
     def __init__(self, obj, _class, func):
@@ -195,6 +140,7 @@ class Frame(object):
         self.f_globals = f_globals
         self.f_locals = f_locals
         self.f_back = f_back
+        self.stack = []
         if f_back:
             self.f_builtins = f_back.f_builtins
         else:
@@ -265,7 +211,7 @@ class Generator(object):
     def next(self):
         # Ordinary iteration is like sending None into a generator.
         if not self.first:
-            self.vm.push(None)
+            self.gi_frame.stack.append(None)
         self.first = False
         # To get the next value from an iterator, push its frame onto the
         # stack, and let it run.
