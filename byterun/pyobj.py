@@ -214,7 +214,7 @@ class Generator(object):
             self.gi_frame.stack.append(None)
         self.first = False
         # To get the next value from an iterator, push its frame onto the
-        # stack, and let it run.
+        # call stack, and let it run.
         val = self.vm.resume_frame(self.gi_frame)
         if self.finished:
             raise StopIteration
