@@ -972,7 +972,24 @@ class VirtualMachine(object):
         self.return_value = self.pop()
         return "yield"
 
-        #TODO: implement byte_YIELD_FROM for 3.3+
+    def byte_YIELD_FROM(self):
+        u = self.pop()
+        x = self.top()
+
+        try:
+            retval = x.send(u)
+            self.return_value = retval
+        except StopIteration:
+            self.pop()
+            if self.last_exception is not None:
+                _, exc_val, _ = self.last_exception
+                val = exc_val.value
+            else:
+                val = None
+            self.push(val)
+        else:
+            self.frame.f_lasti -= 1 # as in `yield from (1, 2, 3)`
+            return "yield"
 
     ## Importing
 
