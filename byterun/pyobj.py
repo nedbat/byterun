@@ -218,7 +218,7 @@ class Generator(object):
         self.started = True
         val = self.vm.resume_frame(self.gi_frame)
         if self.finished:
-            raise StopIteration
+            raise StopIteration(val)
         return val
 
     __next__ = next

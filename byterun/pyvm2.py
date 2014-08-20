@@ -977,19 +977,15 @@ class VirtualMachine(object):
         x = self.top()
 
         try:
-            if hasattr(x, "send"):
-                retval = x.send(u)
-            else:
+            if not isinstance(x, Generator) or u is None:
+                # Call next on iterators.
                 retval = next(x)
-            self.return_value = retval
-        except StopIteration:
-            self.pop()
-            if self.last_exception is not None:
-                _, exc_val, _ = self.last_exception
-                val = exc_val.value
             else:
-                val = None
-            self.push(val)
+                retval = x.send(u)
+            self.return_value = retval
+        except StopIteration as e:
+            self.pop()
+            self.push(e.value)
         else:
             # YIELD_FROM decrements f_lasti, so that it will be called
             # repeatedly until a StopIteration is raised.
