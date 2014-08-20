@@ -295,3 +295,15 @@ class TestGenerators(vmtest.VmTestCase):
 
                 main()
                 """)
+
+        def test_yield_from_tuple(self):
+            self.assert_ok("""\
+                def main():
+                    for x in outer():
+                        print(x)
+
+                def outer():
+                    yield from (1, 2, 3, 4)
+
+                main()
+                """)

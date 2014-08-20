@@ -977,7 +977,10 @@ class VirtualMachine(object):
         x = self.top()
 
         try:
-            retval = x.send(u)
+            if hasattr(x, "send"):
+                retval = x.send(u)
+            else:
+                retval = next(x)
             self.return_value = retval
         except StopIteration:
             self.pop()
