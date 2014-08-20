@@ -991,7 +991,11 @@ class VirtualMachine(object):
                 val = None
             self.push(val)
         else:
-            self.frame.f_lasti -= 1 # as in `yield from (1, 2, 3)`
+            # YIELD_FROM decrements f_lasti, so that it will be called
+            # repeatedly until a StopIteration is raised.
+            self.jump(self.frame.f_lasti - 1)
+            # Returning "yield" prevents the block stack cleanup code
+            # from executing, suspending the frame in its current state.
             return "yield"
 
     ## Importing
