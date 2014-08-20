@@ -202,19 +202,20 @@ class Generator(object):
     def __init__(self, g_frame, vm):
         self.gi_frame = g_frame
         self.vm = vm
-        self.first = True
+        self.started = False
         self.finished = False
 
     def __iter__(self):
         return self
 
     def next(self):
-        # Ordinary iteration is like sending None into a generator.
-        if not self.first:
-            self.gi_frame.stack.append(None)
-        self.first = False
-        # To get the next value from an iterator, push its frame onto the
-        # stack, and let it run.
+        return self.send(None)
+
+    def send(self, value=None):
+        if not self.started and value is not None:
+            raise TypeError("Can't send non-None value to a just-started generator")
+        self.gi_frame.stack.append(value)
+        self.started = True
         val = self.vm.resume_frame(self.gi_frame)
         if self.finished:
             raise StopIteration

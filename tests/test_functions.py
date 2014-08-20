@@ -2,6 +2,9 @@
 
 from __future__ import print_function
 from . import vmtest
+import six
+
+PY3 = six.PY3
 
 
 class TestFunctions(vmtest.VmTestCase):
@@ -242,15 +245,15 @@ class TestGenerators(vmtest.VmTestCase):
 
     def test_simple_generator(self):
         self.assert_ok("""\
-            g = (x*x for x in range(3))
+            g = (x for x in [0,1,2])
             print(list(g))
             """)
 
     def test_generator_from_generator(self):
         self.assert_ok("""\
             g = (x*x for x in range(5))
-            g = (y+1 for y in g)
-            print(list(g))
+            h = (y+1 for y in g)
+            print(list(h))
             """)
 
     def test_generator_from_generator2(self):
@@ -273,3 +276,34 @@ class TestGenerators(vmtest.VmTestCase):
 
             print(Thing().boom())
             """)
+
+    if PY3: # PY3.3+ only
+        def test_yield_from(self):
+            self.assert_ok("""\
+                def main():
+                    x = outer()
+                    next(x)
+                    y = x.send("Hello, World")
+                    print(y)
+
+                def outer():
+                    yield from inner()
+
+                def inner():
+                    y = yield
+                    yield y
+
+                main()
+                """)
+
+        def test_yield_from_tuple(self):
+            self.assert_ok("""\
+                def main():
+                    for x in outer():
+                        print(x)
+
+                def outer():
+                    yield from (1, 2, 3, 4)
+
+                main()
+                """)

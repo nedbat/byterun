@@ -972,7 +972,31 @@ class VirtualMachine(object):
         self.return_value = self.pop()
         return "yield"
 
-        #TODO: implement byte_YIELD_FROM for 3.3+
+    def byte_YIELD_FROM(self):
+        u = self.pop()
+        x = self.top()
+
+        try:
+            if hasattr(x, "send"):
+                retval = x.send(u)
+            else:
+                retval = next(x)
+            self.return_value = retval
+        except StopIteration:
+            self.pop()
+            if self.last_exception is not None:
+                _, exc_val, _ = self.last_exception
+                val = exc_val.value
+            else:
+                val = None
+            self.push(val)
+        else:
+            # YIELD_FROM decrements f_lasti, so that it will be called
+            # repeatedly until a StopIteration is raised.
+            self.jump(self.frame.f_lasti - 1)
+            # Returning "yield" prevents the block stack cleanup code
+            # from executing, suspending the frame in its current state.
+            return "yield"
 
     ## Importing
 
