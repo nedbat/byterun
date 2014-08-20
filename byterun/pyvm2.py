@@ -983,14 +983,9 @@ class VirtualMachine(object):
             else:
                 retval = x.send(u)
             self.return_value = retval
-        except StopIteration:
+        except StopIteration as e:
             self.pop()
-            if self.last_exception is not None:
-                _, exc_val, _ = self.last_exception
-                val = exc_val.value
-            else:
-                val = None
-            self.push(val)
+            self.push(e.value)
         else:
             # YIELD_FROM decrements f_lasti, so that it will be called
             # repeatedly until a StopIteration is raised.
