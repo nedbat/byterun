@@ -3,6 +3,8 @@
 from __future__ import print_function
 from . import vmtest
 
+import six
+PY3 = six.PY3
 
 class TestWithStatement(vmtest.VmTestCase):
 
@@ -306,4 +308,34 @@ class TestWithStatement(vmtest.VmTestCase):
 
             with my_context_manager(17) as x:
                 assert x == 17
+            """)
+
+    if PY3:
+        def test_generator_with_context_manager(self):
+            self.assert_ok("""\
+                from contextlib import contextmanager
+
+                def inner():
+                    yield "I'm inner!"
+
+                def foo():
+                    yield from inner()
+
+                    @contextmanager
+                    def cmgr():
+                        yield "Context Manager!"
+                    raise StopIteration(cmgr())
+
+                def main():
+                    with (yield from foo()) as x:
+                        print(x)
+
+                def run(fn, *args):
+                    x = fn(*args)
+                    while True:
+                        try:
+                            print(next(x))
+                        except StopIteration as e:
+                            return e.value
+                run(main)
             """)
