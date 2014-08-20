@@ -307,3 +307,50 @@ class TestGenerators(vmtest.VmTestCase):
 
                 main()
                 """)
+
+        def test_distinguish_iterators_and_generators(self):
+            self.assert_ok("""\
+                class Foo(object):
+                    def __iter__(self):
+                        return FooIter()
+
+                class FooIter(object):
+                    def __init__(self):
+                        self.state = 0
+
+                    def __next__(self):
+                        if self.state >= 10:
+                            raise StopIteration
+                        self.state += 1
+                        return self.state
+
+                    def send(self, n):
+                        print("sending")
+
+                def outer():
+                    yield from Foo()
+
+                for x in outer():
+                    print(x)
+                """)
+
+        def test_nested_yield_from(self):
+            self.assert_ok("""\
+                def main():
+                    x = outer()
+                    next(x)
+                    y = x.send("Hello, World")
+                    print(y)
+
+                def outer():
+                    yield from middle()
+
+                def middle():
+                    yield from inner()
+
+                def inner():
+                    y = yield
+                    yield y
+
+                main()
+                """)

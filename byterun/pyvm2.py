@@ -977,10 +977,11 @@ class VirtualMachine(object):
         x = self.top()
 
         try:
-            if hasattr(x, "send"):
-                retval = x.send(u)
-            else:
+            if not isinstance(x, Generator) or u is None:
+                # Call next on iterators.
                 retval = next(x)
+            else:
+                retval = x.send(u)
             self.return_value = retval
         except StopIteration:
             self.pop()
