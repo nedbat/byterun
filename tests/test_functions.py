@@ -253,7 +253,7 @@ class TestGenerators(vmtest.VmTestCase):
         self.assert_ok("""\
             g = (x*x for x in range(5))
             h = (y+1 for y in g)
-            print(list(g))
+            print(list(h))
             """)
 
     def test_generator_from_generator2(self):
