@@ -14,7 +14,7 @@ parser.add_argument(
     help="prog is a module name, not a file name.",
 )
 parser.add_argument(
-    '-v', '--versbose', dest='verbose', action='store_true',
+    '-v', '--verbose', dest='verbose', action='store_true',
     help="trace the execution of the bytecode.",
 )
 parser.add_argument(
