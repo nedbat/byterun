@@ -2,6 +2,7 @@
 
 import collections
 import inspect
+import re
 import types
 
 import six
@@ -61,11 +62,12 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if PY2 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexpr>"]:
+        if re.search(r'<(listcomp|setcomp|dictcomp|genexpr)>$', self.func_name):
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,
-            # so just do the right thing.
+            # so just do the right thing.  Py3.4 also would fail without this
+            # hack, for list comprehensions too. (Haven't checked for other 3.x.)
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
         else:
