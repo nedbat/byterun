@@ -62,7 +62,7 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if re.search(r'<(listcomp|setcomp|dictcomp|genexpr)>$', self.func_name):
+        if re.search(r'<(?:listcomp|setcomp|dictcomp|genexpr)>$', self.func_name):
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,
