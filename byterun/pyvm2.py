@@ -421,7 +421,10 @@ class VirtualMachine(object):
         elif name in f.f_builtins:
             val = f.f_builtins[name]
         else:
-            raise NameError("global name '%s' is not defined" % name)
+            if PY2:
+                raise NameError("global name '%s' is not defined" % name)
+            elif PY3:
+                raise NameError("name '%s' is not defined" % name)
         self.push(val)
 
     def byte_LOAD_DEREF(self, name):
