@@ -1045,18 +1045,14 @@ if PY3:
         assert isinstance(name, str)
         # This is simplified in that we don't yet handle metaclasses. So we do
         # make sure there is no metaclass, before proceeding.
-        metaclass = kwds.get('metaclass') # (We don't just write 'metaclass=None'
-        # in the signature above because that's a syntax error in Py2.)
-        assert metaclass is None
-        assert not kwds
+        assert not kwds # No explicit metaclass or keyword arguments to the metaclass.
         for base in bases:
-            assert type(base) == type
+            assert type(base) == type # No implicit metaclass from the bases.
         # OK, no metaclass; we may proceed.
         # XXX What about func.func_closure? vm.make_frame() gives us no way to pass it in.
         # We'll come back to fix this; for now, just make sure this case doesn't come up.
         assert not func.func_closure
         ns = {}
         frame = func._vm.make_frame(func.func_code, f_globals=func.func_globals, f_locals=ns)
-        
-        func_result = func._vm.run_frame(frame)
+        func._vm.run_frame(frame)
         return type(name, bases, ns)
