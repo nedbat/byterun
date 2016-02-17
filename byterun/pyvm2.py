@@ -90,7 +90,7 @@ class VirtualMachine(object):
     def pop_block(self):
         return self.frame.block_stack.pop()
 
-    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
+    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None, f_closure=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
             f_globals = f_globals
@@ -107,7 +107,7 @@ class VirtualMachine(object):
                 '__package__': None,
             }
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame)
+        frame = Frame(code, f_globals, f_locals, f_closure, self.frame)
         return frame
 
     def push_frame(self, frame):
@@ -1052,10 +1052,10 @@ if PY3:
         for base in bases:
             assert type(base) == type # No implicit metaclass from the bases.
         # OK, no metaclass; we may proceed.
-        # XXX What about func.func_closure? vm.make_frame() gives us no way to pass it in.
-        # We'll come back to fix this; for now, just make sure this case doesn't come up.
-        assert not func.func_closure
         ns = {}
-        frame = func._vm.make_frame(func.func_code, f_globals=func.func_globals, f_locals=ns)
+        frame = func._vm.make_frame(func.func_code,
+                                    f_globals=func.func_globals,
+                                    f_locals=ns,
+                                    f_closure=func.func_closure)
         func._vm.run_frame(frame)
         return type(name, bases, ns)
