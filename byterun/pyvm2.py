@@ -1048,8 +1048,7 @@ if PY3:
             raise TypeError("func must be a function")
         if not isinstance(name, str):
             raise TypeError("name is not a string")
-        metaclass = kwds.get('metaclass')
-        if 'metaclass' in kwds: del kwds['metaclass']
+        metaclass = kwds.pop('metaclass', None)
         # (We don't just write 'metaclass=None' in the signature above
         # because that's a syntax error in Py2.)
         if metaclass is None:
