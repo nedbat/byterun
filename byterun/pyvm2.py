@@ -424,6 +424,10 @@ class VirtualMachine(object):
             raise NameError("global name '%s' is not defined" % name)
         self.push(val)
 
+    def byte_STORE_GLOBAL(self, name):
+        f = self.frame
+        f.f_globals[name] = self.pop()
+
     def byte_LOAD_DEREF(self, name):
         self.push(self.frame.cells[name].get())
 
