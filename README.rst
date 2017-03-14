@@ -21,7 +21,7 @@ If you are not sure what a stack machine is, you might even start
 with `the Wikipedia article on stack machines. <https://en.wikipedia.org/wiki/Stack_machine>`_
 
 After understanding Alison's Byterun  article, you should be able to make sense of  
-`the source code for this repository <../byetrun>`_  
+`the source code for this repository </byterun>`_  
 And from there you can move onto studying  cPython, or PyPy, or Jython. 
 
 In the process, you
