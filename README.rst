@@ -12,11 +12,11 @@ machine.  The Python compiler converts python source code into Python bytecode. 
 There are a number of python virtual machines.  Most Python developers use cPython.  cPython includes a virtual machine written in C.  Yes it runs Python very fast, but it is a large code base, and difficult to understand.  Much better to start by studying Byterun.  Then you can move onto cPython.   
 
 If you are interested in Byterun,  the first step is to read the 
-excellent introductory article on Byterun written by Alison Kaptur.  
-`A Python Interpreter written in Python <http://www.aosabook.org/en/500L/a-python-interpreter-written-in-python.html>`
+excellent introductory article on Byterun written by Alison 
+Kaptur.  `A Python Interpreter written in Python <http://www.aosabook.org/en/500L/a-python-interpreter-written-in-python.html>`
 
-If you are not sure what a stack machine is, you might even start with 
-`the Wikipedia article on stack machines. <https://en.wikipedia.org/wiki/Stack_machine>`
+If you are not sure what a stack machine is, you might even start  
+with `the Wikipedia article on stack machines. <https://en.wikipedia.org/wiki/Stack_machine>`
 
 After understanding Alison's Byterun  article, you should be able to make sense of  
 `the source code for this repository <../byetrun>`  
