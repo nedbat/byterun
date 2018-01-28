@@ -166,18 +166,36 @@ class VirtualMachine(object):
 
     def parse_byte_and_args(self):
         """ Parse 1 - 3 bytes of bytecode into
-        an instruction and optionally arguments."""
+        an instruction and optionally arguments.
+        In Python3.6 the format is 2 bytes per instruction."""
         f = self.frame
         opoffset = f.f_lasti
-        byteCode = byteint(f.f_code.co_code[opoffset])
+        if f.py36_opcodes:
+            currentOp = f.py36_opcodes[opoffset]
+            byteCode = currentOp.opcode
+            byteName = currentOp.opname
+        else:
+            byteCode = byteint(f.f_code.co_code[opoffset])
+            byteName = dis.opname[byteCode]
         f.f_lasti += 1
-        byteName = dis.opname[byteCode]
         arg = None
         arguments = []
+        if f.py36_opcodes and byteCode == dis.EXTENDED_ARG:
+            # Prefixes any opcode which has an argument too big to fit into the
+            # default two bytes. ext holds two additional bytes which, taken
+            # together with the subsequent opcode’s argument, comprise a
+            # four-byte argument, ext being the two most-significant bytes.
+            # We simply ignore the EXTENDED_ARG because that calculation
+            # is already done by dis, and stored in next currentOp.
+            # Lib/dis.py:_unpack_opargs
+            return self.parse_byte_and_args()
         if byteCode >= dis.HAVE_ARGUMENT:
-            arg = f.f_code.co_code[f.f_lasti:f.f_lasti+2]
-            f.f_lasti += 2
-            intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
+            if f.py36_opcodes:
+                intArg = currentOp.arg
+            else:
+                arg = f.f_code.co_code[f.f_lasti:f.f_lasti+2]
+                f.f_lasti += 2
+                intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
             if byteCode in dis.hasconst:
                 arg = f.f_code.co_consts[intArg]
             elif byteCode in dis.hasfree:
@@ -189,9 +207,15 @@ class VirtualMachine(object):
             elif byteCode in dis.hasname:
                 arg = f.f_code.co_names[intArg]
             elif byteCode in dis.hasjrel:
-                arg = f.f_lasti + intArg
+                if f.py36_opcodes:
+                    arg = f.f_lasti + intArg//2
+                else:
+                    arg = f.f_lasti + intArg
             elif byteCode in dis.hasjabs:
-                arg = intArg
+                if f.py36_opcodes:
+                    arg = intArg//2
+                else:
+                    arg = intArg
             elif byteCode in dis.haslocal:
                 arg = f.f_code.co_varnames[intArg]
             else:
