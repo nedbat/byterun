@@ -590,6 +590,20 @@ class VirtualMachine(object):
 
     ## Building
 
+    def byte_BUILD_TUPLE_UNPACK_WITH_CALL(self, count):
+        # This is similar to BUILD_TUPLE_UNPACK, but is used for f(*x, *y, *z)
+        # call syntax. The stack item at position count + 1 should be the
+        # corresponding callable f.
+        elts = self.popn(count)
+        self.push(tuple(e for l in elts for e in l))
+
+    def byte_BUILD_TUPLE_UNPACK(self, count):
+        # Pops count iterables from the stack, joins them in a single tuple,
+        # and pushes the result. Implements iterable unpacking in
+        # tuple displays (*x, *y, *z).
+        elts = self.popn(count)
+        self.push(tuple(e for l in elts for e in l))
+
     def byte_BUILD_TUPLE(self, count):
         elts = self.popn(count)
         self.push(tuple(elts))
