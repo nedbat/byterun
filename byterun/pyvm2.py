@@ -9,6 +9,7 @@ import linecache
 import logging
 import operator
 import sys
+import types
 
 import six
 from six.moves import reprlib
@@ -766,6 +767,13 @@ class VirtualMachine(object):
 
     def byte_GET_ITER(self):
         self.push(iter(self.pop()))
+
+    def byte_GET_YIELD_FROM_ITER(self):
+        tos = self.top()
+        if isinstance(tos, types.GeneratorType) or isinstance(tos, types.CoroutineType):
+            return
+        tos = self.pop()
+        self.push(iter(tos))
 
     def byte_FOR_ITER(self, jump):
         iterobj = self.top()
