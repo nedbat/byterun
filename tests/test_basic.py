@@ -12,21 +12,38 @@ class TestIt(vmtest.VmTestCase):
     def test_constant(self):
         self.assert_ok("17")
 
-    def test_globals(self):
-        self.assert_ok("""\
-            global xyz
-            xyz=2106
-
-            def abc():
+    if PY2:
+        def test_globals(self):
+            self.assert_ok("""\
                 global xyz
-                xyz+=1
-                print("Midst:",xyz)
+                xyz=2106
 
-            
-            print "Pre:",xyz
-            abc()
-            print "Post:",xyz
-            """)
+                def abc():
+                    global xyz
+                    xyz+=1
+                    print("Midst:",xyz)
+
+
+                print "Pre:",xyz
+                abc()
+                print "Post:",xyz
+                """)
+    elif PY3:
+        def test_globals(self):
+            self.assert_ok("""\
+                global xyz
+                xyz=2106
+
+                def abc():
+                    global xyz
+                    xyz+=1
+                    print("Midst:",xyz)
+
+
+                print("Pre:",xyz)
+                abc()
+                print("Post:",xyz)
+                """)
 
     def test_for_loop(self):
         self.assert_ok("""\
