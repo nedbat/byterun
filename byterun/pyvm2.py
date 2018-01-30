@@ -603,9 +603,28 @@ class VirtualMachine(object):
         elts = self.popn(count)
         self.push(set(elts))
 
-    def byte_BUILD_MAP(self, size):
-        # size is ignored.
-        self.push({})
+    def byte_BUILD_CONST_KEY_MAP(self, count):
+        # count values are consumed from the stack.
+        # The top element contains tuple of keys
+        # added in version 3.6
+        keys = self.pop()
+        values = self.popn(count)
+        kvs = dict(zip(keys, values))
+        self.push(kvs)
+
+    def byte_BUILD_MAP(self, count):
+        # Pushes a new dictionary on to stack.
+        if not(six.PY3 and sys.version_info.minor >= 5):
+            self.push({})
+            return
+        # Pop 2*count items so that
+        # dictionary holds count entries: {..., TOS3: TOS2, TOS1:TOS}
+        # updated in version 3.5
+        kvs = {}
+        for i in range(0, count):
+            key, val = self.popn(2)
+            kvs[key] = val
+        self.push(kvs)
 
     def byte_STORE_MAP(self):
         the_map, val, key = self.popn(3)
