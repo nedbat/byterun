@@ -917,6 +917,38 @@ class VirtualMachine(object):
             self.push_block('finally', dest)
         self.push(ctxmgr_obj)
 
+    def byte_WITH_CLEANUP_START(self):
+        u = self.top()
+        v = None
+        w = None
+        if u is None:
+            exit_method = self.pop(1)
+        elif isinstance(u, str):
+            if u in {'return', 'continue'}:
+                exit_method = self.pop(2)
+            else:
+                exit_method = self.pop(1)
+        elif issubclass(u, BaseException):
+            w, v, u = self.popn(3)
+            tp, exc, tb = self.popn(3)
+            exit_method = self.pop()
+            self.push(tp, exc, tb)
+            self.push(None)
+            self.push(w, v, u)
+            block = self.pop_block()
+            assert block.type == 'except-handler'
+            self.push_block(block.type, block.handler, block.level-1)
+
+        res = exit_method(u, v, w)
+        self.push(u)
+        self.push(res)
+
+    def byte_WITH_CLEANUP_FINISH(self):
+        res = self.pop()
+        u = self.pop()
+        if type(u) is type and issubclass(u, BaseException) and res:
+                self.push("silenced")
+
     def byte_WITH_CLEANUP(self):
         # The code here does some weird stack manipulation: the exit function
         # is buried in the stack, and where depends on what's on top of it.
