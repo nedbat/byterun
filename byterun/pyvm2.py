@@ -996,11 +996,21 @@ class VirtualMachine(object):
         if PY3:
             name = self.pop()
         else:
+            # Pushes a new function object on the stack. TOS is the code
+            # associated with the function. The function object is defined to
+            # have argc default parameters, which are found below TOS.
             name = None
         code = self.pop()
-        defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, None, self)
+        if PY3 and sys.version_info.minor >= 6:
+            closure = self.pop() if (argc & 0x8) else None
+            ann = self.pop() if (argc & 0x4) else None
+            kwdefaults = self.pop() if (argc & 0x2) else None
+            defaults = self.pop() if (argc & 0x1) else None
+            fn = Function(name, code, globs, defaults, kwdefaults, closure, self)
+        else:
+            defaults = self.popn(argc)
+            fn = Function(name, code, globs, defaults, None, None, self)
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
@@ -1015,7 +1025,7 @@ class VirtualMachine(object):
         closure, code = self.popn(2)
         defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, closure, self)
+        fn = Function(name, code, globs, defaults, None, closure, self)
         self.push(fn)
 
     def byte_CALL_FUNCTION_EX(self, arg):

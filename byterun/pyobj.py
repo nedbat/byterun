@@ -30,11 +30,12 @@ class Function(object):
         '_vm', '_func',
     ]
 
-    def __init__(self, name, code, globs, defaults, closure, vm):
+    def __init__(self, name, code, globs, defaults, kwdefaults, closure, vm):
         self._vm = vm
         self.func_code = code
         self.func_name = self.__name__ = name or code.co_name
-        self.func_defaults = tuple(defaults)
+        self.func_defaults = defaults \
+                if PY3 and sys.version_info.minor >= 6 else tuple(defaults)
         self.func_globals = globs
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
