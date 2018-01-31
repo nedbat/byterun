@@ -40,6 +40,19 @@ class VmTestCase(unittest.TestCase):
         # Print the disassembly so we'll see it if the test fails.
         dis_code(code)
 
+        # Run the code through our VM and the real Python interpreter, for comparison.
+        vm_value, vm_exc, vm_stdout = self.run_in_byterun(code)
+        py_value, py_exc, py_stdout = self.run_in_real_python(code)
+
+        self.assert_same_exception(vm_exc, py_exc)
+        self.assertEqual(vm_stdout.getvalue(), py_stdout.getvalue())
+        self.assertEqual(vm_value, py_value)
+        if raises:
+            self.assertIsInstance(vm_exc, raises)
+        else:
+            self.assertIsNone(vm_exc)
+
+    def run_in_byterun(self, code):
         real_stdout = sys.stdout
 
         # Run the code through our VM.
@@ -64,32 +77,36 @@ class VmTestCase(unittest.TestCase):
                 raise
             vm_exc = e
         finally:
+            sys.stdout = real_stdout
             real_stdout.write("-- stdout ----------\n")
             real_stdout.write(vm_stdout.getvalue())
 
-        # Run the code through the real Python interpreter, for comparison.
+        return vm_value, vm_exc, vm_stdout
+
+    def run_in_real_python(self, code):
+        real_stdout = sys.stdout
 
         py_stdout = six.StringIO()
         sys.stdout = py_stdout
 
         py_value = py_exc = None
-        globs = {}
+        globs = {
+            '__builtins__': __builtins__,
+            '__name__': '__main__',
+            '__doc__': None,
+            '__package__': None,
+        }
+
         try:
             py_value = eval(code, globs, globs)
         except AssertionError:              # pragma: no cover
             raise
         except Exception as e:
             py_exc = e
+        finally:
+            sys.stdout = real_stdout
 
-        sys.stdout = real_stdout
-
-        self.assert_same_exception(vm_exc, py_exc)
-        self.assertEqual(vm_stdout.getvalue(), py_stdout.getvalue())
-        self.assertEqual(vm_value, py_value)
-        if raises:
-            self.assertIsInstance(vm_exc, raises)
-        else:
-            self.assertIsNone(vm_exc)
+        return py_value, py_exc, py_stdout
 
     def assert_same_exception(self, e1, e2):
         """Exceptions don't implement __eq__, check it ourselves."""

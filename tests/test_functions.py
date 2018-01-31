@@ -207,6 +207,18 @@ class TestClosures(vmtest.VmTestCase):
             assert answer == 54
             """)
 
+    def test_closure_vars_from_static_parent(self):
+        self.assert_ok("""\
+            def f(xs):
+                return lambda: xs[0]
+
+            def g(h):
+                xs = 5
+                lambda: xs
+                return h()
+
+            assert g(f([42])) == 42
+            """)
 
 class TestGenerators(vmtest.VmTestCase):
     def test_first(self):
