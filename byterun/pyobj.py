@@ -151,7 +151,10 @@ class Frame(object):
         if f_back:
             self.f_builtins = f_back.f_builtins
         else:
-            self.f_builtins = f_locals['__builtins__']
+            if hasattr(f_locals, '__builtins__'):
+                self.f_builtins = f_locals['__builtins__']
+            else:
+                self.f_builtins = f_globals['__builtins__']
             if hasattr(self.f_builtins, '__dict__'):
                 self.f_builtins = self.f_builtins.__dict__
 

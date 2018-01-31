@@ -11,6 +11,12 @@ import operator
 import sys
 import types
 
+import os.path
+import imp
+NoSource = Exception
+Loaded = {}
+
+
 import six
 from six.moves import reprlib
 
@@ -1109,6 +1115,44 @@ class VirtualMachine(object):
         retval = func(*posargs, **namedargs)
         self.push(retval)
 
+    def import_module(self, m, fromList, level):
+        f = self.frame
+        res = self.import_python_module(m, f.f_globals, f.f_locals, fromList, level)
+        self.push(res)
+
+    def import_python_module(self, modulename, glo, loc, fromlist, level, search=None):
+        """Import a python module.
+        `modulename` is the name of the module, possibly a dot-separated name.
+        `fromlist` is the list of things to imported from the module.
+        """
+        try:
+            if '.' not in modulename:
+                mymod = find_module(modulename, search, level, True, glo, loc)
+                # Open the source file.
+                try:
+                    with open(mymod.__file__, "rU") as source_file:
+                        source = source_file.read()
+                        if not source or source[-1] != '\n': source += '\n'
+                        code = compile(source, mymod.__file__, "exec")
+                        # Execute the source file.
+                        self.run_code(code, f_globals=mymod.__dict__, f_locals=mymod.__dict__)
+                        # strip it with fromlist
+                        # get the defined module
+                        return mymod
+                except IOError as e:
+                    raise NoSource("module does not live in a file: %r" % modulename)
+            else:
+                pkgn, name = modulename.rsplit('.', 1)
+                pkg = find_module(pkgn, search, level, False, glo, loc)
+                mod = self.import_python_module(name, glo, loc, fromlist, level, pkg.__file__)
+                # mod is an attribute of pkg
+                setattr(pkg, mod.__name__, mod)
+                return pkg
+        except NoSource as e:
+            m = __import__(modulename, glo, loc, fromlist, level)
+            Loaded[modulename] = m
+            return m
+
     def byte_RETURN_VALUE(self):
         self.return_value = self.pop()
         if self.frame.generator:
@@ -1145,10 +1189,7 @@ class VirtualMachine(object):
 
     def byte_IMPORT_NAME(self, name):
         level, fromlist = self.popn(2)
-        frame = self.frame
-        self.push(
-            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
-        )
+        self.import_module(name, fromlist, level)
 
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.
@@ -1232,3 +1273,51 @@ if PY3:
             elif not issubclass(winner, t):
                 raise TypeError("metaclass conflict", winner, t)
         return winner
+
+
+
+def find_module_absolute(name, searchpath, isfile):
+    # search path should really be appeneded to a list of paths
+    # that the interpreter knows about. For now, we only look in '.'
+    myname = name if not searchpath else "%s/%s" % (searchpath, name)
+    if isfile:
+        fname = "%s.py" % myname
+        return os.path.abspath(fname) if os.path.isfile(fname) else None
+    else:
+        return os.path.abspath(myname) if os.path.isdir(myname) else None
+
+def find_module_relative(name, searchpath): return None
+
+def find_module(name, searchpath, level, isfile=True, glo=None, loc=None):
+    """
+    `level` specifies whether to use absolute and/or relative.
+        The default is -1 which is both absolute and relative
+        0 means only absolute and positive values indicate number
+        parent directories to search relative to the directory of module
+        calling `__import__`
+    """
+    if name in Loaded: return Loaded[name]
+
+    assert level <= 0 # we dont implement relative yet
+    path = None
+    if level == 0:
+        path = find_module_absolute(name, searchpath, isfile)
+    elif level > 0:
+        path = find_module_relative(name, searchpath, isfile)
+    else:
+        res = find_module_absolute(name, searchpath, isfile)
+        path = find_module_relative(name, searchpath, isfile) if not res \
+                else res
+
+    if not path:
+        v = imp.find_module(name, searchpath)
+        if v and v[1]:
+            path = v[1]
+        else:
+            raise NoSource("<%s> was not found" % name)
+    mymod = types.ModuleType(name)
+    mymod.__file__ = path
+    mymod.__builtins__ = glo['__builtins__']
+    # mark the module as being loaded
+    Loaded[name] = mymod
+    return mymod
