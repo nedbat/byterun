@@ -1018,16 +1018,45 @@ class VirtualMachine(object):
         fn = Function(name, code, globs, defaults, closure, self)
         self.push(fn)
 
+    def byte_CALL_FUNCTION_EX(self, arg):
+        # Calls a function. The lowest bit of flags indicates whether the
+        # var-keyword argument is placed at the top of the stack. Below
+        # the var-keyword argument, the var-positional argument is on the
+        # stack. Below the arguments, the function object to call is placed.
+        # Pops all function arguments, and the function itself off the stack,
+        # and pushes the return value.
+        # Note that this opcode pops at most three items from the stack.
+        #Var-positional and var-keyword arguments are packed by
+        #BUILD_TUPLE_UNPACK_WITH_CALL and BUILD_MAP_UNPACK_WITH_CALL.
+        # new in 3.6
+        varkw = self.pop() if (arg & 0x1) else {}
+        varpos = self.pop()
+        return self.call_function(0, varpos, varkw)
+
     def byte_CALL_FUNCTION(self, arg):
+        # Calls a function. argc indicates the number of positional arguments.
+        # The positional arguments are on the stack, with the right-most
+        # argument on top. Below the arguments, the function object to call is
+        # on the stack. Pops all function arguments, and the function itself
+        # off the stack, and pushes the return value.
+        # 3.6: Only used for calls with positional args
         return self.call_function(arg, [], {})
 
     def byte_CALL_FUNCTION_VAR(self, arg):
         args = self.pop()
         return self.call_function(arg, args, {})
 
-    def byte_CALL_FUNCTION_KW(self, arg):
-        kwargs = self.pop()
-        return self.call_function(arg, [], kwargs)
+    def byte_CALL_FUNCTION_KW(self, argc):
+        if not(six.PY3 and sys.version_info.minor >= 6):
+            kwargs = self.pop()
+            return self.call_function(arg, [], kwargs)
+        # changed in 3.6: keyword arguments are packed in a tuple instead
+        # of a dict. argc indicates total number of args.
+        kwargnames = self.pop()
+        lkwargs = len(kwargnames)
+        kwargs = self.popn(lkwargs)
+        arg = argc - lkwargs
+        return self.call_function(arg, [], dict(zip(kwargnames, kwargs)))
 
     def byte_CALL_FUNCTION_VAR_KW(self, arg):
         args, kwargs = self.popn(2)
