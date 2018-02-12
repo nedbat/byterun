@@ -1062,7 +1062,7 @@ class VirtualMachine(object):
     def byte_CALL_FUNCTION_KW(self, argc):
         if not(six.PY3 and sys.version_info.minor >= 6):
             kwargs = self.pop()
-            return self.call_function(arg, [], kwargs)
+            return self.call_function(argc, [], kwargs)
         # changed in 3.6: keyword arguments are packed in a tuple instead
         # of a dict. argc indicates total number of args.
         kwargnames = self.pop()
