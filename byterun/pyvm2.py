@@ -598,8 +598,8 @@ class VirtualMachine(object):
         # This is similar to BUILD_TUPLE_UNPACK, but is used for f(*x, *y, *z)
         # call syntax. The stack item at position count + 1 should be the
         # corresponding callable f.
-        elts = self.popn(count)
-        self.push(tuple(e for l in elts for e in l))
+        self.byte_BUILD_TUPLE_UNPACK(count)
+
 
     def byte_BUILD_TUPLE_UNPACK(self, count):
         # Pops count iterables from the stack, joins them in a single tuple,
@@ -611,6 +611,10 @@ class VirtualMachine(object):
     def byte_BUILD_TUPLE(self, count):
         elts = self.popn(count)
         self.push(tuple(elts))
+
+    def byte_BUILD_LIST_UNPACK(self, count):
+        elts = self.popn(count)
+        self.push([e for l in elts for e in l])
 
     def byte_BUILD_LIST(self, count):
         elts = self.popn(count)
@@ -632,14 +636,14 @@ class VirtualMachine(object):
 
     def byte_BUILD_MAP(self, count):
         # Pushes a new dictionary on to stack.
-        if not(six.PY3 and sys.version_info.minor >= 5):
+        if sys.version_info[:2] < (3, 5):
             self.push({})
             return
         # Pop 2*count items so that
         # dictionary holds count entries: {..., TOS3: TOS2, TOS1:TOS}
         # updated in version 3.5
         kvs = {}
-        for i in range(0, count):
+        for i in range(count):
             key, val = self.popn(2)
             kvs[key] = val
         self.push(kvs)
