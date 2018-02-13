@@ -2,9 +2,12 @@
 
 import collections
 import inspect
+import re
 import types
+import dis
 
 import six
+import sys
 
 PY3, PY2 = six.PY3, not six.PY3
 
@@ -28,11 +31,12 @@ class Function(object):
         '_vm', '_func',
     ]
 
-    def __init__(self, name, code, globs, defaults, closure, vm):
+    def __init__(self, name, code, globs, defaults, kwdefaults, closure, vm):
         self._vm = vm
         self.func_code = code
         self.func_name = self.__name__ = name or code.co_name
-        self.func_defaults = tuple(defaults)
+        self.func_defaults = defaults \
+                if PY3 and sys.version_info.minor >= 6 else tuple(defaults)
         self.func_globals = globs
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
@@ -61,17 +65,18 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if PY2 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexpr>"]:
+        if re.search(r'<(?:listcomp|setcomp|dictcomp|genexpr)>$', self.func_name):
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,
-            # so just do the right thing.
+            # so just do the right thing.  Py3.4 also would fail without this
+            # hack, for list comprehensions too. (Haven't checked for other 3.x.)
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
         else:
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
         frame = self._vm.make_frame(
-            self.func_code, callargs, self.func_globals, {}
+            self.func_code, callargs, self.func_globals, {}, self.func_closure
         )
         CO_GENERATOR = 32           # flag for "this code uses yield"
         if self.func_code.co_flags & CO_GENERATOR:
@@ -135,8 +140,10 @@ Block = collections.namedtuple("Block", "type, handler, level")
 
 
 class Frame(object):
-    def __init__(self, f_code, f_globals, f_locals, f_back):
+    def __init__(self, f_code, f_globals, f_locals, f_closure, f_back):
         self.f_code = f_code
+        self.py36_opcodes = list(dis.get_instructions(self.f_code)) \
+            if six.PY3 and sys.version_info.minor >= 6 else None
         self.f_globals = f_globals
         self.f_locals = f_locals
         self.f_back = f_back
@@ -144,31 +151,23 @@ class Frame(object):
         if f_back:
             self.f_builtins = f_back.f_builtins
         else:
-            self.f_builtins = f_locals['__builtins__']
+            if hasattr(f_locals, '__builtins__'):
+                self.f_builtins = f_locals['__builtins__']
+            else:
+                self.f_builtins = f_globals['__builtins__']
             if hasattr(self.f_builtins, '__dict__'):
                 self.f_builtins = self.f_builtins.__dict__
 
         self.f_lineno = f_code.co_firstlineno
         self.f_lasti = 0
 
-        if f_code.co_cellvars:
-            self.cells = {}
-            if not f_back.cells:
-                f_back.cells = {}
-            for var in f_code.co_cellvars:
-                # Make a cell for the variable in our locals, or None.
-                cell = Cell(self.f_locals.get(var))
-                f_back.cells[var] = self.cells[var] = cell
-        else:
-            self.cells = None
-
+        self.cells = {} if f_code.co_cellvars or f_code.co_freevars else None
+        for var in f_code.co_cellvars:
+            # Make a cell for the variable in our locals, or None.
+            self.cells[var] = Cell(self.f_locals.get(var))
         if f_code.co_freevars:
-            if not self.cells:
-                self.cells = {}
-            for var in f_code.co_freevars:
-                assert self.cells is not None
-                assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
-                self.cells[var] = f_back.cells[var]
+            assert len(f_code.co_freevars) == len(f_closure)
+            self.cells.update(zip(f_code.co_freevars, f_closure))
 
         self.block_stack = []
         self.generator = None
