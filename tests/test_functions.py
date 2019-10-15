@@ -141,12 +141,8 @@ class TestFunctions(vmtest.VmTestCase):
 
     def test_different_globals_may_have_different_builtins(self):
         self.assert_ok("""\
-            import sys
-
-
-            Function = type(lambda: None)
-
             def replace_globals(f, new_globals):
+                import sys
                 if sys.version_info.major == 2:
                     args = [
                         f.func_code,
@@ -167,7 +163,7 @@ class TestFunctions(vmtest.VmTestCase):
                     name = args.remove(args[2])
                     args.insert(0, name)
                     args.append(f._vm)
-                return Function(*args)
+                return type(lambda: None)(*args)
 
 
             def f():
@@ -176,13 +172,59 @@ class TestFunctions(vmtest.VmTestCase):
 
 
             def g():
-                return a
+                return a  # a is in the builtins and set to 2
 
 
+            # g and f have different builtins that both provide ``a``.
             g = replace_globals(g, {'__builtins__': {'a': 2}})
             f = replace_globals(f, {'__builtins__': {'a': 1}, 'g': g})
 
 
+            f()
+            """)
+
+    def test_no_builtins(self):
+        self.assert_ok("""\
+            def replace_globals(f, new_globals):
+                import sys
+
+
+                if sys.version_info.major == 2:
+                    args = [
+                        f.func_code,
+                        new_globals,
+                        f.func_name,
+                        f.func_defaults,
+                        f.func_closure,
+                    ]
+                else:
+                    args = [
+                        f.__code__,
+                        new_globals,
+                        f.__name__,
+                        f.__defaults__,
+                        f.__closure__,
+                    ]
+                if hasattr(f, '_vm'):
+                    name = args.remove(args[2])
+                    args.insert(0, name)
+                    args.append(f._vm)
+                return type(lambda: None)(*args)
+
+
+            def f(NameError=NameError, AssertionError=AssertionError):
+                # capture NameError and AssertionError early because
+                #  we are deleting the builtins
+                None
+                try:
+                    sum
+                except NameError:
+                    pass
+                else:
+                    raise AssertionError('sum in the builtins')
+
+
+            f = replace_globals(f, {})  # no builtins provided
             f()
             """)
 
