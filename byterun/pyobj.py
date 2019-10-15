@@ -141,10 +141,11 @@ class Frame(object):
         self.f_locals = f_locals
         self.f_back = f_back
         self.stack = []
-        if f_back:
+        if f_back and f_back.f_globals is f_globals:
+            # If we share the globals, we share the builtins.
             self.f_builtins = f_back.f_builtins
         else:
-            self.f_builtins = f_locals['__builtins__']
+            self.f_builtins = f_globals['__builtins__']
             if hasattr(self.f_builtins, '__dict__'):
                 self.f_builtins = self.f_builtins.__dict__
 
