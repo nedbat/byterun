@@ -145,9 +145,13 @@ class Frame(object):
             # If we share the globals, we share the builtins.
             self.f_builtins = f_back.f_builtins
         else:
-            self.f_builtins = f_globals['__builtins__']
-            if hasattr(self.f_builtins, '__dict__'):
-                self.f_builtins = self.f_builtins.__dict__
+            try:
+                self.f_builtins = f_globals['__builtins__']
+                if hasattr(self.f_builtins, '__dict__'):
+                    self.f_builtins = self.f_builtins.__dict__
+            except KeyError:
+                # No builtins! Make up a minimal one with None.
+                self.f_builtins = {'None': None}
 
         self.f_lineno = f_code.co_firstlineno
         self.f_lasti = 0
