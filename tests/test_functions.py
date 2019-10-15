@@ -139,6 +139,53 @@ class TestFunctions(vmtest.VmTestCase):
             assert example() == 17
             """)
 
+    def test_different_globals_may_have_different_builtins(self):
+        self.assert_ok("""\
+            import sys
+
+
+            Function = type(lambda: None)
+
+            def replace_globals(f, new_globals):
+                if sys.version_info.major == 2:
+                    args = [
+                        f.func_code,
+                        new_globals,
+                        f.func_name,
+                        f.func_defaults,
+                        f.func_closure,
+                    ]
+                else:
+                    args = [
+                        f.__code__,
+                        new_globals,
+                        f.__name__,
+                        f.__defaults__,
+                        f.__closure__,
+                    ]
+                if hasattr(f, '_vm'):
+                    name = args.remove(args[2])
+                    args.insert(0, name)
+                    args.append(f._vm)
+                return Function(*args)
+
+
+            def f():
+                assert g() == 2
+                assert a == 1
+
+
+            def g():
+                return a
+
+
+            g = replace_globals(g, {'__builtins__': {'a': 2}})
+            f = replace_globals(f, {'__builtins__': {'a': 1}, 'g': g})
+
+
+            f()
+            """)
+
 
 class TestClosures(vmtest.VmTestCase):
     def test_closures(self):
