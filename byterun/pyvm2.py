@@ -9,13 +9,14 @@ import linecache
 import logging
 import operator
 import sys
+import types
 
 import six
 from six.moves import reprlib
 
 PY3, PY2 = six.PY3, not six.PY3
 
-from .pyobj import Frame, Block, Method, Function, Generator
+from .pyobj import Frame, Block, Method, Function, Generator, Cell
 
 log = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ class VirtualMachine(object):
     def pop_block(self):
         return self.frame.block_stack.pop()
 
-    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
+    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None, f_closure=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
             f_globals = f_globals
@@ -107,7 +108,7 @@ class VirtualMachine(object):
                 '__package__': None,
             }
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame)
+        frame = Frame(code, f_globals, f_locals, f_closure, self.frame)
         return frame
 
     def push_frame(self, frame):
@@ -166,18 +167,36 @@ class VirtualMachine(object):
 
     def parse_byte_and_args(self):
         """ Parse 1 - 3 bytes of bytecode into
-        an instruction and optionally arguments."""
+        an instruction and optionally arguments.
+        In Python3.6 the format is 2 bytes per instruction."""
         f = self.frame
         opoffset = f.f_lasti
-        byteCode = byteint(f.f_code.co_code[opoffset])
+        if sys.version_info >= (3, 6):
+            currentOp = f.opcodes[opoffset]
+            byteCode = currentOp.opcode
+            byteName = currentOp.opname
+        else:
+            byteCode = byteint(f.f_code.co_code[opoffset])
+            byteName = dis.opname[byteCode]
         f.f_lasti += 1
-        byteName = dis.opname[byteCode]
         arg = None
         arguments = []
+        if sys.version_info >= (3, 6) and byteCode == dis.EXTENDED_ARG:
+            # Prefixes any opcode which has an argument too big to fit into the
+            # default two bytes. ext holds two additional bytes which, taken
+            # together with the subsequent opcode’s argument, comprise a
+            # four-byte argument, ext being the two most-significant bytes.
+            # We simply ignore the EXTENDED_ARG because that calculation
+            # is already done by dis, and stored in next currentOp.
+            # Lib/dis.py:_unpack_opargs
+            return self.parse_byte_and_args()
         if byteCode >= dis.HAVE_ARGUMENT:
-            arg = f.f_code.co_code[f.f_lasti:f.f_lasti+2]
-            f.f_lasti += 2
-            intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
+            if sys.version_info >= (3, 6):
+                intArg = currentOp.arg
+            else:
+                arg = f.f_code.co_code[f.f_lasti:f.f_lasti+2]
+                f.f_lasti += 2
+                intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
             if byteCode in dis.hasconst:
                 arg = f.f_code.co_consts[intArg]
             elif byteCode in dis.hasfree:
@@ -189,9 +208,15 @@ class VirtualMachine(object):
             elif byteCode in dis.hasname:
                 arg = f.f_code.co_names[intArg]
             elif byteCode in dis.hasjrel:
-                arg = f.f_lasti + intArg
+                if sys.version_info >= (3, 6):
+                    arg = f.f_lasti + intArg//2
+                else:
+                    arg = f.f_lasti + intArg
             elif byteCode in dis.hasjabs:
-                arg = intArg
+                if sys.version_info >= (3, 6):
+                    arg = intArg//2
+                else:
+                    arg = intArg
             elif byteCode in dis.haslocal:
                 arg = f.f_code.co_varnames[intArg]
             else:
@@ -421,7 +446,10 @@ class VirtualMachine(object):
         elif name in f.f_builtins:
             val = f.f_builtins[name]
         else:
-            raise NameError("global name '%s' is not defined" % name)
+            if PY2:
+                raise NameError("global name '%s' is not defined" % name)
+            elif PY3:
+                raise NameError("name '%s' is not defined" % name)
         self.push(val)
 
     def byte_STORE_GLOBAL(self, name):
@@ -566,22 +594,78 @@ class VirtualMachine(object):
 
     ## Building
 
+    def byte_BUILD_TUPLE_UNPACK_WITH_CALL(self, count):
+        # This is similar to BUILD_TUPLE_UNPACK, but is used for f(*x, *y, *z)
+        # call syntax. The stack item at position count + 1 should be the
+        # corresponding callable f.
+        self.build_container_flat(count, tuple)
+
+    def byte_BUILD_TUPLE_UNPACK(self, count):
+        # Pops count iterables from the stack, joins them in a single tuple,
+        # and pushes the result. Implements iterable unpacking in
+        # tuple displays (*x, *y, *z).
+        self.build_container_flat(count, tuple)
+
     def byte_BUILD_TUPLE(self, count):
+        self.build_container(count, tuple)
+
+    def byte_BUILD_LIST_UNPACK(self, count):
+        # This is similar to BUILD_TUPLE_UNPACK, but a list instead of tuple.
+        # Implements iterable unpacking in list displays [*x, *y, *z].
+        self.build_container_flat(count, list)
+
+    def byte_BUILD_SET_UNPACK(self, count):
+        # This is similar to BUILD_TUPLE_UNPACK, but a set instead of tuple.
+        # Implements iterable unpacking in set displays {*x, *y, *z}.
+        self.build_container_flat(count, set)
+
+    def byte_BUILD_MAP_UNPACK(self, count):
+        # Pops count mappings from the stack, merges them to a single dict,
+        # and pushes the result. Implements dictionary unpacking in dictionary
+        # displays {**x, **y, **z}.
+        self.build_container(count, dict)
+
+    def byte_BUILD_MAP_UNPACK_WITH_CALL(self, count):
+        self.build_container(count, dict)
+
+    def build_container_flat(self, count, container_fn) :
         elts = self.popn(count)
-        self.push(tuple(elts))
+        self.push(container_fn(e for l in elts for e in l))
+
+    def build_container(self, count, container_fn) :
+        elts = self.popn(count)
+        self.push(container_fn(elts))
 
     def byte_BUILD_LIST(self, count):
         elts = self.popn(count)
         self.push(elts)
 
     def byte_BUILD_SET(self, count):
-        # TODO: Not documented in Py2 docs.
         elts = self.popn(count)
         self.push(set(elts))
 
-    def byte_BUILD_MAP(self, size):
-        # size is ignored.
-        self.push({})
+    def byte_BUILD_CONST_KEY_MAP(self, count):
+        # count values are consumed from the stack.
+        # The top element contains tuple of keys
+        # added in version 3.6
+        keys = self.pop()
+        values = self.popn(count)
+        kvs = dict(zip(keys, values))
+        self.push(kvs)
+
+    def byte_BUILD_MAP(self, count):
+        # Pushes a new dictionary on to stack.
+        if sys.version_info < (3, 5):
+            self.push({})
+            return
+        # Pop 2*count items so that
+        # dictionary holds count entries: {..., TOS3: TOS2, TOS1:TOS}
+        # updated in version 3.5
+        kvs = {}
+        for i in range(count):
+            key, val = self.popn(2)
+            kvs[key] = val
+        self.push(kvs)
 
     def byte_STORE_MAP(self):
         the_map, val, key = self.popn(3)
@@ -709,6 +793,13 @@ class VirtualMachine(object):
 
     def byte_GET_ITER(self):
         self.push(iter(self.pop()))
+
+    def byte_GET_YIELD_FROM_ITER(self):
+        tos = self.top()
+        if isinstance(tos, types.GeneratorType) or isinstance(tos, types.CoroutineType):
+            return
+        tos = self.pop()
+        self.push(iter(tos))
 
     def byte_FOR_ITER(self, jump):
         iterobj = self.top()
@@ -852,6 +943,38 @@ class VirtualMachine(object):
             self.push_block('finally', dest)
         self.push(ctxmgr_obj)
 
+    def byte_WITH_CLEANUP_START(self):
+        u = self.top()
+        v = None
+        w = None
+        if u is None:
+            exit_method = self.pop(1)
+        elif isinstance(u, str):
+            if u in {'return', 'continue'}:
+                exit_method = self.pop(2)
+            else:
+                exit_method = self.pop(1)
+        elif issubclass(u, BaseException):
+            w, v, u = self.popn(3)
+            tp, exc, tb = self.popn(3)
+            exit_method = self.pop()
+            self.push(tp, exc, tb)
+            self.push(None)
+            self.push(w, v, u)
+            block = self.pop_block()
+            assert block.type == 'except-handler'
+            self.push_block(block.type, block.handler, block.level-1)
+
+        res = exit_method(u, v, w)
+        self.push(u)
+        self.push(res)
+
+    def byte_WITH_CLEANUP_FINISH(self):
+        res = self.pop()
+        u = self.pop()
+        if type(u) is type and issubclass(u, BaseException) and res:
+                self.push("silenced")
+
     def byte_WITH_CLEANUP(self):
         # The code here does some weird stack manipulation: the exit function
         # is buried in the stack, and where depends on what's on top of it.
@@ -899,11 +1022,21 @@ class VirtualMachine(object):
         if PY3:
             name = self.pop()
         else:
+            # Pushes a new function object on the stack. TOS is the code
+            # associated with the function. The function object is defined to
+            # have argc default parameters, which are found below TOS.
             name = None
         code = self.pop()
-        defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, None, self)
+        if PY3 and sys.version_info.minor >= 6:
+            closure = self.pop() if (argc & 0x8) else None
+            ann = self.pop() if (argc & 0x4) else None
+            kwdefaults = self.pop() if (argc & 0x2) else None
+            defaults = self.pop() if (argc & 0x1) else None
+            fn = Function(name, code, globs, defaults, kwdefaults, closure, self)
+        else:
+            defaults = self.popn(argc)
+            fn = Function(name, code, globs, defaults, None, None, self)
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
@@ -918,19 +1051,48 @@ class VirtualMachine(object):
         closure, code = self.popn(2)
         defaults = self.popn(argc)
         globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, closure, self)
+        fn = Function(name, code, globs, defaults, None, closure, self)
         self.push(fn)
 
+    def byte_CALL_FUNCTION_EX(self, arg):
+        # Calls a function. The lowest bit of flags indicates whether the
+        # var-keyword argument is placed at the top of the stack. Below
+        # the var-keyword argument, the var-positional argument is on the
+        # stack. Below the arguments, the function object to call is placed.
+        # Pops all function arguments, and the function itself off the stack,
+        # and pushes the return value.
+        # Note that this opcode pops at most three items from the stack.
+        #Var-positional and var-keyword arguments are packed by
+        #BUILD_TUPLE_UNPACK_WITH_CALL and BUILD_MAP_UNPACK_WITH_CALL.
+        # new in 3.6
+        varkw = self.pop() if (arg & 0x1) else {}
+        varpos = self.pop()
+        return self.call_function(0, varpos, varkw)
+
     def byte_CALL_FUNCTION(self, arg):
+        # Calls a function. argc indicates the number of positional arguments.
+        # The positional arguments are on the stack, with the right-most
+        # argument on top. Below the arguments, the function object to call is
+        # on the stack. Pops all function arguments, and the function itself
+        # off the stack, and pushes the return value.
+        # 3.6: Only used for calls with positional args
         return self.call_function(arg, [], {})
 
     def byte_CALL_FUNCTION_VAR(self, arg):
         args = self.pop()
         return self.call_function(arg, args, {})
 
-    def byte_CALL_FUNCTION_KW(self, arg):
-        kwargs = self.pop()
-        return self.call_function(arg, [], kwargs)
+    def byte_CALL_FUNCTION_KW(self, argc):
+        if not(six.PY3 and sys.version_info.minor >= 6):
+            kwargs = self.pop()
+            return self.call_function(argc, [], kwargs)
+        # changed in 3.6: keyword arguments are packed in a tuple instead
+        # of a dict. argc indicates total number of args.
+        kwargnames = self.pop()
+        lkwargs = len(kwargnames)
+        kwargs = self.popn(lkwargs)
+        arg = argc - lkwargs
+        return self.call_function(arg, [], dict(zip(kwargnames, kwargs)))
 
     def byte_CALL_FUNCTION_VAR_KW(self, arg):
         args, kwargs = self.popn(2)
@@ -1033,7 +1195,7 @@ class VirtualMachine(object):
     elif PY3:
         def byte_LOAD_BUILD_CLASS(self):
             # New in py3
-            self.push(__build_class__)
+            self.push(build_class)
 
         def byte_STORE_LOCALS(self):
             self.frame.f_locals = self.pop()
@@ -1041,3 +1203,51 @@ class VirtualMachine(object):
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):
             self.frame.f_lineno = lineno
+
+if PY3:
+    def build_class(func, name, *bases, **kwds):
+        "Like __build_class__ in bltinmodule.c, but running in the byterun VM."
+        if not isinstance(func, Function):
+            raise TypeError("func must be a function")
+        if not isinstance(name, str):
+            raise TypeError("name is not a string")
+        metaclass = kwds.pop('metaclass', None)
+        # (We don't just write 'metaclass=None' in the signature above
+        # because that's a syntax error in Py2.)
+        if metaclass is None:
+            metaclass = type(bases[0]) if bases else type
+        if isinstance(metaclass, type):
+            metaclass = calculate_metaclass(metaclass, bases)
+
+        try:
+            prepare = metaclass.__prepare__
+        except AttributeError:
+            namespace = {}
+        else:
+            namespace = prepare(name, bases, **kwds)
+
+        # Execute the body of func. This is the step that would go wrong if
+        # we tried to use the built-in __build_class__, because __build_class__
+        # does not call func, it magically executes its body directly, as we
+        # do here (except we invoke our VirtualMachine instead of CPython's).
+        frame = func._vm.make_frame(func.func_code,
+                                    f_globals=func.func_globals,
+                                    f_locals=namespace,
+                                    f_closure=func.func_closure)
+        cell = func._vm.run_frame(frame)
+
+        cls = metaclass(name, bases, namespace)
+        if isinstance(cell, Cell):
+            cell.set(cls)
+        return cls
+
+    def calculate_metaclass(metaclass, bases):
+        "Determine the most derived metatype."
+        winner = metaclass
+        for base in bases:
+            t = type(base)
+            if issubclass(t, winner):
+                winner = t
+            elif not issubclass(winner, t):
+                raise TypeError("metaclass conflict", winner, t)
+        return winner
