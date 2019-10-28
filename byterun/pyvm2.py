@@ -15,7 +15,7 @@ from six.moves import reprlib
 
 PY3, PY2 = six.PY3, not six.PY3
 
-from .pyobj import Frame, Block, Method, Function, Generator
+from .pyobj import Frame, Block, Method, Function, Generator, Cell
 
 log = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class VirtualMachine(object):
     def pop_block(self):
         return self.frame.block_stack.pop()
 
-    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
+    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None, f_closure=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
             f_globals = f_globals
@@ -107,7 +107,7 @@ class VirtualMachine(object):
                 '__package__': None,
             }
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame)
+        frame = Frame(code, f_globals, f_locals, f_closure, self.frame)
         return frame
 
     def push_frame(self, frame):
@@ -421,7 +421,10 @@ class VirtualMachine(object):
         elif name in f.f_builtins:
             val = f.f_builtins[name]
         else:
-            raise NameError("global name '%s' is not defined" % name)
+            if PY2:
+                raise NameError("global name '%s' is not defined" % name)
+            elif PY3:
+                raise NameError("name '%s' is not defined" % name)
         self.push(val)
 
     def byte_STORE_GLOBAL(self, name):
@@ -1033,7 +1036,7 @@ class VirtualMachine(object):
     elif PY3:
         def byte_LOAD_BUILD_CLASS(self):
             # New in py3
-            self.push(__build_class__)
+            self.push(build_class)
 
         def byte_STORE_LOCALS(self):
             self.frame.f_locals = self.pop()
@@ -1041,3 +1044,51 @@ class VirtualMachine(object):
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):
             self.frame.f_lineno = lineno
+
+if PY3:
+    def build_class(func, name, *bases, **kwds):
+        "Like __build_class__ in bltinmodule.c, but running in the byterun VM."
+        if not isinstance(func, Function):
+            raise TypeError("func must be a function")
+        if not isinstance(name, str):
+            raise TypeError("name is not a string")
+        metaclass = kwds.pop('metaclass', None)
+        # (We don't just write 'metaclass=None' in the signature above
+        # because that's a syntax error in Py2.)
+        if metaclass is None:
+            metaclass = type(bases[0]) if bases else type
+        if isinstance(metaclass, type):
+            metaclass = calculate_metaclass(metaclass, bases)
+
+        try:
+            prepare = metaclass.__prepare__
+        except AttributeError:
+            namespace = {}
+        else:
+            namespace = prepare(name, bases, **kwds)
+
+        # Execute the body of func. This is the step that would go wrong if
+        # we tried to use the built-in __build_class__, because __build_class__
+        # does not call func, it magically executes its body directly, as we
+        # do here (except we invoke our VirtualMachine instead of CPython's).
+        frame = func._vm.make_frame(func.func_code,
+                                    f_globals=func.func_globals,
+                                    f_locals=namespace,
+                                    f_closure=func.func_closure)
+        cell = func._vm.run_frame(frame)
+
+        cls = metaclass(name, bases, namespace)
+        if isinstance(cell, Cell):
+            cell.set(cls)
+        return cls
+
+    def calculate_metaclass(metaclass, bases):
+        "Determine the most derived metatype."
+        winner = metaclass
+        for base in bases:
+            t = type(base)
+            if issubclass(t, winner):
+                winner = t
+            elif not issubclass(winner, t):
+                raise TypeError("metaclass conflict", winner, t)
+        return winner
