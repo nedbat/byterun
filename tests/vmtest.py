@@ -31,11 +31,15 @@ def dis_code(code):
 
 class VmTestCase(unittest.TestCase):
 
-    def assert_ok(self, code, raises=None):
+    def assert_ok(self, path_or_code, raises=None, is_path=False):
         """Run `code` in our VM and in real Python: they behave the same."""
 
-        code = textwrap.dedent(code)
-        code = compile(code, "<%s>" % self.id(), "exec", 0, 1)
+        if is_path:
+            code_str = open(path_or_code, "r").read()
+        else:
+            code_str = textwrap.dedent(path_or_code)
+
+        code = compile(code_str, "<%s>" % self.id(), "exec", 0, 1)
 
         # Print the disassembly so we'll see it if the test fails.
         dis_code(code)

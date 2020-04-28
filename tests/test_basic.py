@@ -1,43 +1,33 @@
-"""Basic tests for Byterun."""
-
+"""Basic tests for xpython."""
 from __future__ import print_function
+
+import os.path as osp
 try:
     import vmtest
 except ImportError:
     from . import vmtest
 
-import six
+from xdis import PYTHON3
 
-PY3, PY2 = six.PY3, not six.PY3
+PY2 = not PYTHON3
 
+def get_srcdir():
+    filename = osp.normcase(osp.dirname(__file__))
+    return osp.realpath(filename)
+
+examples_dir = osp.join(get_srcdir(), "examples")
 
 class TestIt(vmtest.VmTestCase):
     def test_constant(self):
         self.assert_ok("17")
 
     def test_globals(self):
-        self.assert_ok("""\
-            global xyz
-            xyz=2106
-
-            def abc():
-                global xyz
-                xyz+=1
-                print("Midst:",xyz)
-
-
-            print("Pre:",xyz)
-            abc()
-            print("Post:",xyz)
-            """)
+        path = osp.join(examples_dir, "test_globals.py")
+        self.assert_ok(path, is_path=True)
 
     def test_for_loop(self):
-        self.assert_ok("""\
-            out = ""
-            for i in range(5):
-                out = out + str(i)
-            print(out)
-            """)
+        path = osp.join(examples_dir, "test_for_loop.py")
+        self.assert_ok(path, is_path=True)
 
     def test_inplace_operators(self):
         self.assert_ok("""\
@@ -79,7 +69,7 @@ class TestIt(vmtest.VmTestCase):
                 assert x == 2 and y == 3
                 assert isinstance(x, int)
                 """)
-    elif PY3:
+    elif PYTHON3:
         def test_inplace_division(self):
             self.assert_ok("""\
                 x, y = 24, 3
@@ -478,7 +468,7 @@ class TestIt(vmtest.VmTestCase):
                 exec "a = 11" in g, g
                 assert g['a'] == 11
                 """)
-    elif PY3:
+    elif PYTHON3:
         def test_exec_statement(self):
             self.assert_ok("""\
                 g = {}
@@ -517,18 +507,8 @@ class TestIt(vmtest.VmTestCase):
             """)
 
     def test_decorator(self):
-        self.assert_ok("""\
-            def verbose(func):
-                def _wrapper(*args, **kwargs):
-                    return func(*args, **kwargs)
-                return _wrapper
-
-            @verbose
-            def add(x, y):
-                return x+y
-
-            add(7, 3)
-            """)
+        path = osp.join(examples_dir, "test_decorator.py")
+        self.assert_ok(path, is_path=True)
 
     def test_multiple_classes(self):
         # Making classes used to mix together all the class-scoped values
@@ -578,11 +558,8 @@ if PY2:
 
 class TestLoops(vmtest.VmTestCase):
     def test_for(self):
-        self.assert_ok("""\
-            for i in range(10):
-                print(i)
-            print("done")
-            """)
+        path = osp.join(examples_dir, "test_for.py")
+        self.assert_ok(path, is_path=True)
 
     def test_break(self):
         self.assert_ok("""\
@@ -654,9 +631,11 @@ class TestComparisons(vmtest.VmTestCase):
             """)
 
 if __name__ == "__main__":
-    import unittest
-    unittest.main()
+    # import unittest
+    # unittest.main()
 
+    t = TestIt("test_for_loop")
+    t.test_for_loop()
     # t = TestIt("test_decorator")
     # t.test_decorator()
     # t = TestComparisons("test_in")

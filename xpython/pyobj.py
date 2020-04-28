@@ -4,10 +4,11 @@ import collections
 import inspect
 import types
 from xdis.util import CO_GENERATOR
+from xdis import PYTHON3
 
 import six
 
-PY3, PY2 = six.PY3, not six.PY3
+PY2 = not PYTHON3
 
 
 def make_cell(value):
@@ -15,7 +16,7 @@ def make_cell(value):
     # Construct an actual cell object by creating a closure right here,
     # and grabbing the cell object out of the function we create.
     fn = (lambda x: lambda: x)(value)
-    if PY3:
+    if PYTHON3:
         return fn.__closure__[0]
     else:
         return fn.func_closure[0]
@@ -23,20 +24,19 @@ def make_cell(value):
 
 class Function(object):
     __slots__ = [
-        'func_code',  # Python < 3.0 only in 3.+ this is __code__
-        "__code__",
-
+        'func_code',  # Python 2.x
         'func_name',
-        '__name__',
-
         'func_defaults',
+        'func_closure',
+
+        "__code__",  # Python 3.x
+        '__name__',
         '__defaults__',
+        '__closure__',
 
         'func_globals',
         'func_locals', 'func_dict',
 
-        'func_closure',
-        '__closure__',
 
         '__dict__', '__doc__',
         '_vm', '_func',
@@ -46,11 +46,9 @@ class Function(object):
         self._vm = vm
         self.version = vm.version
 
-        # FIXME: some code below accesse the < 1.x, 2.x field names like
-        # func_code.
-        #
-        # Until we separate that out by version, we'll
-        # keep around the < 3.0ish "func_code" field.
+        # Function field names below change between Python 2.7 and 3.x.
+        # We create attibutes for both names. Other code in this file assumes
+        # 2.7ish names, while bytecode for 3.x will use 3.x names.
         self.func_code = self.__code__ = code
         self.func_name = self.__name__ = name or code.co_name
         self.func_defaults = self.__defaults__ = tuple(defaults)
@@ -114,7 +112,6 @@ class Function(object):
             frame.generator = gen
             retval = gen
         else:
-
             retval = self._vm.run_frame(frame)
         return retval
 
