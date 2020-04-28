@@ -4,6 +4,8 @@ import imp
 import os
 import sys
 import tokenize
+import mimetypes
+from xdis import load_module
 
 from xpython.pyvm2 import VirtualMachine
 
@@ -17,6 +19,7 @@ except:
         return open(fname, "rU")
 
 NoSource = Exception
+WrongBytecode = Exception
 
 
 def exec_code_object(code, env):
@@ -119,23 +122,31 @@ def run_python_file(filename, args, package=None):
     try:
         # Open the source file.
         try:
-            source_file = open_source(filename)
+            mime = mimetypes.guess_type(filename)
+            if mime == ("application/x-python-code", None):
+                version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(filename)
+                if version not in (2.7, 3.3):
+                    raise WrongBytecode("We only support bytecode 2.7 and 3.3: %r is %2.1f bytecode" % (filename, version))
+                pass
+            else:
+                source_file = open_source(filename)
+                try:
+                    source = source_file.read()
+                finally:
+                    source_file.close()
+
+                # We have the source.  `compile` still needs the last line to be clean,
+                # so make sure it is, then compile a code object from it.
+                if not source or source[-1] != '\n':
+                    source += '\n'
+                code = compile(source, filename, "exec")
+
         except IOError:
             raise NoSource("No file to run: %r" % filename)
 
-        try:
-            source = source_file.read()
-        finally:
-            source_file.close()
-
-        # We have the source.  `compile` still needs the last line to be clean,
-        # so make sure it is, then compile a code object from it.
-        if not source or source[-1] != '\n':
-            source += '\n'
-        code = compile(source, filename, "exec")
-
         # Execute the source file.
         exec_code_object(code, main_mod.__dict__)
+
     finally:
         # Restore the old __main__
         sys.modules['__main__'] = old_main_mod
