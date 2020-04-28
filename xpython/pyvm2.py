@@ -4,7 +4,6 @@
 
 from __future__ import print_function, division
 import dis
-import inspect
 import linecache
 import logging
 import operator
@@ -15,7 +14,7 @@ from six.moves import reprlib
 
 PY3, PY2 = six.PY3, not six.PY3
 
-from .pyobj import Frame, Block, Method, Function, Generator
+from xpython.pyobj import Frame, Block, Function, Generator
 
 log = logging.getLogger(__name__)
 
@@ -947,7 +946,6 @@ class VirtualMachine(object):
         posargs.extend(args)
 
         func = self.pop()
-        frame = self.frame
         if hasattr(func, 'im_func'):
             # Methods get self as an implicit first parameter.
             if func.im_self:

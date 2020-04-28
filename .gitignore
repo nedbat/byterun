@@ -1,6 +1,8 @@
+*~
+*.egg-info
 *.pyc
 .coverage
-htmlcov
 .tox
+/.python-version
 MANIFEST
-*.egg-info
+htmlcov

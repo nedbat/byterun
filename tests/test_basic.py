@@ -1,7 +1,7 @@
 """Basic tests for Byterun."""
 
 from __future__ import print_function
-from . import vmtest
+import vmtest
 
 import six
 
@@ -22,7 +22,7 @@ class TestIt(vmtest.VmTestCase):
                 xyz+=1
                 print("Midst:",xyz)
 
-            
+
             print "Pre:",xyz
             abc()
             print "Post:",xyz
@@ -649,3 +649,11 @@ class TestComparisons(vmtest.VmTestCase):
             assert "z" > "a"
             assert "z" >= "a" and "z" >= "z"
             """)
+
+if __name__ == "__main__":
+    # import unittest
+    # unittest.main()
+    t = TestComparisons("test_in")
+    t.test_in()
+    t = TestComparisons("test_greater")
+    t.test_greater()

@@ -5,7 +5,7 @@ import os
 import sys
 import tokenize
 
-from .pyvm2 import VirtualMachine
+from xpython.pyvm2 import VirtualMachine
 
 
 # This code is ripped off from coverage.py.  Define things it expects.
@@ -143,3 +143,9 @@ def run_python_file(filename, args, package=None):
         # Restore the old argv and path
         sys.argv = old_argv
         sys.path[0] = old_path0
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("usage: execfile.py <filename> args")
+        os.exit(1)
+    run_python_file(sys.argv[1], sys.argv[2:])
