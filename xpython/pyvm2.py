@@ -4,6 +4,8 @@
 
 from __future__ import print_function, division
 from xdis import PYTHON3, PYTHON_VERSION
+from xdis.op_imports import get_opcode_module
+import xdis
 import dis
 import linecache
 import logging
@@ -45,6 +47,11 @@ class VirtualMachine(object):
         self.return_value = None
         self.last_exception = None
         self.version = python_version
+
+        int_vers = int(python_version * 10)
+        version_info = (int_vers // 10, int_vers % 10)
+        self.opc = get_opcode_module(version_info)
+
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
@@ -173,7 +180,7 @@ class VirtualMachine(object):
         opoffset = f.f_lasti
         byteCode = byteint(f.f_code.co_code[opoffset])
         f.f_lasti += 1
-        byteName = dis.opname[byteCode]
+        byteName = self.opc.opname[byteCode]
         arg = None
         arguments = []
         if byteCode >= dis.HAVE_ARGUMENT:
@@ -232,6 +239,7 @@ class VirtualMachine(object):
                 # dispatch
                 bytecode_fn = getattr(self, 'byte_%s' % byteName, None)
                 if not bytecode_fn:            # pragma: no cover
+                    from trepan.api import debug; debug()
                     raise VirtualMachineError(
                         "unknown bytecode type: %s" % byteName
                     )
@@ -316,6 +324,7 @@ class VirtualMachine(object):
 
         """
         self.push_frame(frame)
+        opoffset = 0
         while True:
             byteName, arguments, opoffset = self.parse_byte_and_args()
             if log.isEnabledFor(logging.INFO):
