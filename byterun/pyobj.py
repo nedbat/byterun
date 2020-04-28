@@ -22,21 +22,38 @@ def make_cell(value):
 
 class Function(object):
     __slots__ = [
-        'func_code', 'func_name', 'func_defaults', 'func_globals',
-        'func_locals', 'func_dict', 'func_closure',
-        '__name__', '__dict__', '__doc__',
+        'func_code',  # Python 2.x
+        'func_name',
+        'func_defaults',
+        'func_closure',
+
+        "__code__",  # Python 3.x
+        '__name__',
+        '__defaults__',
+        '__closure__',
+
+        'func_globals',
+        'func_locals', 'func_dict',
+
+
+        '__dict__', '__doc__',
         '_vm', '_func',
     ]
 
     def __init__(self, name, code, globs, defaults, closure, vm):
         self._vm = vm
-        self.func_code = code
+
+        # Function field names below change between Python 2.7 and 3.x.
+        # We create attibutes for both names. Other code in this file assumes
+        # 2.7ish names, while bytecode for 3.x will use 3.x names.
+        self.func_code = self.__code__ = code
         self.func_name = self.__name__ = name or code.co_name
-        self.func_defaults = tuple(defaults)
+        self.func_defaults = self.__defaults__ = tuple(defaults)
+        self.func_closure = self.__closure__ = closure
+
         self.func_globals = globs
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
-        self.func_closure = closure
         self.__doc__ = code.co_consts[0] if code.co_consts else None
 
         # Sometimes, we need a real Python function.  This is for that.
