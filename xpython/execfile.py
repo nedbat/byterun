@@ -5,7 +5,9 @@ import os
 import sys
 import tokenize
 import mimetypes
-from xdis import load_module
+from xdis import load_module, PYTHON_VERSION
+
+SUPPORTED_PYTHON_VERSIONS = (3.3, 2.7)
 
 from xpython.pyvm2 import VirtualMachine
 
@@ -18,9 +20,7 @@ except:
         """Open a source file the best way."""
         return open(fname, "rU")
 
-NoSource = Exception
-WrongBytecode = Exception
-
+CannotCompile = WrongBytecode = NoSource = Exception
 
 def exec_code_object(code, env):
     vm = VirtualMachine()
@@ -125,7 +125,7 @@ def run_python_file(filename, args, package=None):
             mime = mimetypes.guess_type(filename)
             if mime == ("application/x-python-code", None):
                 version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(filename)
-                if version not in (2.7, 3.3):
+                if version not in SUPPORTED_PYTHON_VERSIONS:
                     raise WrongBytecode("We only support bytecode 2.7 and 3.3: %r is %2.1f bytecode" % (filename, version))
                 pass
             else:
@@ -134,6 +134,9 @@ def run_python_file(filename, args, package=None):
                     source = source_file.read()
                 finally:
                     source_file.close()
+
+                if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
+                    raise CannotCompile("We need Python 2.7 or 3.3 to compile source code; you are running Python %s" % PYTHON_VERSION)
 
                 # We have the source.  `compile` still needs the last line to be clean,
                 # so make sure it is, then compile a code object from it.

@@ -7,9 +7,6 @@ import logging
 from xpython import execfile
 
 def main():
-    if PYTHON_VERSION not in (3.3, 2.7):
-        print("Warning: this program is only known to run under Python 2.7 or 3.3, you have: %s" % PYTHON_VERSION)
-
     parser = argparse.ArgumentParser(
         prog="xpython",
         description="Run Python programs with a Python bytecode interpreter.",
