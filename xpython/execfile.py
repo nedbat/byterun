@@ -22,8 +22,8 @@ except:
 
 CannotCompile = WrongBytecode = NoSource = Exception
 
-def exec_code_object(code, env):
-    vm = VirtualMachine()
+def exec_code_object(code, env, python_version=PYTHON_VERSION):
+    vm = VirtualMachine(python_version)
     vm.run_code(code, f_globals=env)
 
 
@@ -124,9 +124,9 @@ def run_python_file(filename, args, package=None):
         try:
             mime = mimetypes.guess_type(filename)
             if mime == ("application/x-python-code", None):
-                version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(filename)
-                if version not in SUPPORTED_PYTHON_VERSIONS:
-                    raise WrongBytecode("We only support bytecode 2.7 and 3.3: %r is %2.1f bytecode" % (filename, version))
+                python_version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(filename)
+                if python_version not in SUPPORTED_PYTHON_VERSIONS:
+                    raise WrongBytecode("We only support bytecode 2.7 and 3.3: %r is %2.1f bytecode" % (filename, python_version))
                 pass
             else:
                 source_file = open_source(filename)
@@ -143,12 +143,13 @@ def run_python_file(filename, args, package=None):
                 if not source or source[-1] != '\n':
                     source += '\n'
                 code = compile(source, filename, "exec")
+                python_version = PYTHON_VERSION
 
         except IOError:
             raise NoSource("No file to run: %r" % filename)
 
         # Execute the source file.
-        exec_code_object(code, main_mod.__dict__)
+        exec_code_object(code, main_mod.__dict__, python_version)
 
     finally:
         # Restore the old __main__

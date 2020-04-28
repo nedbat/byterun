@@ -1,8 +1,11 @@
 """Test exceptions for Byterun."""
 
 from __future__ import print_function
-import vmtest
 import unittest
+try:
+    import vmtest
+except ImportError:
+    from . import vmtest
 
 import six
 

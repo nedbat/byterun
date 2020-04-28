@@ -3,6 +3,7 @@
 import collections
 import inspect
 import types
+from xdis.util import CO_GENERATOR
 
 import six
 
@@ -22,21 +23,42 @@ def make_cell(value):
 
 class Function(object):
     __slots__ = [
-        'func_code', 'func_name', 'func_defaults', 'func_globals',
-        'func_locals', 'func_dict', 'func_closure',
-        '__name__', '__dict__', '__doc__',
+        'func_code',  # Python < 3.0 only in 3.+ this is __code__
+        "__code__",
+
+        'func_name',
+        '__name__',
+
+        'func_defaults',
+        '__defaults__',
+
+        'func_globals',
+        'func_locals', 'func_dict',
+
+        'func_closure',
+        '__closure__',
+
+        '__dict__', '__doc__',
         '_vm', '_func',
     ]
 
     def __init__(self, name, code, globs, defaults, closure, vm):
         self._vm = vm
-        self.func_code = code
+        self.version = vm.version
+
+        # FIXME: some code below accesse the < 1.x, 2.x field names like
+        # func_code.
+        #
+        # Until we separate that out by version, we'll
+        # keep around the < 3.0ish "func_code" field.
+        self.func_code = self.__code__ = code
         self.func_name = self.__name__ = name or code.co_name
-        self.func_defaults = tuple(defaults)
+        self.func_defaults = self.__defaults__ = tuple(defaults)
+        self.func_closure = self.__closure__ = closure
+
         self.func_globals = globs
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
-        self.func_closure = closure
         self.__doc__ = code.co_consts[0] if code.co_consts else None
 
         # Sometimes, we need a real Python function.  This is for that.
@@ -45,7 +67,17 @@ class Function(object):
         }
         if closure:
             kw['closure'] = tuple(make_cell(0) for _ in closure)
-        self._func = types.FunctionType(code, globs, **kw)
+
+        if not isinstance(code, types.CodeType) and hasattr(code, "to_native"):
+            try:
+                code = code.to_native()
+            except:
+                pass
+        if isinstance(code, types.CodeType):
+            self._func = types.FunctionType(code, globs, **kw)
+        else:
+            # cross version interpreting... FIXME: fix this up
+            self._func = None
 
     def __repr__(self):         # pragma: no cover
         return '<Function %s at 0x%08x>' % (
@@ -55,13 +87,17 @@ class Function(object):
     def __get__(self, instance, owner):
         if instance is not None:
             return Method(instance, owner, self)
-        if PY2:
+        if self.version < 3.0:
             return Method(None, owner, self)
         else:
             return self
 
     def __call__(self, *args, **kwargs):
-        if PY2 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexpr>"]:
+        try:
+            self.version
+        except:
+            from trepan.api import debug; debug()
+        if self.version < 3.0 and self.func_name in ["<setcomp>", "<dictcomp>", "<genexpr>"]:
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,
@@ -73,12 +109,12 @@ class Function(object):
         frame = self._vm.make_frame(
             self.func_code, callargs, self.func_globals, {}
         )
-        CO_GENERATOR = 32           # flag for "this code uses yield"
         if self.func_code.co_flags & CO_GENERATOR:
             gen = Generator(frame, self._vm)
             frame.generator = gen
             retval = gen
         else:
+
             retval = self._vm.run_frame(frame)
         return retval
 

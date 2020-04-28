@@ -3,22 +3,24 @@
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
 from __future__ import print_function, division
+from xdis import PYTHON3, PYTHON_VERSION
 import dis
 import linecache
 import logging
 import operator
 import sys
+import types
 
 import six
 from six.moves import reprlib
 
-PY3, PY2 = six.PY3, not six.PY3
+PY2 = not PYTHON3
 
 from xpython.pyobj import Frame, Block, Function, Generator
 
 log = logging.getLogger(__name__)
 
-if six.PY3:
+if PYTHON3:
     byteint = lambda b: b
 else:
     byteint = ord
@@ -35,13 +37,14 @@ class VirtualMachineError(Exception):
 
 
 class VirtualMachine(object):
-    def __init__(self):
+    def __init__(self, python_version=PYTHON_VERSION):
         # The call stack of frames.
         self.frames = []
         # The current frame.
         self.frame = None
         self.return_value = None
         self.last_exception = None
+        self.version = python_version
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
@@ -280,7 +283,7 @@ class VirtualMachine(object):
                 self.jump(block.handler)
                 return why
 
-        elif PY3:
+        elif PYTHON3:
             if (
                 why == 'exception' and
                 block.type in ['setup-except', 'finally']
@@ -743,7 +746,7 @@ class VirtualMachine(object):
             why = v
             if why in ('return', 'continue'):
                 self.return_value = self.pop()
-            if why == 'silenced':       # PY3
+            if why == 'silenced':       # PYTHON3
                 block = self.pop_block()
                 assert block.type == 'except-handler'
                 self.unwind_block(block)
@@ -792,7 +795,7 @@ class VirtualMachine(object):
             else:
                 return 'exception'
 
-    elif PY3:
+    elif PYTHON3:
         def byte_RAISE_VARARGS(self, argc):
             cause = exc = None
             if argc == 2:
@@ -847,7 +850,7 @@ class VirtualMachine(object):
         ctxmgr_obj = ctxmgr.__enter__()
         if PY2:
             self.push_block('with', dest)
-        elif PY3:
+        elif PYTHON3:
             self.push_block('finally', dest)
         self.push(ctxmgr_obj)
 
@@ -870,7 +873,7 @@ class VirtualMachine(object):
                 w, v, u = self.popn(3)
                 exit_func = self.pop()
                 self.push(w, v, u)
-            elif PY3:
+            elif PYTHON3:
                 w, v, u = self.popn(3)
                 tp, exc, tb = self.popn(3)
                 exit_func = self.pop()
@@ -889,13 +892,13 @@ class VirtualMachine(object):
             if PY2:
                 self.popn(3)
                 self.push(None)
-            elif PY3:
+            elif PYTHON3:
                 self.push('silenced')
 
     ## Functions
 
     def byte_MAKE_FUNCTION(self, argc):
-        if PY3:
+        if self.version >= 3.0:
             name = self.pop()
         else:
             name = None
@@ -903,13 +906,14 @@ class VirtualMachine(object):
         defaults = self.popn(argc)
         globs = self.frame.f_globals
         fn = Function(name, code, globs, defaults, None, self)
+        fn.version = self.version
         self.push(fn)
 
     def byte_LOAD_CLOSURE(self, name):
         self.push(self.frame.cells[name])
 
     def byte_MAKE_CLOSURE(self, argc):
-        if PY3:
+        if PYTHON3:
             # TODO: the py3 docs don't mention this change.
             name = self.pop()
         else:
@@ -961,6 +965,16 @@ class VirtualMachine(object):
                     )
                 )
             func = func.im_func
+
+        # FIXME: there has to be a better way to do this, like on
+        # initial loading of the code rather than every function call.
+        if not hasattr(func, "version"):
+            try:
+                func.version = self.version
+            except:
+                # Could be a builtin type, or "str", etc.
+                pass
+
         retval = func(*posargs, **namedargs)
         self.push(retval)
 
@@ -1028,7 +1042,7 @@ class VirtualMachine(object):
             self.push(type(name, bases, methods))
 
 
-    elif PY3:
+    elif PYTHON3:
         def byte_LOAD_BUILD_CLASS(self):
             # New in py3
             self.push(__build_class__)

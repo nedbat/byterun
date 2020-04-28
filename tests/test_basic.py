@@ -1,7 +1,10 @@
 """Basic tests for Byterun."""
 
 from __future__ import print_function
-import vmtest
+try:
+    import vmtest
+except ImportError:
+    from . import vmtest
 
 import six
 
@@ -23,9 +26,9 @@ class TestIt(vmtest.VmTestCase):
                 print("Midst:",xyz)
 
 
-            print "Pre:",xyz
+            print("Pre:",xyz)
             abc()
-            print "Post:",xyz
+            print("Post:",xyz)
             """)
 
     def test_for_loop(self):
@@ -651,9 +654,12 @@ class TestComparisons(vmtest.VmTestCase):
             """)
 
 if __name__ == "__main__":
-    # import unittest
-    # unittest.main()
-    t = TestComparisons("test_in")
-    t.test_in()
-    t = TestComparisons("test_greater")
-    t.test_greater()
+    import unittest
+    unittest.main()
+
+    # t = TestIt("test_decorator")
+    # t.test_decorator()
+    # t = TestComparisons("test_in")
+    # t.test_in()
+    # t = TestComparisons("test_greater")
+    # t.test_greater()
