@@ -1,62 +1,27 @@
-"""Basic tests for xpython."""
+"""Basic Python interpreter tests for xpython."""
 from __future__ import print_function
 
-import os.path as osp
 try:
     import vmtest
 except ImportError:
     from . import vmtest
 
 from xdis import PYTHON3
-
 PY2 = not PYTHON3
 
-def get_srcdir():
-    filename = osp.normcase(osp.dirname(__file__))
-    return osp.realpath(filename)
-
-examples_dir = osp.join(get_srcdir(), "examples")
-
 class TestIt(vmtest.VmTestCase):
+
     def test_constant(self):
-        self.assert_ok("17")
+        self.do_one()
 
     def test_globals(self):
-        path = osp.join(examples_dir, "test_globals.py")
-        self.assert_ok(path, is_path=True)
+        self.do_one()
 
     def test_for_loop(self):
-        path = osp.join(examples_dir, "test_for_loop.py")
-        self.assert_ok(path, is_path=True)
+        self.do_one()
 
     def test_inplace_operators(self):
-        self.assert_ok("""\
-            x, y = 2, 3
-            x **= y
-            assert x == 8 and y == 3
-            x *= y
-            assert x == 24 and y == 3
-            x //= y
-            assert x == 8 and y == 3
-            x %= y
-            assert x == 2 and y == 3
-            x += y
-            assert x == 5 and y == 3
-            x -= y
-            assert x == 2 and y == 3
-            x <<= y
-            assert x == 16 and y == 3
-            x >>= y
-            assert x == 2 and y == 3
-
-            x = 0x8F
-            x &= 0xA5
-            assert x == 0x85
-            x |= 0x10
-            assert x == 0x95
-            x ^= 0x33
-            assert x == 0xA6
-            """)
+        self.do_one()
 
     if PY2:
         def test_inplace_division(self):
@@ -215,21 +180,7 @@ class TestIt(vmtest.VmTestCase):
 
     def test_strange_sequence_ops(self):
         # from stdlib: test/test_augassign.py
-        self.assert_ok("""\
-            x = [1,2]
-            x += [3,4]
-            x *= 2
-
-            assert x == [1, 2, 3, 4, 1, 2, 3, 4]
-
-            x = [1, 2, 3]
-            y = x
-            x[1:2] *= 2
-            y[1:2] += [1]
-
-            assert x == [1, 2, 1, 2, 3]
-            assert x is y
-            """)
+        self.do_one()
 
     def test_unary_operators(self):
         self.assert_ok("""\
@@ -507,8 +458,7 @@ class TestIt(vmtest.VmTestCase):
             """)
 
     def test_decorator(self):
-        path = osp.join(examples_dir, "test_decorator.py")
-        self.assert_ok(path, is_path=True)
+        self.do_one()
 
     def test_multiple_classes(self):
         # Making classes used to mix together all the class-scoped values
@@ -558,8 +508,7 @@ if PY2:
 
 class TestLoops(vmtest.VmTestCase):
     def test_for(self):
-        path = osp.join(examples_dir, "test_for.py")
-        self.assert_ok(path, is_path=True)
+        self.do_one()
 
     def test_break(self):
         self.assert_ok("""\

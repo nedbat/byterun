@@ -120,7 +120,7 @@ def run_python_file(filename, args, package=None):
         sys.path[0] = os.path.abspath(os.path.dirname(filename))
 
     try:
-        # Open the source file.
+        # Open the source or bytecode file.
         try:
             mime = mimetypes.guess_type(filename)
             if mime == ("application/x-python-code", None):

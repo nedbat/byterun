@@ -2,7 +2,10 @@
 
 from __future__ import print_function
 
+from xdis import load_module
+import os.path as osp
 import dis
+import inspect
 import sys
 import textwrap
 import types
@@ -12,11 +15,25 @@ import six
 
 from xpython.pyvm2 import VirtualMachine, VirtualMachineError
 
+from xdis import PYTHON3, PYTHON_VERSION
+
 # Make this false if you need to run the debugger inside a test.
 CAPTURE_STDOUT = ('-s' not in sys.argv)
 # Make this false to see the traceback from a failure inside pyvm2.
 CAPTURE_EXCEPTION = 1
 
+
+def get_srcdir():
+    filename = osp.normcase(osp.dirname(__file__))
+    return osp.realpath(filename)
+
+examples_dir = osp.join(get_srcdir(), "examples")
+
+def parent_function_name():
+    if PYTHON_VERSION < 3.5:
+        return inspect.stack()[2][3]
+    else:
+        return inspect.stack()[2].function
 
 def dis_code(code):
     """Disassemble `code` and all the code it refers to."""
@@ -31,15 +48,27 @@ def dis_code(code):
 
 class VmTestCase(unittest.TestCase):
 
-    def assert_ok(self, path_or_code, raises=None, is_path=False):
+    def do_one(self):
+        path = osp.join(examples_dir, parent_function_name())
+        if PYTHON3:
+            path += "-3.3.pyc"
+        else:
+            path += "-2.7.pyc"
+        self.assert_ok(path, arg_type="bytecode-file")
+
+    def assert_ok(self, path_or_code, raises=None, arg_type="string"):
         """Run `code` in our VM and in real Python: they behave the same."""
 
-        if is_path:
-            code_str = open(path_or_code, "r").read()
+        if arg_type == "bytecode-file":
+            python_version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(path_or_code)
         else:
-            code_str = textwrap.dedent(path_or_code)
+            if arg_type == "source":
+                code_str = open(path_or_code, "r").read()
+            else:
+                assert arg_type == "string", "arg_type parameter needs to be either: bytecode-file, source or string; got %s" % arg_type
+                code_str = textwrap.dedent(path_or_code)
 
-        code = compile(code_str, "<%s>" % self.id(), "exec", 0, 1)
+            code = compile(code_str, "<%s>" % self.id(), "exec", 0, 1)
 
         # Print the disassembly so we'll see it if the test fails.
         dis_code(code)
