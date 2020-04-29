@@ -14,10 +14,13 @@ class TestIt(vmtest.VmTestCase):
     def test_constant(self):
         self.do_one()
 
-    def test_globals(self):
+    def test_decorator(self):
         self.do_one()
 
     def test_for_loop(self):
+        self.do_one()
+
+    def test_globals(self):
         self.do_one()
 
     def test_inplace_operators(self):
@@ -47,24 +50,7 @@ class TestIt(vmtest.VmTestCase):
                 """)
 
     def test_slice(self):
-        self.assert_ok("""\
-            print("hello, world"[3:8])
-            """)
-        self.assert_ok("""\
-            print("hello, world"[:8])
-            """)
-        self.assert_ok("""\
-            print("hello, world"[3:])
-            """)
-        self.assert_ok("""\
-            print("hello, world"[:])
-            """)
-        self.assert_ok("""\
-            print("hello, world"[::-1])
-            """)
-        self.assert_ok("""\
-            print("hello, world"[3:8:2])
-            """)
+        self.do_one()
 
     def test_slice_assignment(self):
         self.assert_ok("""\
@@ -456,9 +442,6 @@ class TestIt(vmtest.VmTestCase):
             assert f(0) == 'foo'
             assert f(1) == 'bar'
             """)
-
-    def test_decorator(self):
-        self.do_one()
 
     def test_multiple_classes(self):
         # Making classes used to mix together all the class-scoped values

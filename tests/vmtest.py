@@ -41,7 +41,7 @@ def dis_code(code, version, out):
     disco_loop(opc, version, deque([code]), out)
 
 
-LINE_STR = "-" * 35
+LINE_STR = "-" * 25
 
 class VmTestCase(unittest.TestCase):
 
@@ -97,7 +97,8 @@ class VmTestCase(unittest.TestCase):
                 raise
             vm_exc = e
         finally:
-            real_stdout.write("\n%s stdout %s\n\n" % (LINE_STR, LINE_STR))
+            real_stdout.write("\n%s %s stdout %s\n\n"
+                              % (LINE_STR, code.co_filename, LINE_STR))
             real_stdout.write(vm_stdout.getvalue())
 
         # Run the code through the real Python interpreter, for comparison.
