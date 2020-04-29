@@ -2,13 +2,13 @@
 
 from __future__ import print_function
 
+from collections import deque
 from xdis import load_module
+from xdis.main import disco_loop, get_opcode
 import os.path as osp
-import dis
 import inspect
 import sys
 import textwrap
-import types
 import unittest
 
 import six
@@ -35,16 +35,13 @@ def parent_function_name():
     else:
         return inspect.stack()[2].function
 
-def dis_code(code):
+def dis_code(code, version, out):
     """Disassemble `code` and all the code it refers to."""
-    for const in code.co_consts:
-        if isinstance(const, types.CodeType):
-            dis_code(const)
+    opc = get_opcode(version, False)
+    disco_loop(opc, version, deque([code]), out)
 
-    print("")
-    print(code)
-    dis.dis(code)
 
+LINE_STR = "-" * 35
 
 class VmTestCase(unittest.TestCase):
 
@@ -52,16 +49,19 @@ class VmTestCase(unittest.TestCase):
         path = osp.join(examples_dir, parent_function_name())
         if PYTHON3:
             path += "-3.3.pyc"
+            self.version = 3.3
         else:
             path += "-2.7.pyc"
+            self.version = 2.7
         self.assert_ok(path, arg_type="bytecode-file")
 
     def assert_ok(self, path_or_code, raises=None, arg_type="string"):
         """Run `code` in our VM and in real Python: they behave the same."""
 
         if arg_type == "bytecode-file":
-            python_version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(path_or_code)
+            self.version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(path_or_code)
         else:
+            self.version = PYTHON_VERSION
             if arg_type == "source":
                 code_str = open(path_or_code, "r").read()
             else:
@@ -70,10 +70,10 @@ class VmTestCase(unittest.TestCase):
 
             code = compile(code_str, "<%s>" % self.id(), "exec", 0, 1)
 
-        # Print the disassembly so we'll see it if the test fails.
-        dis_code(code)
-
         real_stdout = sys.stdout
+
+        # Print the disassembly so we'll see it if the test fails.
+        dis_code(code, self.version, real_stdout)
 
         # Run the code through our VM.
 
@@ -97,10 +97,13 @@ class VmTestCase(unittest.TestCase):
                 raise
             vm_exc = e
         finally:
-            real_stdout.write("-- stdout ----------\n")
+            real_stdout.write("\n%s stdout %s\n\n" % (LINE_STR, LINE_STR))
             real_stdout.write(vm_stdout.getvalue())
 
         # Run the code through the real Python interpreter, for comparison.
+
+        if self.version != PYTHON_VERSION:
+            return
 
         py_stdout = six.StringIO()
         sys.stdout = py_stdout
@@ -128,3 +131,12 @@ class VmTestCase(unittest.TestCase):
         """Exceptions don't implement __eq__, check it ourselves."""
         self.assertEqual(str(e1), str(e2))
         self.assertIs(type(e1), type(e2))
+
+if __name__ == "__main__":
+
+    class TestOne(VmTestCase):
+        def test_constant(self):
+            self.do_one()
+
+    t = TestOne("test_constant")
+    t.test_constant()
