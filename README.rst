@@ -1,3 +1,5 @@
+|buildstatus|
+
 xpython
 --------
 
@@ -48,3 +50,6 @@ This is a fork of *Byterun.* which is a pure-Python implementation of
 a Python bytecode execution virtual machine.  Net Batchelder started
 it (based on work from Paul Swartz) to get a better understanding of
 bytecodes so he could fix branch coverage bugs in coverage.py.
+
+.. |buildstatus| image:: https://circleci.com/gh/rocky/xpython.svg?style=svg
+    :target: https://circleci.com/gh/rocky/xpython
