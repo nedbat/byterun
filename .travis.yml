@@ -1,0 +1,16 @@
+language: python
+
+python:
+  - '2.7'
+  - '3.3'
+
+matrix:
+  include:
+    - python: '3.3'
+      dist: xenial  # Has older Pythons
+
+install:
+- pip install -e .
+
+script:
+- make check
