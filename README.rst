@@ -25,22 +25,34 @@ also with the ability to step bytecode instructions.
 Status:
 +++++++
 
-Currently only Python 3.3 and Python 2.7 bytecode is understood.
-After a refactor of the bytecode mechanism, I expect other versions will
-start to appear with the help of `xdis`.
+Currently only Python 3.3 and Python 2.7 bytecode is well understood.
+Other versions will start to appear with the help of `xdis`.
 
-In contrast to *Byterun* from which this has been forked, described
-below, with certain caveats, this interpreter is able to run on Python
-versions outside of the one that it is interpreting, i.e. 3.3 or 2.7.
+Whereas *Byterun* was a bit loose in accepting bytecode opcodes that
+is invalid for particular Python but may be valid for another,
+*xpython* is more stringent. This has pros and cons. On the plus side
+*Byterun* might run certain Python 3.4 bytecode because the opcode
+sets are similar. However starting with Python 3.5 and beyond the
+likelihood gets much less because, while the underlying opcode names
+may be the same, the semantics of the operation may change subtely. See
+for example https://github.com/nedbat/byterun/issues/34.
 
-In particular, you can run 3.3 bytecode using Python 3.7. However running
-2.7 bytecode on 3.x is not feasible.
+With `xpython` tighter control of opcodes and an opcodes
+implementation is kept for each Python version. So we'll warn early
+when something is invalid. On the other hand, in contrast to
+*Byterun* you can run 3.3 bytecode using Python 3.7 (largely).
+
+The "largely" part is because the interpreter has always made use of
+Python builtins. When a Python version running the interperter matches a
+supported bytecode close enough, the interpreter can (and does) make use
+interpreter internals. For example, built-in functions like `range()`
+are supported this way.
+
+However running 2.7 bytecode on 3.x is not feasible since the runtime and
+internal libraries used like `inspect` are too different.
 
 I would say this is more than a a simple toy interpreter, but it will
-never be as complete as CPython or PyPy. Note that when Python version
-running the interperter matches a supported bytecode, the interpreter
-can (and does) make use interpreter internals. For example, built-in
-functions like `range()` are supported this way.
+never be as complete as CPython or PyPy.
 
 
 History
