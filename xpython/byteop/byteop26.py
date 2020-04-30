@@ -87,21 +87,40 @@ class ByteOp26():
     def print_item(self, item, to=None):
         if to is None:
             to = sys.stdout
-        if to.softspace:
+
+        # Python 2ish has file.sofspace whereas
+        # Python 3ish doesn't. Here is the doc on softspace:
+
+        # Boolean that indicates whether a space character needs to be
+        # printed before another value when using the print
+        # statement. Classes that are trying to simulate a file object
+        # should also have a writable softspace attribute, which
+        # should be initialized to zero. This will be automatic for
+        # most classes implemented in Python (care may be needed for
+        # objects that override attribute access); types implemented
+        # in C will have to provide a writable softspace attribute.
+
+        # Note This attribute is not used to control the print
+        # statement, but to allow the implementation of print to keep
+        # track of its internal state.
+        if hasattr(to, "softspace") and to.softspace:
             print(" ", end="", file=to)
             to.softspace = 0
         print(item, end="", file=to)
-        if isinstance(item, str):
-            if (not item) or (not item[-1].isspace()) or (item[-1] == " "):
+
+        if hasattr(to, "softspace"):
+            if isinstance(item, str):
+                if (not item) or (not item[-1].isspace()) or (item[-1] == " "):
+                    to.softspace = 1
+            else:
                 to.softspace = 1
-        else:
-            to.softspace = 1
 
     def print_newline(self, to=None):
         if to is None:
             to = sys.stdout
         print("", file=to)
-        to.softspace = 0
+        if hasattr(to, "softspace"):
+            to.softspace = 0
 
     def LOAD_CONST(self, const):
         """Pushes co_consts[consti] onto the stack."""
