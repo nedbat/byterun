@@ -51,7 +51,11 @@ class VirtualMachine(object):
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)
-
+        if python_version == 2.7:
+            from xpython.byteop.byteop27 import ByteOp27
+            self.byteop = ByteOp27(self)
+        else:
+            self.byteop = None
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
@@ -237,9 +241,13 @@ class VirtualMachine(object):
                 self.sliceOperator(byteName)
             else:
                 # dispatch
-                bytecode_fn = getattr(self, 'byte_%s' % byteName, None)
+                if hasattr(self.byteop, byteName):
+                    bytecode_fn = getattr(self.byteop, byteName, None)
+                else:
+                    # This branch is disasppearing...
+                    bytecode_fn = getattr(self, 'byte_%s' % byteName, None)
+
                 if not bytecode_fn:            # pragma: no cover
-                    from trepan.api import debug; debug()
                     raise VirtualMachineError(
                         "unknown bytecode type: %s" % byteName
                     )
