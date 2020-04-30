@@ -14,13 +14,16 @@ from xpython.pyvm2 import VirtualMachine
 
 # This code is ripped off from coverage.py.  Define things it expects.
 try:
-    open_source = tokenize.open     # pylint: disable=E1101
+    open_source = tokenize.open  # pylint: disable=E1101
 except:
+
     def open_source(fname):
         """Open a source file the best way."""
         return open(fname, "rU")
 
+
 CannotCompile = WrongBytecode = NoSource = Exception
+
 
 def exec_code_object(code, env, python_version=PYTHON_VERSION):
     vm = VirtualMachine(python_version)
@@ -31,10 +34,10 @@ def exec_code_object(code, env, python_version=PYTHON_VERSION):
 
 try:
     # In Py 2.x, the builtins were in __builtin__
-    BUILTINS = sys.modules['__builtin__']
+    BUILTINS = sys.modules["__builtin__"]
 except KeyError:
     # In Py 3.x, they're in builtins
-    BUILTINS = sys.modules['builtins']
+    BUILTINS = sys.modules["builtins"]
 
 
 def rsplit1(s, sep):
@@ -57,9 +60,9 @@ def run_python_module(modulename, args):
         try:
             # Search for the module - inside its parent package, if any - using
             # standard import mechanics.
-            if '.' in modulename:
-                packagename, name = rsplit1(modulename, '.')
-                package = __import__(packagename, glo, loc, ['__path__'])
+            if "." in modulename:
+                packagename, name = rsplit1(modulename, ".")
+                package = __import__(packagename, glo, loc, ["__path__"])
                 searchpath = package.__path__
             else:
                 packagename, name = None, modulename
@@ -68,16 +71,14 @@ def run_python_module(modulename, args):
 
             # Complain if this is a magic non-file module.
             if openfile is None and pathname is None:
-                raise NoSource(
-                    "module does not live in a file: %r" % modulename
-                    )
+                raise NoSource("module does not live in a file: %r" % modulename)
 
             # If `modulename` is actually a package, not a mere module, then we
             # pretend to be Python 2.7 and try running its __main__.py script.
             if openfile is None:
                 packagename = modulename
-                name = '__main__'
-                package = __import__(packagename, glo, loc, ['__path__'])
+                name = "__main__"
+                package = __import__(packagename, glo, loc, ["__path__"])
                 searchpath = package.__path__
                 openfile, pathname, _ = imp.find_module(name, searchpath)
         except ImportError:
@@ -102,9 +103,9 @@ def run_python_file(filename, args, package=None):
 
     """
     # Create a module to serve as __main__
-    old_main_mod = sys.modules['__main__']
-    main_mod = imp.new_module('__main__')
-    sys.modules['__main__'] = main_mod
+    old_main_mod = sys.modules["__main__"]
+    main_mod = imp.new_module("__main__")
+    sys.modules["__main__"] = main_mod
     main_mod.__file__ = filename
     if package:
         main_mod.__package__ = package
@@ -115,7 +116,7 @@ def run_python_file(filename, args, package=None):
     old_path0 = sys.path[0]
     sys.argv = args
     if package:
-        sys.path[0] = ''
+        sys.path[0] = ""
     else:
         sys.path[0] = os.path.abspath(os.path.dirname(filename))
 
@@ -124,9 +125,20 @@ def run_python_file(filename, args, package=None):
         try:
             mime = mimetypes.guess_type(filename)
             if mime == ("application/x-python-code", None):
-                python_version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(filename)
+                (
+                    python_version,
+                    timestamp,
+                    magic_int,
+                    code,
+                    pypy,
+                    source_size,
+                    sip_hash,
+                ) = load_module(filename)
                 if python_version not in SUPPORTED_PYTHON_VERSIONS:
-                    raise WrongBytecode("We only support bytecode 2.7 and 3.3: %r is %2.1f bytecode" % (filename, python_version))
+                    raise WrongBytecode(
+                        "We only support bytecode 2.7 and 3.3: %r is %2.1f bytecode"
+                        % (filename, python_version)
+                    )
                 pass
             else:
                 source_file = open_source(filename)
@@ -136,12 +148,15 @@ def run_python_file(filename, args, package=None):
                     source_file.close()
 
                 if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
-                    raise CannotCompile("We need Python 2.7 or 3.3 to compile source code; you are running Python %s" % PYTHON_VERSION)
+                    raise CannotCompile(
+                        "We need Python 2.7 or 3.3 to compile source code; you are running Python %s"
+                        % PYTHON_VERSION
+                    )
 
                 # We have the source.  `compile` still needs the last line to be clean,
                 # so make sure it is, then compile a code object from it.
-                if not source or source[-1] != '\n':
-                    source += '\n'
+                if not source or source[-1] != "\n":
+                    source += "\n"
                 code = compile(source, filename, "exec")
                 python_version = PYTHON_VERSION
 
@@ -153,11 +168,12 @@ def run_python_file(filename, args, package=None):
 
     finally:
         # Restore the old __main__
-        sys.modules['__main__'] = old_main_mod
+        sys.modules["__main__"] = old_main_mod
 
         # Restore the old argv and path
         sys.argv = old_argv
         sys.path[0] = old_path0
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

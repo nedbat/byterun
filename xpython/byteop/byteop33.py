@@ -18,6 +18,7 @@ del ByteOp27.BUILD_CLASS
 # Gone since 3.2
 del ByteOp27.DUP_TOPX
 
+
 class ByteOp33(ByteOp27):
     def __init__(self, vm):
         self.vm = vm
@@ -39,7 +40,7 @@ class ByteOp33(ByteOp27):
 
     # Is gone in 3.4
     def STORE_LOCALS(self):
-        """Pops TOS from the stack and stores it as the current frame’s f_locals. This is used in class construction."""
+        """Pops TOS from the stack and stores it as the current frame s f_locals. This is used in class construction."""
         self.vm.frame.f_locals = self.vm.pop()
 
 

@@ -5,7 +5,8 @@ from __future__ import print_function, division
 import sys
 import operator
 
-class ByteOp27():
+
+class ByteOp27:
     def __init__(self, vm):
         self.vm = vm
 
@@ -143,10 +144,10 @@ class ByteOp27():
 
     ## end BUILD_ operators
 
-    def LOAD_ATTR(self, attr):
+    def LOAD_ATTR(self, namei):
         """Replaces TOS with getattr(TOS, co_names[namei])."""
         obj = self.vm.pop()
-        val = getattr(obj, attr)
+        val = getattr(obj, namei)
         self.vm.push(val)
 
     ## Commparisons
@@ -165,14 +166,14 @@ class ByteOp27():
         lambda x, y: issubclass(x, Exception) and issubclass(x, y),
     ]
 
-    def COMPARE_OP(self, opnum):
+    def COMPARE_OP(self, opname):
         """Performs a Boolean operation. The operation name can be found in cmp_op[opname]."""
         x, y = self.vm.popn(2)
-        self.vm.push(self.COMPARE_OPERATORS[opnum](x, y))
+        self.vm.push(self.COMPARE_OPERATORS[opname](x, y))
 
     ## Imports
 
-    def IMPORT_NAME(self, name):
+    def IMPORT_NAME(self, namei):
         """
         Imports the module co_names[namei]. TOS and TOS1 are popped and
         provide the fromlist and level arguments of __import__().  The
@@ -183,10 +184,10 @@ class ByteOp27():
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
         self.vm.push(
-            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+            __import__(namei, frame.f_globals, frame.f_locals, fromlist, level)
         )
 
-    def IMPORT_FROM(self, name):
+    def IMPORT_FROM(self, namei):
         """
         Loads the attribute co_names[namei] from the module found in TOS.
         The resulting object is pushed onto the stack, to be
@@ -194,53 +195,97 @@ class ByteOp27():
 
         """
         mod = self.vm.top()
-        self.vm.push(getattr(mod, name))
+        self.vm.push(getattr(mod, namei))
 
     ## Jumps
 
-    def JUMP_FORWARD(self, jump):
+    def JUMP_FORWARD(self, delta):
         """Increments bytecode counter by delta."""
-        self.vm.jump(jump)
+        self.vm.jump(delta)
 
-
-    def POP_JUMP_IF_TRUE(self, jump):
+    def POP_JUMP_IF_TRUE(self, target):
         """If TOS is true, sets the bytecode counter to target. TOS is popped."""
         val = self.vm.pop()
         if val:
-            self.vm.jump(jump)
+            self.vm.jump(target)
 
-    def POP_JUMP_IF_FALSE(self, jump):
+    def POP_JUMP_IF_FALSE(self, target):
         """If TOS is false, sets the bytecode counter to target. TOS is popped."""
         val = self.vm.pop()
         if not val:
-            self.vm.jump(jump)
+            self.vm.jump(target)
 
-    def JUMP_IF_TRUE_OR_POP(self, jump):
+    def JUMP_IF_TRUE_OR_POP(self, target):
         """
         If TOS is true, sets the bytecode counter to target and leaves TOS
         on the stack. Otherwise (TOS is false), TOS is popped.
         """
         val = self.vm.top()
         if val:
-            self.vm.jump(jump)
+            self.vm.jump(target)
         else:
             self.vm.pop()
 
-    def JUMP_IF_FALSE_OR_POP(self, jump):
+    def JUMP_IF_FALSE_OR_POP(self, target):
         """
         If TOS is false, sets the bytecode counter to target and leaves TOS
         on the stack. Otherwise (TOS is true), TOS is popped.
         """
         val = self.vm.top()
         if not val:
-            self.vm.jump(jump)
+            self.vm.jump(target)
         else:
             self.vm.pop()
 
-    def JUMP_ABSOLUTE(self, jump):
-        self.vm.jump(jump)
+    def JUMP_ABSOLUTE(self, target):
+        self.vm.jump(target)
 
     ## end Jump section
+
+    def FOR_ITER(self, delta):
+        """
+        TOS is an iterator. Call its next() method. If this yields a new
+        value, push it on the stack (leaving the iterator below
+        it). If the iterator indicates it is exhausted TOS is popped,
+        and the bytecode counter is incremented by delta.
+        """
+
+        iterobj = self.vm.top()
+        try:
+            v = next(iterobj)
+            self.vm.push(v)
+        except StopIteration:
+            self.vm.pop()
+            self.vm.jump(delta)
+
+    def LOAD_GLOBAL(self, name):
+        """Loads the global named co_names[namei] onto the stack."""
+        f = self.vm.frame
+        if name in f.f_globals:
+            val = f.f_globals[name]
+        elif name in f.f_builtins:
+            val = f.f_builtins[name]
+        else:
+            raise NameError("global name '%s' is not defined" % name)
+        self.vm.push(val)
+
+    def SETUP_LOOP(self, delta):
+        """
+        Pushes a block for a loop onto the block stack. The block spans
+        from the current instruction with a size of delta bytes.
+        """
+        self.vm.push_block("loop", delta)
+
+    def SETUP_EXCEPT(self, delta):
+        """
+        Pushes a try block from a try-except clause onto the block
+        stack. delta points to the first except block.
+        """
+
+        self.vm.push_block("setup-except", delta)
+
+    def SETUP_FINALLY(self, delta):
+        self.vm.push_block("finally", delta)
 
     def DUP_TOPX(self, count):
         """
