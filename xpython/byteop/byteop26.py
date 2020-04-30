@@ -5,10 +5,12 @@ from __future__ import print_function, division
 import six
 import sys
 import operator
+from xpython.pyobj import Function
 
 class ByteOp26():
     def __init__(self, vm):
         self.vm = vm
+        self.version = 2.6
 
     # Order of function here is the same as in:
     # https://docs.python.org/2.6/library/dis.html#python-bytecode-instructions
@@ -408,3 +410,15 @@ s        """
         """
         name, bases, methods = self.vm.popn(3)
         self.vm.push(type(name, bases, methods))
+
+    def MAKE_FUNCTION(self, argc):
+        if self.version >= 3.0:
+            name = self.vm.pop()
+        else:
+            name = None
+        code = self.vm.pop()
+        defaults = self.vm.popn(argc)
+        globs = self.vm.frame.f_globals
+        fn = Function(name, code, globs, defaults, None, self.vm)
+        fn.version = self.version
+        self.vm.push(fn)

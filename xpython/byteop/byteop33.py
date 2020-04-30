@@ -24,6 +24,7 @@ del ByteOp26.DUP_TOPX
 class ByteOp33(ByteOp27):
     def __init__(self, vm):
         self.vm = vm
+        self.version = 3.3
 
     # Order of function here is the same as in:
     # https://docs.python.org/3.3/library/dis.html#python-bytecode-instructions

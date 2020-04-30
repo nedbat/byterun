@@ -2,10 +2,6 @@
 """
 from __future__ import print_function, division
 
-import six
-import sys
-import operator
-
 from xpython.byteop.byteop26 import ByteOp26
 
 # Gone since 2.6
@@ -15,6 +11,7 @@ del ByteOp26.JUMP_IF_TRUE
 class ByteOp27(ByteOp26):
     def __init__(self, vm):
         self.vm = vm
+        self.version = 2.7
 
     # New in 2.7
 

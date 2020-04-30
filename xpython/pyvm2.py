@@ -684,18 +684,6 @@ class VirtualMachine(object):
 
     ## Functions
 
-    def byte_MAKE_FUNCTION(self, argc):
-        if self.version >= 3.0:
-            name = self.pop()
-        else:
-            name = None
-        code = self.pop()
-        defaults = self.popn(argc)
-        globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, None, self)
-        fn.version = self.version
-        self.push(fn)
-
     def byte_MAKE_CLOSURE(self, argc):
         if PYTHON3:
             # TODO: the py3 docs don't mention this change.
