@@ -40,7 +40,7 @@ class ByteOp33(ByteOp27):
         """Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class."""
         self.vm.push(__build_class__)
 
-    # Is gone in 3.4
+    # Note: this is gone in 3.4
     def STORE_LOCALS(self):
         """Pops TOS from the stack and stores it as the current frame s f_locals. This is used in class construction."""
         self.vm.frame.f_locals = self.vm.pop()

@@ -312,23 +312,14 @@ class TestIt(vmtest.VmTestCase):
             """)
 
     def test_attribute_access(self):
-        self.assert_ok("""\
-            class Thing(object):
-                z = 17
-                def __init__(self):
-                    self.x = 23
-            t = Thing()
-            print(Thing.z)
-            print(t.z)
-            print(t.x)
-            """)
+        self.do_one()
 
         self.assert_ok("""\
-            class Thing(object):
+            class Thing2(object):
                 z = 17
                 def __init__(self):
                     self.x = 23
-            t = Thing()
+            t = Thing2()
             print(t.xyzzy)
             """, raises=AttributeError)
 

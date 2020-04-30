@@ -1,4 +1,4 @@
-"""Byte Interpreter operations for Python 2.7
+"""Bytecode Interpreter operations for Python 2.7
 """
 from __future__ import print_function, division
 

@@ -1,4 +1,4 @@
-"""Byte Interpreter operations for Python 2.7
+"""Bytecode Interpreter operations for Python 2.7
 """
 from __future__ import print_function, division
 
@@ -16,7 +16,7 @@ class ByteOp27(ByteOp26):
     def __init__(self, vm):
         self.vm = vm
 
-    # New since 2.6
+    # New in 2.7
 
     def BUILD_SET(self, count):
         """Works as BUILD_TUPLE, but creates a set. New in version 2.7"""

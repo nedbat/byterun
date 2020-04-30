@@ -49,17 +49,25 @@ class VirtualMachine(object):
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)
-        if int_vers == 27:
-            from xpython.byteop.byteop27 import ByteOp27
-            self.byteop = ByteOp27(self)
-        elif int_vers == 26:
-            from xpython.byteop.byteop26 import ByteOp26
-            self.byteop = ByteOp26(self)
-        elif int_vers == 33:
-            from xpython.byteop.byteop33 import ByteOp33
-            self.byteop = ByteOp33(self)
+        if int_vers < 30:
+            if int_vers == 27:
+                from xpython.byteop.byteop27 import ByteOp27
+                self.byteop = ByteOp27(self)
+            elif int_vers == 26:
+                from xpython.byteop.byteop26 import ByteOp26
+                self.byteop = ByteOp26(self)
+                pass
+            pass
         else:
-            self.byteop = None
+            # 3.0 or greater
+            if int_vers == 33:
+                from xpython.byteop.byteop33 import ByteOp33
+                self.byteop = ByteOp33(self)
+            elif int_vers == 34:
+                from xpython.byteop.byteop34 import ByteOp34
+                self.byteop = ByteOp34(self)
+            else:
+                self.byteop = None
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
