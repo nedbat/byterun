@@ -1,11 +1,14 @@
 """Test functions etc, for Byterun."""
 
 from __future__ import print_function
-from . import vmtest
+
+try:
+    import vmtest
+except ImportError:
+    from . import vmtest
+
+from xdis import PYTHON3
 import six
-
-PY3 = six.PY3
-
 
 class TestFunctions(vmtest.VmTestCase):
     def test_functions(self):
@@ -184,49 +187,7 @@ class TestFunctions(vmtest.VmTestCase):
             """)
 
     def test_no_builtins(self):
-        self.assert_ok("""\
-            def replace_globals(f, new_globals):
-                import sys
-
-
-                if sys.version_info.major == 2:
-                    args = [
-                        f.func_code,
-                        new_globals,
-                        f.func_name,
-                        f.func_defaults,
-                        f.func_closure,
-                    ]
-                else:
-                    args = [
-                        f.__code__,
-                        new_globals,
-                        f.__name__,
-                        f.__defaults__,
-                        f.__closure__,
-                    ]
-                if hasattr(f, '_vm'):
-                    name = args.remove(args[2])
-                    args.insert(0, name)
-                    args.append(f._vm)
-                return type(lambda: None)(*args)
-
-
-            def f(NameError=NameError, AssertionError=AssertionError):
-                # capture NameError and AssertionError early because
-                #  we are deleting the builtins
-                None
-                try:
-                    sum
-                except NameError:
-                    pass
-                else:
-                    raise AssertionError('sum in the builtins')
-
-
-            f = replace_globals(f, {})  # no builtins provided
-            f()
-            """)
+        self.do_one()
 
 
 class TestClosures(vmtest.VmTestCase):
@@ -366,7 +327,7 @@ class TestGenerators(vmtest.VmTestCase):
             print(Thing().boom())
             """)
 
-    if PY3: # PY3.3+ only
+    if PYTHON3: # PY3.3+ only
         def test_yield_from(self):
             self.assert_ok("""\
                 def main():
@@ -472,3 +433,16 @@ class TestGenerators(vmtest.VmTestCase):
 
                 list(main())
             """)
+
+if __name__ == "__main__":
+    # import unittest
+    # unittest.main()
+
+    t = TestIt("test_for_loop")
+    t.test_for_loop()
+    # t = TestIt("test_decorator")
+    # t.test_decorator()
+    # t = TestComparisons("test_in")
+    # t.test_in()
+    # t = TestComparisons("test_greater")
+    # t.test_greater()
