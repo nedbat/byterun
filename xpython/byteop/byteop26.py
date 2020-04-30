@@ -163,10 +163,13 @@ class ByteOp26():
 
     # end BUILD_ operators
 
-    def LOAD_ATTR(self, namei):
-        """Replaces TOS with getattr(TOS, co_names[namei])."""
+    def LOAD_ATTR(self, name):
+        """Replaces TOS with getattr(TOS, co_names[namei]).
+
+        Note: name = co_names[namei] set in parse_byte_and_args()
+        """
         obj = self.vm.pop()
-        val = getattr(obj, namei)
+        val = getattr(obj, name)
         self.vm.push(val)
 
     # Commparisons
@@ -192,53 +195,64 @@ class ByteOp26():
 
     # Imports
 
-    def IMPORT_NAME(self, namei):
+    def IMPORT_NAME(self, name):
         """
         Imports the module co_names[namei]. TOS and TOS1 are popped and
         provide the fromlist and level arguments of __import__().  The
         module object is pushed onto the stack.  The current namespace
         is not affected: for a proper import statement, a subsequent
         STORE_FAST instruction modifies the namespace.
+
+        Note: name = co_names[namei] set in parse_byte_and_args()
         """
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
         self.vm.push(
-            __import__(namei, frame.f_globals, frame.f_locals, fromlist, level)
+            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
         )
 
-    def IMPORT_FROM(self, namei):
+    def IMPORT_FROM(self, name):
         """
         Loads the attribute co_names[namei] from the module found in TOS.
         The resulting object is pushed onto the stack, to be
         subsequently stored by a STORE_FAST instruction.
 
+        Note: name = co_names[namei] set in parse_byte_and_args()
         """
         mod = self.vm.top()
-        self.vm.push(getattr(mod, namei))
+        self.vm.push(getattr(mod, name))
 
     ## Jumps
 
-    def JUMP_FORWARD(self, delta):
-        """Increments bytecode counter by delta."""
-        self.vm.jump(delta)
+    def JUMP_FORWARD(self, jump_offset):
+        """Increments bytecode counter by jump.
 
-    def JUMP_IF_TRUE(self, delta):
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
+        """
+
+        self.vm.jump(jump_offset)
+
+    def JUMP_IF_TRUE(self, jump_offset):
         """
         If TOS is true, increment the bytecode counter by delta. TOS is
         left on the stack.
+
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
         """
         val = self.vm.top()
         if val:
-            self.vm.jump(delta)
+            self.vm.jump(jump_offset)
 
-    def JUMP_IF_FALSE(self, delta):
+    def JUMP_IF_FALSE(self, jump_offset):
         """
         If TOS is false, increment the bytecode counter by delta. TOS is
         not changed.
+
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
         """
         val = self.vm.top()
         if not val:
-            self.vm.jump(delta)
+            self.vm.jump(jump_offset)
 
     def JUMP_ABSOLUTE(self, target):
         """Set bytecode counter to target."""
@@ -246,12 +260,14 @@ class ByteOp26():
 
     # end Jump section
 
-    def FOR_ITER(self, delta):
+    def FOR_ITER(self, jump_offset):
         """
         TOS is an iterator. Call its next() method. If this yields a new
         value, push it on the stack (leaving the iterator below
         it). If the iterator indicates it is exhausted TOS is popped,
         and the bytecode counter is incremented by delta.
+
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
         """
 
         iterobj = self.vm.top()
@@ -260,10 +276,14 @@ class ByteOp26():
             self.vm.push(v)
         except StopIteration:
             self.vm.pop()
-            self.vm.jump(delta)
+            self.vm.jump(jump_offset)
 
     def LOAD_GLOBAL(self, name):
-        """Loads the global named co_names[namei] onto the stack."""
+        """
+        Loads the global named co_names[namei] onto the stack.
+
+        Note: name = co_names[namei] set in parse_byte_and_args()
+        """
         f = self.vm.frame
         if name in f.f_globals:
             val = f.f_globals[name]
@@ -273,27 +293,33 @@ class ByteOp26():
             raise NameError("global name '%s' is not defined" % name)
         self.vm.push(val)
 
-    def SETUP_LOOP(self, delta):
+    def SETUP_LOOP(self, jump_offset):
         """
         Pushes a block for a loop onto the block stack. The block spans
         from the current instruction with a size of delta bytes.
-        """
-        self.vm.push_block("loop", delta)
 
-    def SETUP_EXCEPT(self, delta):
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
+        """
+        self.vm.push_block("loop", jump_offset)
+
+    def SETUP_EXCEPT(self, jump_offset):
         """
         Pushes a try block from a try-except clause onto the block
         stack. delta points to the first except block.
-        """
 
-        self.vm.push_block("setup-except", delta)
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
+s        """
 
-    def SETUP_FINALLY(self, delta):
+        self.vm.push_block("setup-except", jump_offset)
+
+    def SETUP_FINALLY(self, jump_offset):
         """
         Pushes a try block from a try-except clause onto the block
         stack. delta points to the finally block.
+
+        Note: jump = delta + f.f_lasti set in parse_byte_and_args()
         """
-        self.vm.push_block("finally", delta)
+        self.vm.push_block("finally", jump_offset)
 
     def STORE_MAP(self):
         """

@@ -5,13 +5,10 @@
 from __future__ import print_function, division
 from xdis import PYTHON3, PYTHON_VERSION
 from xdis.op_imports import get_opcode_module
-import xdis
-import dis
 import linecache
 import logging
 import operator
 import sys
-import types
 
 import six
 from six.moves import reprlib
@@ -192,25 +189,25 @@ class VirtualMachine(object):
         byteName = self.opc.opname[byteCode]
         arg = None
         arguments = []
-        if byteCode >= dis.HAVE_ARGUMENT:
+        if byteCode >= self.opc.HAVE_ARGUMENT:
             arg = f.f_code.co_code[f.f_lasti : f.f_lasti + 2]
             f.f_lasti += 2
             intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
-            if byteCode in dis.hasconst:
+            if byteCode in self.opc.CONST_OPS:
                 arg = f.f_code.co_consts[intArg]
-            elif byteCode in dis.hasfree:
+            elif byteCode in self.opc.FREE_OPS:
                 if intArg < len(f.f_code.co_cellvars):
                     arg = f.f_code.co_cellvars[intArg]
                 else:
                     var_idx = intArg - len(f.f_code.co_cellvars)
                     arg = f.f_code.co_freevars[var_idx]
-            elif byteCode in dis.hasname:
+            elif byteCode in self.opc.NAME_OPS:
                 arg = f.f_code.co_names[intArg]
-            elif byteCode in dis.hasjrel:
+            elif byteCode in self.opc.JREL_OPS:
                 arg = f.f_lasti + intArg
-            elif byteCode in dis.hasjabs:
+            elif byteCode in self.opc.JABS_OPS:
                 arg = intArg
-            elif byteCode in dis.haslocal:
+            elif byteCode in self.opc.LOCAL_OPS:
                 arg = f.f_code.co_varnames[intArg]
             else:
                 arg = intArg
@@ -249,7 +246,7 @@ class VirtualMachine(object):
                 if hasattr(self.byteop, byteName):
                     bytecode_fn = getattr(self.byteop, byteName, None)
                 else:
-                    # This branch is disasppearing...
+                    # This branch is disappearing...
                     bytecode_fn = getattr(self, "byte_%s" % byteName, None)
 
                 if not bytecode_fn:  # pragma: no cover
