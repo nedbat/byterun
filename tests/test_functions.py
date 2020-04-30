@@ -438,11 +438,5 @@ if __name__ == "__main__":
     # import unittest
     # unittest.main()
 
-    t = TestIt("test_for_loop")
-    t.test_for_loop()
-    # t = TestIt("test_decorator")
-    # t.test_decorator()
-    # t = TestComparisons("test_in")
-    # t.test_in()
-    # t = TestComparisons("test_greater")
-    # t.test_greater()
+    t = TestIt("test_functions")
+    t.test_functions()

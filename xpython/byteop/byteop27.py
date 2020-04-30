@@ -3,6 +3,7 @@
 from __future__ import print_function, division
 
 import sys
+import operator
 
 class ByteOp27():
     def __init__(self, vm):
@@ -106,6 +107,7 @@ class ByteOp27():
         self.vm.push(const)
 
     def LOAD_NAME(self, name):
+        """Pushes the value associated with co_names[namei] onto the stack."""
         frame = self.vm.frame
         if name in frame.f_locals:
             val = frame.f_locals[name]
@@ -117,13 +119,142 @@ class ByteOp27():
             raise NameError("name '%s' is not defined" % name)
         self.vm.push(val)
 
+    ## Building
+
+    def BUILD_TUPLE(self, count):
+        """Creates a tuple consuming count items from the stack, and pushes the resulting tuple onto the stack."""
+        elts = self.vm.popn(count)
+        self.vm.push(tuple(elts))
+
+    def BUILD_LIST(self, count):
+        """Works as BUILD_TUPLE, but creates a list."""
+        elts = self.vm.popn(count)
+        self.vm.push(elts)
+
+    def BUILD_SET(self, count):
+        """Works as BUILD_TUPLE, but creates a set. New in version 2.7"""
+        elts = self.vm.popn(count)
+        self.vm.push(set(elts))
+
+    def BUILD_MAP(self, size):
+        """Pushes a new dictionary object onto the stack. The dictionary is pre-sized to hold count entries."""
+        # "size" is ignored; In contrast to C, in Python, the default dictionary type has no notion of allocation size.
+        self.vm.push({})
+
+    ## end BUILD_ operators
+
+    def LOAD_ATTR(self, attr):
+        """Replaces TOS with getattr(TOS, co_names[namei])."""
+        obj = self.vm.pop()
+        val = getattr(obj, attr)
+        self.vm.push(val)
+
+    ## Commparisons
+
+    COMPARE_OPERATORS = [
+        operator.lt,
+        operator.le,
+        operator.eq,
+        operator.ne,
+        operator.gt,
+        operator.ge,
+        lambda x, y: x in y,
+        lambda x, y: x not in y,
+        lambda x, y: x is y,
+        lambda x, y: x is not y,
+        lambda x, y: issubclass(x, Exception) and issubclass(x, y),
+    ]
+
+    def COMPARE_OP(self, opnum):
+        """Performs a Boolean operation. The operation name can be found in cmp_op[opname]."""
+        x, y = self.vm.popn(2)
+        self.vm.push(self.COMPARE_OPERATORS[opnum](x, y))
+
+    ## Imports
+
+    def IMPORT_NAME(self, name):
+        """
+        Imports the module co_names[namei]. TOS and TOS1 are popped and
+        provide the fromlist and level arguments of __import__().  The
+        module object is pushed onto the stack.  The current namespace
+        is not affected: for a proper import statement, a subsequent
+        STORE_FAST instruction modifies the namespace.
+        """
+        level, fromlist = self.vm.popn(2)
+        frame = self.vm.frame
+        self.vm.push(
+            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+        )
+
+    def IMPORT_FROM(self, name):
+        """
+        Loads the attribute co_names[namei] from the module found in TOS.
+        The resulting object is pushed onto the stack, to be
+        subsequently stored by a STORE_FAST instruction.
+
+        """
+        mod = self.vm.top()
+        self.vm.push(getattr(mod, name))
+
+    ## Jumps
+
+    def JUMP_FORWARD(self, jump):
+        """Increments bytecode counter by delta."""
+        self.vm.jump(jump)
+
+
+    def POP_JUMP_IF_TRUE(self, jump):
+        """If TOS is true, sets the bytecode counter to target. TOS is popped."""
+        val = self.vm.pop()
+        if val:
+            self.vm.jump(jump)
+
+    def POP_JUMP_IF_FALSE(self, jump):
+        """If TOS is false, sets the bytecode counter to target. TOS is popped."""
+        val = self.vm.pop()
+        if not val:
+            self.vm.jump(jump)
+
+    def JUMP_IF_TRUE_OR_POP(self, jump):
+        """
+        If TOS is true, sets the bytecode counter to target and leaves TOS
+        on the stack. Otherwise (TOS is false), TOS is popped.
+        """
+        val = self.vm.top()
+        if val:
+            self.vm.jump(jump)
+        else:
+            self.vm.pop()
+
+    def JUMP_IF_FALSE_OR_POP(self, jump):
+        """
+        If TOS is false, sets the bytecode counter to target and leaves TOS
+        on the stack. Otherwise (TOS is true), TOS is popped.
+        """
+        val = self.vm.top()
+        if not val:
+            self.vm.jump(jump)
+        else:
+            self.vm.pop()
+
+    def JUMP_ABSOLUTE(self, jump):
+        self.vm.jump(jump)
+
+    ## end Jump section
+
     def DUP_TOPX(self, count):
-        """Duplicate count items, keeping them in the same order. Due to implementation limits, count should be between 1 and 5 inclusive."""
+        """
+        Duplicate count items, keeping them in the same order. Due to
+        implementation limits, count should be between 1 and 5 inclusive.
+        """
         items = self.vm.popn(count)
         for i in [1, 2]:
             self.vm.push(*items)
 
     def BUILD_CLASS(self):
-        """Creates a new class object. TOS is the methods dictionary, TOS1 the tuple of the names of the base classes, and TOS2 the class name."""
+        """
+        Creates a new class object. TOS is the methods dictionary, TOS1 the
+        tuple of the names of the base classes, and TOS2 the class name.
+        """
         name, bases, methods = self.vm.popn(3)
         self.vm.push(type(name, bases, methods))

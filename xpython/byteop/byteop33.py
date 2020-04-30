@@ -5,6 +5,9 @@ from __future__ import print_function, division
 
 from xpython.byteop.byteop27 import ByteOp27
 
+# FIXME: investigate does "del" removing and attribute here
+# have an effect on what another module sees as ByteOp27's attributes?
+
 # Gone since 3.0
 del ByteOp27.PRINT_EXPR
 del ByteOp27.PRINT_ITEM

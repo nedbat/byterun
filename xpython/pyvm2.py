@@ -500,30 +500,7 @@ class VirtualMachine(object):
         else:
             self.push(l[start:end])
 
-    COMPARE_OPERATORS = [
-        operator.lt,
-        operator.le,
-        operator.eq,
-        operator.ne,
-        operator.gt,
-        operator.ge,
-        lambda x, y: x in y,
-        lambda x, y: x not in y,
-        lambda x, y: x is y,
-        lambda x, y: x is not y,
-        lambda x, y: issubclass(x, Exception) and issubclass(x, y),
-    ]
-
-    def byte_COMPARE_OP(self, opnum):
-        x, y = self.popn(2)
-        self.push(self.COMPARE_OPERATORS[opnum](x, y))
-
     ## Attributes and indexing
-
-    def byte_LOAD_ATTR(self, attr):
-        obj = self.pop()
-        val = getattr(obj, attr)
-        self.push(val)
 
     def byte_STORE_ATTR(self, name):
         val, obj = self.popn(2)
@@ -532,25 +509,6 @@ class VirtualMachine(object):
     def byte_DELETE_ATTR(self, name):
         obj = self.pop()
         delattr(obj, name)
-
-    ## Building
-
-    def byte_BUILD_TUPLE(self, count):
-        elts = self.popn(count)
-        self.push(tuple(elts))
-
-    def byte_BUILD_LIST(self, count):
-        elts = self.popn(count)
-        self.push(elts)
-
-    def byte_BUILD_SET(self, count):
-        # TODO: Not documented in Py2 docs.
-        elts = self.popn(count)
-        self.push(set(elts))
-
-    def byte_BUILD_MAP(self, size):
-        # size is ignored.
-        self.push({})
 
     def byte_STORE_MAP(self):
         the_map, val, key = self.popn(3)
@@ -589,12 +547,6 @@ class VirtualMachine(object):
 
     ## Jumps
 
-    def byte_JUMP_FORWARD(self, jump):
-        self.jump(jump)
-
-    def byte_JUMP_ABSOLUTE(self, jump):
-        self.jump(jump)
-
     if 0:   # Not in py2.7
         def byte_JUMP_IF_TRUE(self, jump):
             val = self.top()
@@ -606,29 +558,6 @@ class VirtualMachine(object):
             if not val:
                 self.jump(jump)
 
-    def byte_POP_JUMP_IF_TRUE(self, jump):
-        val = self.pop()
-        if val:
-            self.jump(jump)
-
-    def byte_POP_JUMP_IF_FALSE(self, jump):
-        val = self.pop()
-        if not val:
-            self.jump(jump)
-
-    def byte_JUMP_IF_TRUE_OR_POP(self, jump):
-        val = self.top()
-        if val:
-            self.jump(jump)
-        else:
-            self.pop()
-
-    def byte_JUMP_IF_FALSE_OR_POP(self, jump):
-        val = self.top()
-        if not val:
-            self.jump(jump)
-        else:
-            self.pop()
 
     ## Blocks
 
@@ -935,13 +864,6 @@ class VirtualMachine(object):
 
     ## Importing
 
-    def byte_IMPORT_NAME(self, name):
-        level, fromlist = self.popn(2)
-        frame = self.frame
-        self.push(
-            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
-        )
-
     def byte_IMPORT_STAR(self):
         # TODO: this doesn't use __all__ properly.
         mod = self.pop()
@@ -949,9 +871,6 @@ class VirtualMachine(object):
             if attr[0] != '_':
                 self.frame.f_locals[attr] = getattr(mod, attr)
 
-    def byte_IMPORT_FROM(self, name):
-        mod = self.top()
-        self.push(getattr(mod, name))
 
     ## And the rest...
 
