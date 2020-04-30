@@ -27,7 +27,7 @@ def get_srcdir():
     filename = osp.normcase(osp.dirname(__file__))
     return osp.realpath(filename)
 
-examples_dir = osp.join(get_srcdir(), "examples")
+srcdir = get_srcdir()
 
 def parent_function_name():
     if PYTHON_VERSION < 3.5:
@@ -46,13 +46,12 @@ LINE_STR = "-" * 25
 class VmTestCase(unittest.TestCase):
 
     def do_one(self):
-        path = osp.join(examples_dir, parent_function_name())
         if PYTHON3:
-            path += "-3.3.pyc"
             self.version = 3.3
         else:
-            path += "-2.7.pyc"
             self.version = 2.7
+
+        path = osp.join(srcdir, "bytecode-%s" % self.version, parent_function_name() + ".pyc")
         self.assert_ok(path, arg_type="bytecode-file")
 
     def assert_ok(self, path_or_code, raises=None, arg_type="string"):
