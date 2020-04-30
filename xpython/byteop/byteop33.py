@@ -4,19 +4,21 @@ from __future__ import print_function, division
 
 
 from xpython.byteop.byteop27 import ByteOp27
+from xpython.byteop.byteop26 import ByteOp26
 
 # FIXME: investigate does "del" removing and attribute here
 # have an effect on what another module sees as ByteOp27's attributes?
 
 # Gone since 3.0
-del ByteOp27.PRINT_EXPR
-del ByteOp27.PRINT_ITEM
-del ByteOp27.PRINT_ITEM_TO
-del ByteOp27.PRINT_NEWLINE
-del ByteOp27.PRINT_NEWLINE_TO
-del ByteOp27.BUILD_CLASS
+del ByteOp26.PRINT_EXPR
+del ByteOp26.PRINT_ITEM
+del ByteOp26.PRINT_ITEM_TO
+del ByteOp26.PRINT_NEWLINE
+del ByteOp26.PRINT_NEWLINE_TO
+del ByteOp26.BUILD_CLASS
+del ByteOp26.EXEC_STMT
 # Gone since 3.2
-del ByteOp27.DUP_TOPX
+del ByteOp26.DUP_TOPX
 
 
 class ByteOp33(ByteOp27):

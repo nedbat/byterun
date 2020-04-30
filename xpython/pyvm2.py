@@ -52,13 +52,14 @@ class VirtualMachine(object):
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)
-        if python_version == 2.7:
+        if int_vers == 27:
             from xpython.byteop.byteop27 import ByteOp27
-
             self.byteop = ByteOp27(self)
-        elif python_version == 3.3:
+        elif int_vers == 26:
+            from xpython.byteop.byteop26 import ByteOp26
+            self.byteop = ByteOp26(self)
+        elif int_vers == 33:
             from xpython.byteop.byteop33 import ByteOp33
-
             self.byteop = ByteOp33(self)
         else:
             self.byteop = None
@@ -371,30 +372,9 @@ class VirtualMachine(object):
     def byte_DELETE_NAME(self, name):
         del self.frame.f_locals[name]
 
-    def byte_LOAD_FAST(self, name):
-        if name in self.frame.f_locals:
-            val = self.frame.f_locals[name]
-        else:
-            raise UnboundLocalError(
-                "local variable '%s' referenced before assignment" % name
-            )
-        self.push(val)
-
-    def byte_STORE_FAST(self, name):
-        self.frame.f_locals[name] = self.pop()
-
-    def byte_DELETE_FAST(self, name):
-        del self.frame.f_locals[name]
-
     def byte_STORE_GLOBAL(self, name):
         f = self.frame
         f.f_globals[name] = self.pop()
-
-    def byte_LOAD_DEREF(self, name):
-        self.push(self.frame.cells[name].get())
-
-    def byte_STORE_DEREF(self, name):
-        self.frame.cells[name].set(self.pop())
 
     def byte_LOAD_LOCALS(self):
         self.push(self.frame.f_locals)
@@ -495,11 +475,6 @@ class VirtualMachine(object):
         obj = self.pop()
         delattr(obj, name)
 
-    def byte_STORE_MAP(self):
-        the_map, val, key = self.popn(3)
-        the_map[key] = val
-        self.push(the_map)
-
     def byte_UNPACK_SEQUENCE(self, count):
         seq = self.pop()
         for x in reversed(seq):
@@ -529,20 +504,6 @@ class VirtualMachine(object):
         val, key = self.popn(2)
         the_map = self.peek(count)
         the_map[key] = val
-
-    ## Jumps
-
-    if 0:  # Not in py2.7
-
-        def byte_JUMP_IF_TRUE(self, jump):
-            val = self.top()
-            if val:
-                self.jump(jump)
-
-        def byte_JUMP_IF_FALSE(self, jump):
-            val = self.top()
-            if not val:
-                self.jump(jump)
 
     ## Blocks
 
@@ -730,9 +691,6 @@ class VirtualMachine(object):
         fn.version = self.version
         self.push(fn)
 
-    def byte_LOAD_CLOSURE(self, name):
-        self.push(self.frame.cells[name])
-
     def byte_MAKE_CLOSURE(self, argc):
         if PYTHON3:
             # TODO: the py3 docs don't mention this change.
@@ -834,18 +792,7 @@ class VirtualMachine(object):
 
     ## Importing
 
-    def byte_IMPORT_STAR(self):
-        # TODO: this doesn't use __all__ properly.
-        mod = self.pop()
-        for attr in dir(mod):
-            if attr[0] != "_":
-                self.frame.f_locals[attr] = getattr(mod, attr)
-
     ## And the rest...
-
-    def byte_EXEC_STMT(self):
-        stmt, globs, locs = self.popn(3)
-        six.exec_(stmt, globs, locs)
 
     if 0:  # Not in py2.7
 
