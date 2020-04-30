@@ -2,9 +2,7 @@
 """
 from __future__ import print_function, division
 
-import six
-import sys
-import operator
+import inspect
 import types
 
 from xpython.byteop.byteop33 import ByteOp33
@@ -41,6 +39,8 @@ class ByteOp34(ByteOp33):
         globs = self.vm.frame.f_globals
 
         # FIXME: we should test PYTHON_VERSION to check for sanity.
+        if not inspect.iscode(code) and hasattr(code, "to_native"):
+            code = code.to_native()
         fn = types.FunctionType(code, globs, name, tuple(defaults))
         fn.version = self.version # This is our extra tagging.
         self.vm.push(fn)

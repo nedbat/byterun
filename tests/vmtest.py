@@ -15,7 +15,7 @@ import six
 
 from xpython.pyvm2 import VirtualMachine, VirtualMachineError
 
-from xdis import PYTHON3, PYTHON_VERSION
+from xdis import PYTHON_VERSION
 
 # Make this false if you need to run the debugger inside a test.
 CAPTURE_STDOUT = ('-s' not in sys.argv)

@@ -8,7 +8,6 @@ except ImportError:
     from . import vmtest
 
 from xdis import PYTHON3
-import six
 
 class TestFunctions(vmtest.VmTestCase):
     def test_functions(self):
@@ -416,5 +415,5 @@ if __name__ == "__main__":
     # import unittest
     # unittest.main()
 
-    t = TestIt("test_functions")
+    t = TestFunctions("test_functions")
     t.test_functions()

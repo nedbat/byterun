@@ -222,6 +222,13 @@ class ByteOp26():
         Note: name = co_names[namei] set in parse_byte_and_args()
         """
         mod = self.vm.top()
+        if not hasattr(mod, name):
+            # FIXME: figure out how to fake a traceback object
+            # TODO: Create PyTraceBack_Here function.
+            self.vm.last_exception = (ImportError, name,
+                                      [self.vm.frame.f_code.co_filename, "bogus_function()", self.vm.frame.f_lineno])
+            return "reexception"
+
         self.vm.push(getattr(mod, name))
 
     ## Jumps

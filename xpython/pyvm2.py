@@ -5,6 +5,7 @@
 from __future__ import print_function, division
 from xdis import PYTHON3, PYTHON_VERSION
 from xdis.op_imports import get_opcode_module
+import inspect
 import linecache
 import logging
 import operator
@@ -347,6 +348,7 @@ class VirtualMachine(object):
             why = self.dispatch(byteName, arguments)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
+                # FIXME: fakeup a traceback from where we are
                 pass
 
             if why == "reraise":
@@ -366,6 +368,9 @@ class VirtualMachine(object):
 
         if why == "exception":
             six.reraise(*self.last_exception)
+            # if self.exception and .... ?
+            # log.error("Haven't finished traceback handling, nulling traceback information for now")
+            # six.reraise(self.last_exception[0], None)
 
         return self.return_value
 
