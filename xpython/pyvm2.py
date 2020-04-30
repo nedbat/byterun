@@ -54,6 +54,9 @@ class VirtualMachine(object):
         if python_version == 2.7:
             from xpython.byteop.byteop27 import ByteOp27
             self.byteop = ByteOp27(self)
+        elif python_version == 3.3:
+            from xpython.byteop.byteop33 import ByteOp33
+            self.byteop = ByteOp33(self)
         else:
             self.byteop = None
 
@@ -365,52 +368,7 @@ class VirtualMachine(object):
 
         return self.return_value
 
-    ## Stack manipulation
-
-    def byte_LOAD_CONST(self, const):
-        self.push(const)
-
-    def byte_POP_TOP(self):
-        self.pop()
-
-    def byte_DUP_TOP(self):
-        self.push(self.top())
-
-    def byte_DUP_TOPX(self, count):
-        items = self.popn(count)
-        for i in [1, 2]:
-            self.push(*items)
-
-    def byte_DUP_TOP_TWO(self):
-        # Py3 only
-        a, b = self.popn(2)
-        self.push(a, b, a, b)
-
-    def byte_ROT_TWO(self):
-        a, b = self.popn(2)
-        self.push(b, a)
-
-    def byte_ROT_THREE(self):
-        a, b, c = self.popn(3)
-        self.push(c, a, b)
-
-    def byte_ROT_FOUR(self):
-        a, b, c, d = self.popn(4)
-        self.push(d, a, b, c)
-
     ## Names
-
-    def byte_LOAD_NAME(self, name):
-        frame = self.frame
-        if name in frame.f_locals:
-            val = frame.f_locals[name]
-        elif name in frame.f_globals:
-            val = frame.f_globals[name]
-        elif name in frame.f_builtins:
-            val = frame.f_builtins[name]
-        else:
-            raise NameError("name '%s' is not defined" % name)
-        self.push(val)
 
     def byte_STORE_NAME(self, name):
         self.frame.f_locals[name] = self.pop()
@@ -575,14 +533,6 @@ class VirtualMachine(object):
         obj = self.pop()
         delattr(obj, name)
 
-    def byte_STORE_SUBSCR(self):
-        val, obj, subscr = self.popn(3)
-        obj[subscr] = val
-
-    def byte_DELETE_SUBSCR(self):
-        obj, subscr = self.popn(2)
-        del obj[subscr]
-
     ## Building
 
     def byte_BUILD_TUPLE(self, count):
@@ -637,47 +587,6 @@ class VirtualMachine(object):
         the_map = self.peek(count)
         the_map[key] = val
 
-    ## Printing
-
-    if 0:   # Only used in the interactive interpreter, not in modules.
-        def byte_PRINT_EXPR(self):
-            print(self.pop())
-
-    def byte_PRINT_ITEM(self):
-        item = self.pop()
-        self.print_item(item)
-
-    def byte_PRINT_ITEM_TO(self):
-        to = self.pop()
-        item = self.pop()
-        self.print_item(item, to)
-
-    def byte_PRINT_NEWLINE(self):
-        self.print_newline()
-
-    def byte_PRINT_NEWLINE_TO(self):
-        to = self.pop()
-        self.print_newline(to)
-
-    def print_item(self, item, to=None):
-        if to is None:
-            to = sys.stdout
-        if to.softspace:
-            print(" ", end="", file=to)
-            to.softspace = 0
-        print(item, end="", file=to)
-        if isinstance(item, str):
-            if (not item) or (not item[-1].isspace()) or (item[-1] == " "):
-                to.softspace = 1
-        else:
-            to.softspace = 1
-
-    def print_newline(self, to=None):
-        if to is None:
-            to = sys.stdout
-        print("", file=to)
-        to.softspace = 0
-
     ## Jumps
 
     def byte_JUMP_FORWARD(self, jump):
@@ -725,9 +634,6 @@ class VirtualMachine(object):
 
     def byte_SETUP_LOOP(self, dest):
         self.push_block('loop', dest)
-
-    def byte_GET_ITER(self):
-        self.push(iter(self.pop()))
 
     def byte_FOR_ITER(self, jump):
         iterobj = self.top()
@@ -1052,20 +958,6 @@ class VirtualMachine(object):
     def byte_EXEC_STMT(self):
         stmt, globs, locs = self.popn(3)
         six.exec_(stmt, globs, locs)
-
-    if PY2:
-        def byte_BUILD_CLASS(self):
-            name, bases, methods = self.popn(3)
-            self.push(type(name, bases, methods))
-
-
-    elif PYTHON3:
-        def byte_LOAD_BUILD_CLASS(self):
-            # New in py3
-            self.push(__build_class__)
-
-        def byte_STORE_LOCALS(self):
-            self.frame.f_locals = self.pop()
 
     if 0:   # Not in py2.7
         def byte_SET_LINENO(self, lineno):
