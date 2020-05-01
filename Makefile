@@ -18,7 +18,7 @@ all: check
 
 # Run all tests, exluding those that need pyenv
 check:
-	cd tests && nosetests
+	cd test && nosetests
 
 #: Clean up temporary files and .pyc files
 clean: clean_pyc
