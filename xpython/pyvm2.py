@@ -3,8 +3,6 @@
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
 
 from __future__ import print_function, division
-from xdis import PYTHON3, PYTHON_VERSION
-from xdis.op_imports import get_opcode_module
 import linecache
 import logging
 import operator
@@ -13,10 +11,12 @@ import sys
 import six
 from six.moves import reprlib
 
+from xdis import PYTHON3, PYTHON_VERSION
+from xdis.op_imports import get_opcode_module
+
+from xpython.pyobj import Frame, Block, Function, Generator, Traceback
+
 PY2 = not PYTHON3
-
-from xpython.pyobj import Frame, Block, Function, Generator
-
 log = logging.getLogger(__name__)
 
 if PYTHON3:
@@ -28,7 +28,6 @@ else:
 repr_obj = reprlib.Repr()
 repr_obj.maxother = 120
 repper = repr_obj.repr
-
 
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
@@ -290,7 +289,9 @@ class VirtualMachine(object):
 
         except:
             # deal with exceptions encountered while executing the op.
-            self.last_exception = sys.exc_info()[:2] + (None,)
+            frame = self.frame
+            tb = Traceback(frame, frame.f_lasti, frame.f_lineno, None)
+            self.last_exception = sys.exc_info()[:2] + (tb,)
             log.exception(
                 ("Caught exception during execution of "
                  "instruction:\n\t%s" % instruction_info())
@@ -399,7 +400,11 @@ class VirtualMachine(object):
         self.pop_frame()
 
         if why == "exception":
-            six.reraise(*self.last_exception)
+            if self.last_exception and isinstance(self.last_exception[2], Traceback):
+                last_exception = self.last_exception[:2] + (None,)
+            else:
+                last_exception = self.last_exception
+            six.reraise(*last_exception)
             # if self.exception and .... ?
             # log.error("Haven't finished traceback handling, nulling traceback information for now")
             # six.reraise(self.last_exception[0], None)

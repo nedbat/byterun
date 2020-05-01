@@ -1,4 +1,4 @@
-"""Implementations of Python fundamental objects for Byterun."""
+"""Implementations of Python fundamental objects for xpython."""
 
 import collections
 import inspect
@@ -21,6 +21,16 @@ def make_cell(value):
     else:
         return fn.func_closure[0]
 
+
+Traceback = collections.namedtuple("_Traceback",
+     "tb_frame tb_lasti tb_lineno tb_next")
+try:
+    _Traceback.tb_frame.__doc__ = "frame object at this level"
+    _Traceback.tb_lasti.__doc__ = "index of last attempted instruction in bytecode"
+    _Traceback.tb_lineno.__doc__ = "current line number in Python source code"
+    _Traceback.tb_next.__doc__ = "next inner traceback object (called by this level)"
+except:
+    pass
 
 class Function(object):
     __slots__ = [
