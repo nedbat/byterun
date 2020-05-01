@@ -24,14 +24,17 @@ def make_cell(value):
 
 class Function(object):
     __slots__ = [
+
         "func_code",  # Python 2.x
         "func_name",
         "func_defaults",
         "func_closure",
+
         "__code__",  # Python 3.x
         "__name__",
         "__defaults__",
         "__closure__",
+
         "func_globals",
         "func_locals",
         "func_dict",
@@ -91,9 +94,8 @@ class Function(object):
         try:
             self.version
         except:
-            from trepan.api import debug
+            from trepan.api import debug; debug()
 
-            debug()
         if self.version < 3.0 and self.func_name in [
             "<setcomp>",
             "<dictcomp>",

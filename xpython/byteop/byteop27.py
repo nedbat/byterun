@@ -13,6 +13,9 @@ class ByteOp27(ByteOp26):
         self.vm = vm
         self.version = 2.7
 
+
+    # Changed in 2.7
+
     # New in 2.7
 
     def BUILD_SET(self, count):

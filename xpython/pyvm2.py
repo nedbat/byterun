@@ -117,7 +117,7 @@ class VirtualMachine(object):
         return self.frame.block_stack.pop()
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
-        log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
+        log.debug("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
             f_globals = f_globals
             if f_locals is None:
@@ -234,20 +234,28 @@ class VirtualMachine(object):
         else:
             op = " " * 11
 
-        op += "%d: %s" % (opoffset, byteName)
+        op += "%3d: %s" % (opoffset, byteName)
         if arguments:
             op += " %r" % (arguments[0],)
         indent = "    " * (len(self.frames) - 1)
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
 
-        log.info("  %sdata: %s" % (indent, stack_rep))
-        log.info("  %sblks: %s" % (indent, block_stack_rep))
+        log.debug("  %sdata: %s" % (indent, stack_rep))
+        log.debug("  %sblks: %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
-    def dispatch(self, byteName, arguments):
+    def dispatch(self, byteName, arguments, opoffset):
         """ Dispatch by bytename to the corresponding methods.
         Exceptions are caught and set on the virtual machine."""
+
+        def instruction_info():
+            frame = self.frame
+            code = frame.f_code
+            return ("%d: %s %s\n\t%s in %s:%s" %
+                    (opoffset, byteName, arguments,
+                     code.co_name, code.co_filename, frame.f_lineno))
+
         why = None
         try:
             if byteName.startswith("UNARY_"):
@@ -267,13 +275,17 @@ class VirtualMachine(object):
                     bytecode_fn = getattr(self, "byte_%s" % byteName, None)
 
                 if not bytecode_fn:  # pragma: no cover
-                    raise VirtualMachineError("unknown bytecode type: %s" % byteName)
+                    raise VirtualMachineError("Unknown bytecode type: %s\n\t%s" %
+                                              instruction_info(), byteName)
                 why = bytecode_fn(*arguments)
 
         except:
             # deal with exceptions encountered while executing the op.
             self.last_exception = sys.exc_info()[:2] + (None,)
-            log.exception("Caught exception during execution")
+            log.exception(
+                ("Caught exception during execution of "
+                 "instruction:\n\t%s" % instruction_info())
+            )
             why = "exception"
 
         return why
@@ -356,7 +368,7 @@ class VirtualMachine(object):
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
-            why = self.dispatch(byteName, arguments)
+            why = self.dispatch(byteName, arguments, opoffset)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
                 # FIXME: fakeup a traceback from where we are
@@ -712,9 +724,6 @@ class VirtualMachine(object):
         fn = Function(name, code, globs, defaults, closure, self)
         self.push(fn)
 
-    def byte_CALL_FUNCTION(self, arg):
-        return self.call_function(arg, [], {})
-
     def byte_CALL_FUNCTION_VAR(self, arg):
         args = self.pop()
         return self.call_function(arg, args, {})
@@ -728,12 +737,15 @@ class VirtualMachine(object):
         return self.call_function(arg, args, kwargs)
 
     def call_function(self, arg, args, kwargs):
-        lenKw, lenPos = divmod(arg, 256)
         namedargs = {}
-        for i in range(lenKw):
-            key, val = self.popn(2)
-            namedargs[key] = val
-        namedargs.update(kwargs)
+        if self.version < 3.6:
+            lenKw, lenPos = divmod(arg, 256)
+            for i in range(lenKw):
+                key, val = self.popn(2)
+                namedargs[key] = val
+            namedargs.update(kwargs)
+        else:
+            lenKw, lenPos = 0, arg
         posargs = self.popn(lenPos)
         posargs.extend(args)
 
@@ -765,6 +777,7 @@ class VirtualMachine(object):
                 pass
 
         retval = func(*posargs, **namedargs)
+
         self.push(retval)
 
     def byte_RETURN_VALUE(self):

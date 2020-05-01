@@ -43,15 +43,15 @@ https://github.com/nedbat/byterun/issues/34.
 
 Internally Byterun needs the kind of overhaul we have here to be able
 to scale to support bytecode for more Pythons, and to be able to run
-that bytecode across different versions of Python. Specifically, you
-can't use Python's `dis` module, and a clearer distinction between the
-version being interpreter and the version of Python running needs to
-be made.
+bytecode across different versions of Python. Specifically, you can't
+rely on Python's `dis` module if you expect to expect to run a
+bytecode other than the bytecode that the interpreter is running.
 
-With `xpython`, tighter control of opcodes and an opcode's
-implementation is kept for each Python version. So we'll warn early
-when something is invalid. So in contrast to *Byterun* you can run 3.3
-bytecode using Python 3.7 (largely).
+In `xpython` there is a clear distinction between the version being
+interpreted and the version of Python that is running. There is ighter
+control of opcodes and an opcode's implementation is kept for each
+Python version. So we'll warn early when something is invalid. You can
+run 3.3 bytecode using Python 3.7 (largely).
 
 The "largely" part is because the interpreter has always made use of
 Python builtins. When a Python version running the interperter matches a

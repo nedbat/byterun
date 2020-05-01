@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Bytecode Interpreter operations for Python 2.7
 """
 from __future__ import print_function, division
@@ -429,3 +430,24 @@ s        """
         fn = Function(name, code, globs, defaults, None, self.vm)
         fn.version = self.version
         self.vm.push(fn)
+
+    def CALL_FUNCTION(self, arg):
+        """
+        Calls a callable object.
+        The low byte of argc indicates the number of positional
+        arguments, the high byte the number of keyword arguments.
+
+        The stack contains keyword arguments on top (if any), then the
+        positional arguments below that (if any), then the callable
+        object to call below that.
+
+        Each keyword argument is represented with two values on the
+        stack: the argument’s name, and its value, with the argument's
+        value above the name on the stack. The positional arguments
+        are pushed in the order that they are passed in to the
+        callable object, with the right-most positional argument on
+        top. CALL_FUNCTION pops all arguments and the callable object
+        off the stack, calls the callable object with those arguments,
+        and pushes the return value returned by the callable object.
+        """
+        return self.vm.call_function(arg, [], {})
