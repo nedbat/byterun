@@ -22,6 +22,9 @@ def make_cell(value):
         return fn.func_closure[0]
 
 
+# It might be the case that this is more useful in Python 2.x
+# which doesn't seem to show traceback of interpreted code.
+# Python 3.x does this but it also shows junk at the end.
 Traceback = collections.namedtuple("_Traceback",
      "tb_frame tb_lasti tb_lineno tb_next")
 try:

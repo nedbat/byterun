@@ -7,6 +7,7 @@ import linecache
 import logging
 import operator
 import sys
+import traceback
 
 import six
 from six.moves import reprlib
@@ -43,6 +44,7 @@ class VirtualMachine(object):
         self.frame = None
         self.return_value = None
         self.last_exception = None
+        self.last_traceback_limit = None
         self.version = python_version
 
         # This is somewhat hoaky:
@@ -288,11 +290,14 @@ class VirtualMachine(object):
                 why = bytecode_fn(*arguments)
 
         except:
-            # deal with exceptions encountered while executing the op.
-            frame = self.frame
-            tb = Traceback(frame, frame.f_lasti, frame.f_lineno, None)
-            self.last_exception = sys.exc_info()[:2] + (tb,)
-            log.exception(
+            # Deal with exceptions encountered while executing the op.
+            # In Python 2.x we are not capturing the traceback as seen by
+            # the interpreter. In Python 3.x we are. We may want to do something
+            # fancier in Python 2.x.
+            # In both cases there is a *lot* of interpreter junk at the end which
+            # should be removed.
+            self.last_exception = sys.exc_info()
+            log.info(
                 ("Caught exception during execution of "
                  "instruction:\n\t%s" % instruction_info())
             )
@@ -400,11 +405,10 @@ class VirtualMachine(object):
         self.pop_frame()
 
         if why == "exception":
-            if self.last_exception and isinstance(self.last_exception[2], Traceback):
-                last_exception = self.last_exception[:2] + (None,)
+            if self.last_exception:
+                six.reraise(*self.last_exception)
             else:
-                last_exception = self.last_exception
-            six.reraise(*last_exception)
+                raise VirtualMachineError("Borked exception recording")
             # if self.exception and .... ?
             # log.error("Haven't finished traceback handling, nulling traceback information for now")
             # six.reraise(self.last_exception[0], None)

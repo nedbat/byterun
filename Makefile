@@ -9,6 +9,7 @@ PYTHON ?= python
 PYTHON3 ?= python3
 RM      ?= rm
 LINT    = flake8
+SHELL   ?= bash
 
 #EXTRA_DIST=ipython/ipy_trepan.py trepan
 PHONY=all check clean unittest dist distclean lint flake8 test rmChangeLog clean_pyc
@@ -19,6 +20,10 @@ all: check
 # Run all tests, exluding those that need pyenv
 check:
 	cd test && nosetests
+
+#: Check across all Python versions
+check-all:
+	bash ./admin-tools/check-versions.sh
 
 #: Clean up temporary files and .pyc files
 clean: clean_pyc
