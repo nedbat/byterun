@@ -145,7 +145,9 @@ class ByteOp26():
     # Building
 
     def BUILD_TUPLE(self, count):
-        """Creates a tuple consuming count items from the stack, and pushes the resulting tuple onto the stack."""
+        """Creates a tuple consuming count items from the stack, and pushes
+        the resulting tuple onto the stack.
+        """
         elts = self.vm.popn(count)
         self.vm.push(tuple(elts))
 
@@ -160,8 +162,12 @@ class ByteOp26():
         self.vm.push(set(elts))
 
     def BUILD_MAP(self, size):
-        """Pushes a new dictionary object onto the stack. The dictionary is pre-sized to hold count entries."""
-        # "size" is ignored; In contrast to C, in Python, the default dictionary type has no notion of allocation size.
+        """
+        Pushes a new dictionary object onto the stack. The dictionary is
+        pre-sized to hold count entries.
+        """
+        # "size" is ignored; In contrast to C, in Python, the default dictionary type has no
+        # notion of allocation size.
         self.vm.push({})
 
     # end BUILD_ operators
@@ -418,6 +424,58 @@ s        """
         """
         name, bases, methods = self.vm.popn(3)
         self.vm.push(type(name, bases, methods))
+
+    def WITH_CLEANUP(self):
+        """Cleans up the stack when a "with" statement block exits. On top of
+        the stack are 1–3 values indicating how/why the finally clause
+        was entered:
+
+        * TOP = None
+        * (TOP, SECOND) = (WHY_{RETURN,CONTINUE}), retval
+        * TOP = WHY_*; no retval below it
+        * (TOP, SECOND, THIRD) = exc_info()
+
+        Under them is EXIT, the context manager’s __exit__() bound method.
+
+        In the last case, EXIT(TOP, SECOND, THIRD) is called,
+        otherwise EXIT(None, None, None).
+
+        EXIT is removed from the stack, leaving the values above it in
+        the same order. In addition, if the stack represents an
+        exception, and the function call returns a ‘true’ value, this
+        information is “zapped”, to prevent END_FINALLY from
+        re-raising the exception. (But non-local gotos should still be
+        resumed.)
+
+        All of the following opcodes expect arguments. An argument is
+        two bytes, with the more significant byte last.
+        """
+        # The code here does some weird stack manipulation: the __exit__ function
+        # is buried in the stack, and where depends on what's on top of it.
+        # Pull out the exit function, and leave the rest in place.
+        # In Python 3.x this is fixed up so that the __exit__ funciton os TOS
+        v = w = None
+        u = self.vm.top()
+        if u is None:
+            exit_func = self.vm.pop(1)
+        elif isinstance(u, str):
+            if u in ("return", "continue"):
+                exit_func = self.vm.pop(2)
+            else:
+                exit_func = self.vm.pop(1)
+            u = None
+        elif issubclass(u, BaseException):
+            w, v, u = self.vm.popn(3)
+            exit_func = self.vm.pop()
+            self.vm.push(w, v, u)
+        else:  # pragma: no cover
+            raise self.VirtualMachineError("Confused WITH_CLEANUP")
+        exit_ret = exit_func(u, v, w)
+        err = (u is not None) and bool(exit_ret)
+        if err:
+            # An error occurred, and was suppressed
+            self.vm.popn(3)
+            self.vm.push(None)
 
     def MAKE_FUNCTION(self, argc):
         if self.version >= 3.0:

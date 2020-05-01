@@ -33,6 +33,16 @@ class ByteOp34(ByteOp33):
     # our own kind of xpython.pyobj.Function object.
     #
     def MAKE_FUNCTION(self, argc):
+        """
+        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of
+
+        * argc & 0xFF default argument objects in positional order
+        * (argc >> 8) & 0xFF pairs of name and default argument, with the name just below the object on the stack, for keyword-only parameters
+        * (argc >> 16) & 0x7FFF parameter annotation objects
+        * a tuple listing the parameter names for the annotations (only if there are ony annotation objects)
+        * the code associated with the function (at TOS1)
+        * the qualified name of the function (at TOS)
+        """
         name = self.vm.pop()
         code = self.vm.pop()
         defaults = self.vm.popn(argc)

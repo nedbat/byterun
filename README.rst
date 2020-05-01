@@ -27,7 +27,7 @@ also with the ability to step bytecode instructions.
 Status:
 +++++++
 
-Currently only Python 2.6, 2.7, 3.3 and Python 3.3 bytecode is well
+Currently only Python 2.6 - 2.7, and 3.3 - 3.5 bytecode is well
 understood.  Other versions will start to appear with the help of
 `xdis`.
 

@@ -47,6 +47,13 @@ class VirtualMachine(object):
         self.last_exception = None
         self.version = python_version
 
+        # This is somewhat hoaky:
+        # Give byteop routines a way to raise an error, without having
+        # to import this file. We import from from byteops.
+        # Alternatively, VirtualMachineError could be
+        # pulled out of this file
+        self.VirtualMachineError = VirtualMachineError
+
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)
@@ -67,6 +74,9 @@ class VirtualMachine(object):
             elif int_vers == 34:
                 from xpython.byteop.byteop34 import ByteOp34
                 self.byteop = ByteOp34(self)
+            elif int_vers == 35:
+                from xpython.byteop.byteop35 import ByteOp35
+                self.byteop = ByteOp35(self)
             else:
                 self.byteop = None
 
@@ -276,7 +286,7 @@ class VirtualMachine(object):
 
                 if not bytecode_fn:  # pragma: no cover
                     raise VirtualMachineError("Unknown bytecode type: %s\n\t%s" %
-                                              instruction_info(), byteName)
+                                              (instruction_info(), byteName))
                 why = bytecode_fn(*arguments)
 
         except:
@@ -443,6 +453,9 @@ class VirtualMachine(object):
         "OR": operator.or_,
     }
 
+    if PYTHON_VERSION >= 3.5:
+        BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
+
     def binaryOperator(self, op):
         x, y = self.popn(2)
         self.push(self.BINARY_OPERATORS[op](x, y))
@@ -473,6 +486,9 @@ class VirtualMachine(object):
             x ^= y
         elif op == "OR":
             x |= y
+        # 3.5 on
+        elif op == "MATRIX_MULTIPLY":
+            operator.imatmul(x, y)
         else:  # pragma: no cover
             raise VirtualMachineError("Unknown in-place operator: %r" % op)
         self.push(x)
@@ -668,47 +684,6 @@ class VirtualMachine(object):
         elif PYTHON3:
             self.push_block("finally", dest)
         self.push(ctxmgr_obj)
-
-    def byte_WITH_CLEANUP(self):
-        # The code here does some weird stack manipulation: the exit function
-        # is buried in the stack, and where depends on what's on top of it.
-        # Pull out the exit function, and leave the rest in place.
-        v = w = None
-        u = self.top()
-        if u is None:
-            exit_func = self.pop(1)
-        elif isinstance(u, str):
-            if u in ("return", "continue"):
-                exit_func = self.pop(2)
-            else:
-                exit_func = self.pop(1)
-            u = None
-        elif issubclass(u, BaseException):
-            if PY2:
-                w, v, u = self.popn(3)
-                exit_func = self.pop()
-                self.push(w, v, u)
-            elif PYTHON3:
-                w, v, u = self.popn(3)
-                tp, exc, tb = self.popn(3)
-                exit_func = self.pop()
-                self.push(tp, exc, tb)
-                self.push(None)
-                self.push(w, v, u)
-                block = self.pop_block()
-                assert block.type == "except-handler"
-                self.push_block(block.type, block.handler, block.level - 1)
-        else:  # pragma: no cover
-            raise VirtualMachineError("Confused WITH_CLEANUP")
-        exit_ret = exit_func(u, v, w)
-        err = (u is not None) and bool(exit_ret)
-        if err:
-            # An error occurred, and was suppressed
-            if PY2:
-                self.popn(3)
-                self.push(None)
-            elif PYTHON3:
-                self.push("silenced")
 
     ## Functions
 
