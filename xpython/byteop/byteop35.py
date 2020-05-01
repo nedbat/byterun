@@ -119,11 +119,18 @@ class ByteOp35(ByteOp34):
         if TOS is None:
             exit_func = self.vm.pop(1)
         elif isinstance(TOS, str):
+            # FIXME: This code does something funky with pushing "continue"
+            # See the comment under CONTINUE_LOOP.
+            # jump addresses on the frame stack. As a result, we need to
+            # set up here something to make END_FINALLY work and remove
+            # the jump address. This means that the comment or semantics
+            # described above isn't strictly correct.
             if TOS in ("return", "continue"):
                 exit_func = self.vm.pop(2)
+                second = TOS
             else:
                 exit_func = self.vm.pop(1)
-            second = None
+                second = None
         elif issubclass(TOS, BaseException):
             fourth, third, second = self.vm.popn(3)
             tp, exc, tb = self.vm.popn(3)
@@ -135,8 +142,8 @@ class ByteOp35(ByteOp34):
         else:
             pass
         exit_ret = exit_func(second, third, fourth)
-        self.vm.push(second)
         self.vm.push(exit_ret)
+        self.vm.push(second)
 
     def WITH_CLEANUP_FINISH(self):
         """Pops exception type and result of "exit" function call from the stack.
@@ -153,4 +160,5 @@ class ByteOp35(ByteOp34):
             # An error occurred, and was suppressed
             self.vm.push("silenced")
         else:
+            self.vm.pop(1)
             pass

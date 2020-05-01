@@ -251,8 +251,8 @@ class VirtualMachine(object):
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
 
-        log.debug("  %sdata: %s" % (indent, stack_rep))
-        log.debug("  %sblks: %s" % (indent, block_stack_rep))
+        log.debug("  %sframe.stack: %s" % (indent, stack_rep))
+        log.debug("  %sblocks     : %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
     def dispatch(self, byteName, arguments, opoffset):
@@ -405,7 +405,7 @@ class VirtualMachine(object):
         self.pop_frame()
 
         if why == "exception":
-            if self.last_exception:
+            if self.last_exception and self.last_exception[0]:
                 six.reraise(*self.last_exception)
             else:
                 raise VirtualMachineError("Borked exception recording")

@@ -50,6 +50,8 @@ class VmTestCase(unittest.TestCase):
             self.version = 3.3
         elif PYTHON_VERSION == 3.4:
             self.version = 3.4
+        elif PYTHON_VERSION == 3.5:
+            self.version = 3.5
         else:
             assert PYTHON_VERSION == 2.7
             self.version = 2.7
