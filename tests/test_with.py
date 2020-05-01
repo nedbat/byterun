@@ -1,36 +1,18 @@
-"""Test the with statement for Byterun."""
+"""Test the "with" statement for xpython."""
 
 from __future__ import print_function
-from . import vmtest
 
-import six
-PY3 = six.PY3
+try:
+    import vmtest
+except ImportError:
+    from . import vmtest
+
+from xdis import PYTHON3
 
 class TestWithStatement(vmtest.VmTestCase):
 
     def test_simple_context_manager(self):
-        self.assert_ok("""\
-            class NullContext(object):
-                def __enter__(self):
-                    l.append('i')
-                    # __enter__ usually returns self, but doesn't have to.
-                    return 17
-
-                def __exit__(self, exc_type, exc_val, exc_tb):
-                    l.append('o')
-                    return False
-
-            l = []
-            for i in range(3):
-                with NullContext() as val:
-                    assert val == 17
-                    l.append('w')
-                l.append('e')
-            l.append('r')
-            s = ''.join(l)
-            print("Look: %r" % s)
-            assert s == "iwoeiwoeiwoer"
-            """)
+        self.do_one()
 
     def test_raise_in_context_manager(self):
         self.assert_ok("""\
@@ -310,7 +292,7 @@ class TestWithStatement(vmtest.VmTestCase):
                 assert x == 17
             """)
 
-    if PY3:
+    if PYTHON3:
         def test_generator_with_context_manager(self):
             self.assert_ok("""\
                 from contextlib import contextmanager
