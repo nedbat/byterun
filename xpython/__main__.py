@@ -1,44 +1,37 @@
 """A main program for xpython."""
 
-from xdis import PYTHON_VERSION
-import argparse
+import click
 import logging
 
 from xpython import execfile
+from xpython.version import VERSION
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog="xpython",
-        description="Run Python programs with a Python bytecode interpreter.",
-    )
-    parser.add_argument(
-        '-m', dest='module', action='store_true',
-        help="prog is a module name, not a file name.",
-    )
-    parser.add_argument(
-        '-v', '--verbose', dest='verbose', action='store_true',
-        help="trace the execution of the bytecode.",
-    )
-    parser.add_argument(
-        'prog',
-        help="The program to run.",
-    )
-    parser.add_argument(
-        'args', nargs=argparse.REMAINDER,
-        help="Arguments to pass to the program.",
-    )
-    args = parser.parse_args()
-
-    if args.module:
+@click.command()
+@click.version_option(version=VERSION)
+@click.option("-m", "--module", default=False,
+              help="PATH is a module name, not a Python main program")
+@click.option("-d", "--debug-level", default=0,
+              help="debug output level in running")
+@click.argument("path", nargs=1, type=click.Path(readable=True), required=True)
+@click.argument("args", nargs=-1)
+def main(module, debug_level, path, args):
+    """
+    Runs Python programs or bytecode using a bytecode interpreter written in Python.
+    """
+    if module:
         run_fn = execfile.run_python_module
     else:
         run_fn = execfile.run_python_file
 
-    level = logging.DEBUG if args.verbose else logging.WARNING
+    if debug_level > 1:
+        level = logging.DEBUG
+    elif debug_level == 1:
+        level = logging.INFO
+    else:
+        level = logging.WARNING
     logging.basicConfig(level=level)
 
-    argv = [args.prog] + args.args
-    run_fn(args.prog, argv)
+    run_fn(path, args)
 
 if __name__ == "__main__":
-    main()
+    main(auto_envvar_prefix="XPYTHON")

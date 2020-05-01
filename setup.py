@@ -2,14 +2,28 @@
 
 from distutils.core import setup
 
+from __pkginfo__ import (
+    author,
+    author_email,
+    entry_points,
+    install_requires,
+    long_description,
+    classifiers,
+    short_desc,
+    VERSION,
+    url,
+)
+
 setup(
-    name='xpython',
-    version='1.0.0',
-    description='Pure-Python Python bytecode execution',
-    author='Rocky Bernstein, Ned Batchelder, Paul Swartz, Allison Kaptur and others',
-    author_email='rb@dustyfeet.com',
-    url='http://github.com/rocky/xpython',
-    packages=['xpython'],
-    entry_points = {"console_scripts": ["xpython=xpython.__main__:main"]},
-    install_requires=["six", "xdis"],
-    )
+    name="xpython",
+    version=VERSION,
+    author=author,
+    author_email=author_email,
+    description=short_desc,
+    entry_points=entry_points,
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
+    packages=["xpython"],
+    install_requires=install_requires,
+    url=url,
+)
