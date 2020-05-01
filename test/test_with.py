@@ -94,30 +94,7 @@ class TestWithStatement(vmtest.VmTestCase):
             """)
 
     def test_continue_in_with(self):
-        self.assert_ok("""\
-            class NullContext(object):
-                def __enter__(self):
-                    l.append('i')
-                    return self
-
-                def __exit__(self, exc_type, exc_val, exc_tb):
-                    l.append('o')
-                    return False
-
-            l = []
-            for i in range(3):
-                with NullContext():
-                    l.append('w')
-                    if i % 2:
-                       continue
-                    l.append('z')
-                l.append('e')
-
-            l.append('r')
-            s = ''.join(l)
-            print("Look: %r" % s)
-            assert s == "iwzoeiwoiwzoer"
-            """)
+        self.do_one()
 
     def test_break_in_with(self):
         self.assert_ok("""\

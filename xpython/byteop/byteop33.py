@@ -41,7 +41,7 @@ class ByteOp33(ByteOp27):
         """Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class."""
         self.vm.push(__build_class__)
 
-    # This opcode disappears starting in 3.5
+    # This opcode is replaced by WITH_CLEANUP_START and WITH_CLEANUP_FINISH in in 3.5
     def WITH_CLEANUP(self):
         """Cleans up the stack when a `with` statement block exits. TOS is the
         context manager's `__exit__()` bound method.

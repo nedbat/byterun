@@ -5,7 +5,6 @@
 from __future__ import print_function, division
 from xdis import PYTHON3, PYTHON_VERSION
 from xdis.op_imports import get_opcode_module
-import inspect
 import linecache
 import logging
 import operator
@@ -570,6 +569,11 @@ class VirtualMachine(object):
         return "continue"
 
     def byte_END_FINALLY(self):
+        """
+        Terminates a "finally" clause. The interpreter recalls whether the
+        exception has to be re-raised, or whether the function
+        returns, and continues with the outer-next block.
+        """
         v = self.pop()
         if isinstance(v, str):
             why = v

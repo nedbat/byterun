@@ -417,6 +417,35 @@ s        """
         for i in [1, 2]:
             self.vm.push(*items)
 
+    # Not ready for prime time.
+    # def END_FINALLY(self):
+    #     """
+    #     Terminates a "finally" clause. The interpreter recalls whether the
+    #     exception has to be re-raised, or whether the function
+    #     returns, and continues with the outer-next block.
+    #     """
+    #     v = self.vm.pop()
+    #     if isinstance(v, str):
+    #         why = v
+    #         if why in ("return", "continue"):
+    #             self.return_value = self.vm.pop()
+    #         if why == "silenced":  # PYTHON3
+    #             block = self.vm.pop_block()
+    #             assert block.type == "except-handler"
+    #             self.vm.unwind_block(block)
+    #             why = None
+    #     elif v is None:
+    #         why = None
+    #     elif issubclass(v, BaseException):
+    #         exctype = v
+    #         val = self.vm.pop()
+    #         tb = self.vm.pop()
+    #         self.last_exception = (exctype, val, tb)
+    #         why = "reraise"
+    #     else:  # pragma: no cover
+    #         raise self.VirtualMachineError("Confused END_FINALLY")
+    #     return why
+
     def BUILD_CLASS(self):
         """
         Creates a new class object. TOS is the methods dictionary, TOS1 the
@@ -425,6 +454,7 @@ s        """
         name, bases, methods = self.vm.popn(3)
         self.vm.push(type(name, bases, methods))
 
+    # This opcode changes in 3.3
     def WITH_CLEANUP(self):
         """Cleans up the stack when a "with" statement block exits. On top of
         the stack are 1–3 values indicating how/why the finally clause

@@ -91,11 +91,6 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        try:
-            self.version
-        except:
-            from trepan.api import debug; debug()
-
         if self.version < 3.0 and self.func_name in [
             "<setcomp>",
             "<dictcomp>",

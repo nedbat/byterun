@@ -2,9 +2,6 @@
 """
 from __future__ import print_function, division
 
-import inspect
-import types
-
 from xpython.byteop.byteop26 import ByteOp26
 from xpython.byteop.byteop33 import ByteOp33
 from xpython.byteop.byteop34 import ByteOp34
@@ -77,31 +74,83 @@ class ByteOp35(ByteOp34):
         mappings, the relative position of the corresponding callable
         f is encoded in the second byte of oparg.
         """
-        arg, count = divmod(arg, 256)
+        arg, count = divmod(oparg, 256)
         elts = self.vm.popn(count)
         kwargs = {k:v for m in elts for k, v in m.items()}
         # FIXME: This is probably not right
         self.vm.call_function(arg, 0, kwargs)
 
 
-        def GET_AITER(self):
-            raise self.VirtualMachineError("GET_AITER not implemented yet")
+    def GET_AITER(self):
+        raise self.VirtualMachineError("GET_AITER not implemented yet")
 
-        def GET_ANEXT(self):
-            raise self.VirtualMachineError("GET_ANEXT not implemented yet")
+    def GET_ANEXT(self):
+        raise self.VirtualMachineError("GET_ANEXT not implemented yet")
 
-        def BEFORE_ASYNC_WITH(self):
-            raise self.VirtualMachineError("BEFORE_ASYNC_WITH not implemented yet")
-            return
+    def BEFORE_ASYNC_WITH(self):
+        raise self.VirtualMachineError("BEFORE_ASYNC_WITH not implemented yet")
+        return
 
-        def GET_YIELD_FROM_ITER(self):
-            raise self.VirtualMachineError("GET_YIELD_FROM_ITER not implemented yet")
+    def GET_YIELD_FROM_ITER(self):
+        raise self.VirtualMachineError("GET_YIELD_FROM_ITER not implemented yet")
 
-        def GET_AWAITABLE(self):
-            raise self.VirtualMachineError("GET_AWAITABLE not implemented yet")
+    def GET_AWAITABLE(self):
+        raise self.VirtualMachineError("GET_AWAITABLE not implemented yet")
 
-        def WITH_CLEANUP_START(self):
-            raise self.VirtualMachineError("WITH_CLEANUP_START not implemented yet")
+    def WITH_CLEANUP_START(self):
+        """Cleans up the stack when a with statement block exits.
 
-        def WITH_CLEANUP_FINISH(self):
-            raise self.VirtualMachineError("WITH_CLEANUP_FINISH not implemented yet")
+        TOS is the context manager’s __exit__() bound method. Below
+        TOS are 1–3 values indicating how/why the finally clause was
+        entered:
+
+        * SECOND = None
+        * (SECOND, THIRD) = (WHY_{RETURN,CONTINUE}), retval
+        * SECOND = WHY_*; no retval below it
+        * (SECOND, THIRD, FOURTH) = exc_info()
+
+        In the last case, TOS(SECOND, THIRD, FOURTH) is called,
+        otherwise TOS(None, None, None). Pushes SECOND and result of the call
+        to the stack.  Cleans up the stack when a `with` statement block
+        exits. TOS is the context manager's `__exit__()` bound method.
+        """
+        second = third = fourth = None
+        TOS = self.vm.top()
+        if TOS is None:
+            exit_func = self.vm.pop(1)
+        elif isinstance(TOS, str):
+            if TOS in ("return", "continue"):
+                exit_func = self.vm.pop(2)
+            else:
+                exit_func = self.vm.pop(1)
+            second = None
+        elif issubclass(TOS, BaseException):
+            fourth, third, second = self.vm.popn(3)
+            tp, exc, tb = self.vm.popn(3)
+            self.vm.push(None)
+            self.vm.push(fourth, third, second)
+            block = self.vm.pop_block()
+            assert block.type == "except-handler"
+            self.vm.push_block(block.type, block.handler, block.level - 1)
+        else:
+            pass
+        exit_ret = exit_func(second, third, fourth)
+        self.vm.push(second)
+        self.vm.push(exit_ret)
+
+    def WITH_CLEANUP_FINISH(self):
+        """Pops exception type and result of "exit" function call from the stack.
+
+        If the stack represents an exception, and the function call
+        returns a ‘true’ value, this information is "zapped" and
+        replaced with a single WHY_SILENCED to prevent END_FINALLY
+        from re-raising the exception. (But non-local gotos will still
+        be resumed.)
+        """
+        # FIXME: Not sure what this is supposed to be
+        exit_ret = self.vm.pop(1)
+        if bool(exit_ret):
+            # An error occurred, and was suppressed
+            self.vm.push("silenced")
+        else:
+            pass

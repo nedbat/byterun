@@ -23,7 +23,7 @@ check:
 #: Clean up temporary files and .pyc files
 clean: clean_pyc
 	$(PYTHON) ./setup.py $@
-	find . -name __pycache__ -exec rm -fr {} || true \;
+	find . -name __pycache__ -exec rm -fr {} \; || true
 
 #: Create source (tarball) and wheel distribution
 dist: clean
@@ -31,7 +31,7 @@ dist: clean
 
 #: Remove .pyc files
 clean_pyc:
-	( cd xdis && $(RM) -f *.pyc */*.pyc )
+	( cd xpython && $(RM) -f *.pyc */*.pyc )
 
 #: Create source tarball
 sdist:
@@ -42,11 +42,11 @@ lint: flake8
 
 #: Check StructuredText long description formatting
 check-rst:
-	$(PYTHON) setup.py --long-description | rst2html.py > xbyterun-trepan.html
+	$(PYTHON) setup.py --long-description | rst2html.py > xpython.html
 
 #: Lint program
 flake8:
-	$(LINT) xdis
+	$(LINT) xpython
 
 #: Create binary egg distribution
 bdist_egg:
