@@ -2,11 +2,11 @@ language: python
 
 python:
   - '2.7'
-  - '3.3'
+  - '3.4'
 
 matrix:
   include:
-    - python: '3.3'
+    - python: '3.4'
       dist: xenial  # Has older Pythons
 
 install:
