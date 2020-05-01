@@ -193,40 +193,48 @@ class VirtualMachine(object):
         an instruction and optionally arguments."""
         f = self.frame
         opoffset = f.f_lasti
-        byteCode = byteint(f.f_code.co_code[opoffset])
+        line_number = self.linestarts.get(opoffset, None)
+        f_code = f.f_code
+        co_code = f_code.co_code
+        byteCode = byteint(co_code[opoffset])
         f.f_lasti += 1
         byteName = self.opc.opname[byteCode]
         arg = None
         arguments = []
         if byteCode >= self.opc.HAVE_ARGUMENT:
-            arg = f.f_code.co_code[f.f_lasti : f.f_lasti + 2]
+            arg = co_code[f.f_lasti : f.f_lasti + 2]
             f.f_lasti += 2
             intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
             if byteCode in self.opc.CONST_OPS:
-                arg = f.f_code.co_consts[intArg]
+                arg = f_code.co_consts[intArg]
             elif byteCode in self.opc.FREE_OPS:
-                if intArg < len(f.f_code.co_cellvars):
-                    arg = f.f_code.co_cellvars[intArg]
+                if intArg < len(f_code.co_cellvars):
+                    arg = f_code.co_cellvars[intArg]
                 else:
                     var_idx = intArg - len(f.f_code.co_cellvars)
-                    arg = f.f_code.co_freevars[var_idx]
+                    arg = f_code.co_freevars[var_idx]
             elif byteCode in self.opc.NAME_OPS:
-                arg = f.f_code.co_names[intArg]
+                arg = f_code.co_names[intArg]
             elif byteCode in self.opc.JREL_OPS:
                 arg = f.f_lasti + intArg
             elif byteCode in self.opc.JABS_OPS:
                 arg = intArg
             elif byteCode in self.opc.LOCAL_OPS:
-                arg = f.f_code.co_varnames[intArg]
+                arg = f_code.co_varnames[intArg]
             else:
                 arg = intArg
             arguments = [arg]
 
-        return byteName, arguments, opoffset
+        return byteName, arguments, opoffset, line_number
 
-    def log(self, byteName, arguments, opoffset):
+    def log(self, byteName, arguments, opoffset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
-        op = "%d: %s" % (opoffset, byteName)
+        if line_number is not None:
+            op = "Line %4d, " % line_number
+        else:
+            op = " " * 11
+
+        op += "%d: %s" % (opoffset, byteName)
         if arguments:
             op += " %r" % (arguments[0],)
         indent = "    " * (len(self.frames) - 1)
@@ -337,11 +345,14 @@ class VirtualMachine(object):
 
         """
         self.push_frame(frame)
+        self.f_code = self.frame.f_code
+        self.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
+
         opoffset = 0
         while True:
-            byteName, arguments, opoffset = self.parse_byte_and_args()
+            byteName, arguments, opoffset, line_number = self.parse_byte_and_args()
             if log.isEnabledFor(logging.INFO):
-                self.log(byteName, arguments, opoffset)
+                self.log(byteName, arguments, opoffset, line_number)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
