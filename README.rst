@@ -1,6 +1,6 @@
 |buildstatus|
 
-xpython
+x-python
 --------
 
 This is a C Python interpreter written Python.
@@ -11,8 +11,8 @@ You can use this to:
   Learn about the CPython internals in Python instead of C!
 * Use as a sandboxed environment inside a debugger for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
-  For example running simple Python 2.6 bytecode from Python 3.7.
-  No need to install Python 2.6!
+  For example, run simple Python 2.5 and 2.6 bytecode from Python 3.7.
+  No need to install Python 2.5 or 2.6!
 
 The sandboxed sandboxed environment in a debugger I find
 interesting. Since there is a separate execution, and traceback stack,

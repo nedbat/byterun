@@ -11,8 +11,7 @@ import sys
 import six
 from six.moves import reprlib
 
-from xdis import PYTHON3, PYTHON_VERSION, instruction_size, op_has_argument
-from xdis.util import code2num
+from xdis import PYTHON3, PYTHON_VERSION
 from xdis.op_imports import get_opcode_module
 
 from xpython.pyobj import Frame, Block, Function, Generator
@@ -57,7 +56,6 @@ class VirtualMachine(object):
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)
-        self.extended_arg_size = instruction_size(self.opc.EXTENDED_ARG, self.opc)
         if int_vers < 30:
             if int_vers == 27:
                 from xpython.byteop.byteop27 import ByteOp27
@@ -65,6 +63,10 @@ class VirtualMachine(object):
             elif int_vers == 26:
                 from xpython.byteop.byteop26 import ByteOp26
                 self.byteop = ByteOp26(self)
+                pass
+            elif int_vers == 25:
+                from xpython.byteop.byteop25 import ByteOp25
+                self.byteop = ByteOp25(self)
                 pass
             pass
         else:
@@ -202,61 +204,39 @@ class VirtualMachine(object):
     def parse_byte_and_args(self):
         """ Parse 1 - 3 bytes of bytecode into
         an instruction and optionally arguments."""
-
         f = self.frame
+        opoffset = f.f_lasti
+        line_number = self.linestarts.get(opoffset, None)
         f_code = f.f_code
         co_code = f_code.co_code
-        extended_arg = 0
-
-        while True:
-            opoffset = f.f_lasti
-            line_number = self.linestarts.get(opoffset, None)
-            byteCode = byteint(co_code[opoffset])
-            byteName = self.opc.opname[byteCode]
-            f.f_lasti += 1
-            arg = None
-            arguments = []
-            if op_has_argument(byteCode, self.opc):
-                if PYTHON_VERSION >= 3.6:
-                    intArg = code2num(co_code, f.f_lasti) | extended_arg
-                    # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
-                    f.f_lasti += 1
-                    if byteCode == self.opc.EXTENDED_ARG:
-                        extended_arg = (intArg << 8)
-                        continue
-                    else:
-                        extended_arg = 0
+        byteCode = byteint(co_code[opoffset])
+        f.f_lasti += 1
+        byteName = self.opc.opname[byteCode]
+        arg = None
+        arguments = []
+        if byteCode >= self.opc.HAVE_ARGUMENT:
+            arg = co_code[f.f_lasti : f.f_lasti + 2]
+            f.f_lasti += 2
+            intArg = byteint(arg[0]) + (byteint(arg[1]) << 8)
+            if byteCode in self.opc.CONST_OPS:
+                arg = f_code.co_consts[intArg]
+            elif byteCode in self.opc.FREE_OPS:
+                if intArg < len(f_code.co_cellvars):
+                    arg = f_code.co_cellvars[intArg]
                 else:
-                    intArg = code2num(co_code, f.f_lasti) + code2num(co_code, f.f_lasti+1)*256 + extended_arg
-                    f.f_lasti += 2
-                    if byteCode == self.opc.EXTENDED_ARG:
-                        extended_arg = intArg*65536
-                        continue
-                    else:
-                        extended_arg = 0
-
-                if byteCode in self.opc.CONST_OPS:
-                    arg = f_code.co_consts[intArg]
-                elif byteCode in self.opc.FREE_OPS:
-                    if intArg < len(f_code.co_cellvars):
-                        arg = f_code.co_cellvars[intArg]
-                    else:
-                        var_idx = intArg - len(f.f_code.co_cellvars)
-                        arg = f_code.co_freevars[var_idx]
-                elif byteCode in self.opc.NAME_OPS:
-                    arg = f_code.co_names[intArg]
-                elif byteCode in self.opc.JREL_OPS:
-                    arg = f.f_lasti + intArg
-                elif byteCode in self.opc.JABS_OPS:
-                    arg = intArg
-                elif byteCode in self.opc.LOCAL_OPS:
-                    arg = f_code.co_varnames[intArg]
-                else:
-                    arg = intArg
-                arguments = [arg]
-            elif PYTHON_VERSION >= 3.6:
-                f.f_lasti += 1
-            break
+                    var_idx = intArg - len(f.f_code.co_cellvars)
+                    arg = f_code.co_freevars[var_idx]
+            elif byteCode in self.opc.NAME_OPS:
+                arg = f_code.co_names[intArg]
+            elif byteCode in self.opc.JREL_OPS:
+                arg = f.f_lasti + intArg
+            elif byteCode in self.opc.JABS_OPS:
+                arg = intArg
+            elif byteCode in self.opc.LOCAL_OPS:
+                arg = f_code.co_varnames[intArg]
+            else:
+                arg = intArg
+            arguments = [arg]
 
         return byteName, arguments, opoffset, line_number
 
@@ -274,8 +254,8 @@ class VirtualMachine(object):
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
 
-        log.debug("  %sframe.stack: %s" % (indent, stack_rep))
-        log.debug("  %sblocks     : %s" % (indent, block_stack_rep))
+        log.debug("  %sdata: %s" % (indent, stack_rep))
+        log.debug("  %sblks: %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
     def dispatch(self, byteName, arguments, opoffset):
@@ -428,7 +408,7 @@ class VirtualMachine(object):
         self.pop_frame()
 
         if why == "exception":
-            if self.last_exception and self.last_exception[0]:
+            if self.last_exception:
                 six.reraise(*self.last_exception)
             else:
                 raise VirtualMachineError("Borked exception recording")

@@ -2,11 +2,12 @@
 """
 from __future__ import print_function, division
 
+from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop26 import ByteOp26
 
 # Gone since 2.6
-del ByteOp26.JUMP_IF_FALSE
-del ByteOp26.JUMP_IF_TRUE
+del ByteOp25.JUMP_IF_FALSE
+del ByteOp25.JUMP_IF_TRUE
 
 class ByteOp27(ByteOp26):
     def __init__(self, vm):
