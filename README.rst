@@ -1,4 +1,4 @@
-|buildstatus|
+|TravisCI| |CircleCI|
 
 x-python
 --------
@@ -75,5 +75,7 @@ a Python bytecode execution virtual machine.  Net Batchelder started
 it (based on work from Paul Swartz) to get a better understanding of
 bytecodes so he could fix branch coverage bugs in coverage.py.
 
-.. |buildstatus| image:: https://circleci.com/gh/rocky/x-python.svg?style=svg
-    :target: https://circleci.com/gh/rocky/x-python
+.. |CircleCI| image:: https://circleci.com/gh/rocky/xpython.svg?style=svg
+    :target: https://circleci.com/gh/rocky/xpython
+.. |TravisCI| image:: https://travis-ci.org/rocky/xpython.svg?branch=master
+		 :target: https://travis-ci.org/rocky/xpython
