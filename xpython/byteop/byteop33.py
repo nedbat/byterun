@@ -47,7 +47,8 @@ class ByteOp33(ByteOp27):
         code = self.vm.pop()
         if annotate_count:
             annotate_names = self.vm.pop()
-            annotate_objects = self.vm.popn(annotate_count)
+            # annotate count includes +1 for the above names
+            annotate_objects = self.vm.popn(annotate_count - 1)
             n = len(annotate_names)
             assert n == len(annotate_objects)
             annotations = {annotate_names[i]:annotate_objects[i] for i in range(n)}
