@@ -1,4 +1,4 @@
-1.0.0 2020-05-02 Segundo de mayo
+1.0.1 2020-05-02 Segundo de mayo
 ================================
 
 A One oh release - you know what that means.
@@ -18,3 +18,5 @@ The level of verbosity on `nosetest -s` has been reduced by removing the disasse
 Some of the bugs in `MAKE_FUNCTION` have been fixed. (It is expect that these would appear since Python function signatures are complicated the internal have changed numerous times between releases.
 
 Some command options have now change. Of note is `-v` is now `--debug-level`, `-d` which takes an integer parameter which specifies the level of verbosity. `-d1` gives a trace of instructions while `-d2` includes the block and evaluation stack. In general I'll try to follow the Python command options, and `-d`, not `-v` is what CPython uses.
+
+(The packaging in 1.0.0 got botched, hence we start with 1.0.1)

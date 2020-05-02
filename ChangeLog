@@ -1,3 +1,18 @@
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, MANIFEST.in, NEWS.md, __pkginfo__.py,
+	admin-tools/how-to-make-a-release.md, setup.py, xpython/version.py: 
+	Get ready for release 1.0.1
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, MANIFEST.in, NEWS.md, __pkginfo__.py,
+	admin-tools/how-to-make-a-release.md, setup.py,
+	test/examples/test_generator_with_context_manager.py,
+	xpython/__main__.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/pyvm2.py: Get ready for release 1.0.0
+
 2020-05-02  rocky <rb@dustyfeet.com>
 
 	* README.rst: Doc fixes

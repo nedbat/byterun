@@ -34,10 +34,10 @@
 #  Update NEWS.md from ChangeLog. Then:
 
     $ emacs NEWS.md
-    $ make check
+    $ remake -c check
     $ git commit --amend .
     $ git push   # get CI testing going early
-    $ make check-full
+    $ remake -c check-full
 
 # Update NEWS.md from master branch
 
@@ -45,15 +45,16 @@
 
 # Make packages and tag
 
-    $ . ./admin-tools/make-dist.sh
+    $ ./admin-tools/make-dist.sh
 	$ twine check dist/x-python-$VERSION*
 
 Goto https://github.com/rocky/x-python/releases/new
 
 
-# Upload
+# Check and Upload
 
-	$ twine upload dist/xdis-${VERSION}*
+	$ twine check dist/x?python-${VERSION}*
+	$ twine upload dist/x?python-${VERSION}*
 
 Check on https://pypi.org/project/x-python/
 

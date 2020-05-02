@@ -6,5 +6,6 @@ include ChangeLog
 include __pkginfo__.py
 include setup.py
 recursive-include xpython *.py
+recursive-include xpython/byteop *.py
 recursive-include test *.py
 recursive-exclude test __pycache__
