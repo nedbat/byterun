@@ -1,5 +1,5 @@
-author='Rocky Bernstein, Ned Batchelder, Paul Swartz, Allison Kaptur and others',
-author_email='rb@dustyfeet.com',
+author='Rocky Bernstein, Ned Batchelder, Paul Swartz, Allison Kaptur and others'
+author_email='rb@dustyfeet.com'
 entry_points = {"console_scripts": ["xpython=xpython.__main__:main"]}
 install_requires=["six", "xdis", "click"],
 short_desc = "Python cross-version byte-code interpeter"
@@ -9,7 +9,6 @@ classifiers = [
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.3",
     "Programming Language :: Python :: 3.4",
-    "Programming Language :: Python :: 3.5",
 ]
 import os.path as osp
 

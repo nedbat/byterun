@@ -2,6 +2,7 @@
 
 from distutils.core import setup
 
+from setuptools import setup
 from __pkginfo__ import (
     author,
     author_email,
@@ -18,13 +19,12 @@ setup(
     name="x-python",
     version=VERSION,
     author=author,
-    author_email = author_email,
-    classifiers = classifiers,
-    description = short_desc,
-    entry_points = entry_points,
-    long_description = long_description,
-    long_description_content_type = "text/x-rst",
-    packages = ["xpython"],
-    install_requires = install_requires,
-    url=url,
+    author_email=author_email,
+    description=short_desc,
+    entry_points=entry_points,
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
+    packages=["xpython"],
+    install_requires=install_requires,
+    url=url
 )

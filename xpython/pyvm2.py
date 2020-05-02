@@ -66,20 +66,31 @@ class VirtualMachine(object):
                 from xpython.byteop.byteop26 import ByteOp26
                 self.byteop = ByteOp26(self)
                 pass
+            elif int_vers == 25:
+                from xpython.byteop.byteop25 import ByteOp25
+                self.byteop = ByteOp25(self)
+                pass
             pass
         else:
             # 3.0 or greater
-            if int_vers == 33:
-                from xpython.byteop.byteop33 import ByteOp33
-                self.byteop = ByteOp33(self)
-            elif int_vers == 34:
-                from xpython.byteop.byteop34 import ByteOp34
-                self.byteop = ByteOp34(self)
-            elif int_vers == 35:
-                from xpython.byteop.byteop35 import ByteOp35
-                self.byteop = ByteOp35(self)
+            if int_vers < 34:
+                if int_vers == 32:
+                    from xpython.byteop.byteop32 import ByteOp32
+                    self.byteop = ByteOp32(self)
+                elif int_vers == 33:
+                    from xpython.byteop.byteop33 import ByteOp33
+                    self.byteop = ByteOp33(self)
+                else:
+                    self.byteop = None
             else:
-                self.byteop = None
+                if int_vers == 34:
+                    from xpython.byteop.byteop34 import ByteOp34
+                    self.byteop = ByteOp34(self)
+                elif int_vers == 35:
+                    from xpython.byteop.byteop35 import ByteOp35
+                    self.byteop = ByteOp35(self)
+                else:
+                    self.byteop = None
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
@@ -724,7 +735,7 @@ class VirtualMachine(object):
     ## Functions
 
     def byte_MAKE_CLOSURE(self, argc):
-        if PYTHON3:
+        if PYTHON_VERSION >= 3.3:
             # TODO: the py3 docs don't mention this change.
             name = self.pop()
         else:

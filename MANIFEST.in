@@ -1,0 +1,10 @@
+include README.rst
+include AUTHORS
+include CONTRIBUTE.rst
+include NEWS.md
+include ChangeLog
+include __pkginfo__.py
+include setup.py
+recursive-include xpython *.py
+recursive-include test *.py
+recursive-exclude test __pycache__

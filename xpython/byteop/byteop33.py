@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Byte Interpreter operations for Python 3.3
 """
 from __future__ import print_function, division

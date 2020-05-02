@@ -1,0 +1,1005 @@
+2020-05-02  rocky <rb@dustyfeet.com>
+
+	* README.rst: Doc fixes
+
+2020-05-02  rocky <rb@dustyfeet.com>
+
+	* .gitignore, xpython/pyvm2.py: Handle EXTENDED_ARGS and wordcode
+	too..  while we are at it. Use xdis to help out here.
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* Makefile, admin-tools/pyenv-versions,
+	test/examples/{create-bytecode.sh => add-test.sh},
+	test/examples/test_at_context_manager_complete.py,
+	test/examples/test_at_context_manager_simplified.py,
+	test/test_functions.py, test/test_with.py, test/vmtest.py,
+	xpython/__main__.py, xpython/byteop/byteop32.py, xpython/pyvm2.py: 
+	Fix some 3.2 bugs and add testing
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Expand travisCI
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* test/examples/create-bytecode.sh, test/vmtest.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/byteop/byteop35.py, xpython/execfile.py, xpython/pyobj.py,
+	xpython/pyvm2.py: Add basic 3.2 support
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* Makefile, xpython/byteop/byteop33.py, xpython/byteop/byteop35.py: 
+	Something weird happened...  Some code in byteop3{3,5} got deleted. Reinstate that.
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* .gitignore, AUTHORS, README.rst,
+	test/examples/create-bytecode.sh, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop33.py, xpython/byteop/byteop35.py,
+	xpython/execfile.py, xpython/pyvm2.py: Add Python 2.5 bytecode
+	reading support
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml, .gitignore, CONTRIBUTE.rst, Makefile,
+	README.rst, tox.ini: xpython -> x-python There is already an xpython (squatter) in PyPY.
+
+2020-05-02  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/pyvm2.py: Handle extended args and 3.6 word sizes
+
+2020-05-01  rocky <rb@dustyfeet.com>
+
+	* __pkginfo__.py, setup.py, test/examples/test_pos_args.py,
+	test/examples/test_raise_in_context_manager.py, test/test_args.py,
+	test/test_basic.py, test/test_basic_compat.py, test/test_with.py,
+	test/vmtest.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/pyobj.py: Python's whacky MAKE_FUNCTION
+
+2020-05-01  rocky <rb@dustyfeet.com>
+
+	* .travis.yml, admin-tools/pyenv-versions, test/.gitignore,
+	test/examples/test_attribute_access.py,
+	test/examples/test_continue_in_with.py, test/test_with.py,
+	test/vmtest.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop35.py, xpython/pyvm2.py: Start fixing "with"
+	and start 3.5 testing.
+
+2020-05-01  rocky <rocky@dusytfeet.com>
+
+	* Makefile, admin-tools/check-versions.sh, xpython/pyobj.py,
+	xpython/pyvm2.py: A lot of work for so little...  Look at how tracebacks work and try to clean that up.  Some
+	administriva.
+
+2020-05-01  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py, xpython/pyvm2.py: A little closer to having
+	tracebacks simulated
+
+2020-05-01  rocky <rb@dustyfeet.com>
+
+	* Makefile, admin-tools/check-versions.sh,
+	admin-tools/pyenv-versions, test/examples/runtests.sh,
+	test/examples/test_continue_in_with.py, test/test_with.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop35.py, xpython/pyobj.py, xpython/pyvm2.py: 
+	split out another test. Administrivia Add much-needed cool check-versions script and runtests.sh
+
+2020-05-01  rocky <rb@dustyfeet.com>
+
+	* .travis.yml, README.rst: Try TravisCI
+
+2020-05-01  rocky <rb@dustyfeet.com>
+
+	* Makefile, {tests => test}/.gitignore, {tests =>
+	test}/__init__.py, {tests => test}/examples/.gitignore, {tests =>
+	test}/examples/README.md, {tests => test}/examples/compile-file.py,
+	{tests => test}/examples/create-bytecode.sh, {tests =>
+	test}/examples/test_attribute_access.py, {tests =>
+	test}/examples/test_attributes.py, {tests =>
+	test}/examples/test_constant.py, {tests =>
+	test}/examples/test_decorator.py, {tests =>
+	test}/examples/test_defining_functions_with_args_kwargs.py, {tests
+	=>
+	test}/examples/test_different_globals_may_have_different_builtins.p
+	y, {tests => test}/examples/test_for.py, {tests =>
+	test}/examples/test_for_loop.py, {tests =>
+	test}/examples/test_generator_expression.py, {tests =>
+	test}/examples/test_globals.py, {tests =>
+	test}/examples/test_greater.py, {tests =>
+	test}/examples/test_inplace_operators.py, {tests =>
+	test}/examples/test_no_builtins.py, {tests =>
+	test}/examples/test_simple_context_manager.py, {tests =>
+	test}/examples/test_slice.py, {tests =>
+	test}/examples/test_strange_sequence_ops.py, {tests =>
+	test}/test_basic.py, {tests => test}/test_basic_compat.py, {tests
+	=> test}/test_exceptions.py, {tests => test}/test_functions.py,
+	{tests => test}/test_with.py, {tests => test}/vmtest.py: tests ->
+	test to match xdis, uncompyle6 layouts I'm old - and forgetful. Switch here than try to remember the
+	change.
+
+2020-05-01  rocky <rocky@dusytfeet.com>
+
+	* README.rst, tests/examples/create-bytecode.sh,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/execfile.py, xpython/pyvm2.py: Start 3.5 support
+
+2020-05-01  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/test_simple_context_manager.py, tests/test_with.py: 
+	Split out "test_with"
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop27.py, xpython/pyobj.py, xpython/pyvm2.py: 
+	Better execution trace info on an exception.
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, setup.py, xpython/__main__.py, xpython/version.py: 
+	Convert to click, and packaging administrivia
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyvm2.py: Track line number as we interpret
+
+2020-04-30  rocky <rb@dustyfeet.com>
+
+	* tests/test_functions.py, tests/vmtest.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop34.py,
+	xpython/pyvm2.py: Do a little better at handling import errors
+
+2020-04-30  rocky <rb@dustyfeet.com>
+
+	* tests/examples/test_defining_functions_with_args_kwargs.py,
+	tests/test_functions.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/pyvm2.py: Fix MAKE_FUNCTION for
+	Python 3.4...  Split out anohter test into its own file.  Pull out MAKE_FUNCTION
+	from pyvm2.py
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/create-bytecode.sh,
+	tests/examples/test_attribute_access.py, tests/test_basic.py,
+	tests/vmtest.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/execfile.py, xpython/pyvm2.py: 
+	Start Handling 3.4 opcodes...  Note: this isn't complete.  building classes changes so we need to deal with that.  Also
+	LOAD_CLASSDEREF isn't complete.
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop26.py, xpython/pyvm2.py: Remove "dis" module
+	from pyvm2.py completely...  It was preventing cross version interpreters from working.  For example byte 3.7 and 2.6 have a `LOAD_ATTR` operation, however
+	the opcode number is different between the two, even though they do
+	semantically the same thing. (Thanks, Python!) So using 3.7's dis to figure out how to interpret the operand of
+	LOAD_ATTR will fail because based on the opocde number it won't see
+	this opcode number as being an argument that works with names.
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/byteop/byteop26.py: Tolerance for Python 2.x
+	bytecode on 3.x...  with respect to "print".
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* setup.py, tests/examples/create-bytecode.sh,
+	xpython/byteop/.gitignore, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop33.py,
+	xpython/execfile.py, xpython/pyvm2.py: Start accepting 2.6 bytecode.
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/README.md, tests/examples/compile-file.py,
+	tests/examples/create-bytecode.sh, tests/vmtest.py: Reorganize
+	location of bytecode files...  This allows for scaling both along the bytecode and the test code
+	dimension.
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop27.py, xpython/byteop/byteop33.py,
+	xpython/execfile.py, xpython/pyobj.py, xpython/pyvm2.py: more op
+	moves, reformat with blacken, ...  Change parameter names on ops to match doc names
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/test_generator_expression.py,
+	tests/examples/test_greater.py, tests/test_basic.py,
+	tests/test_functions.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop33.py, xpython/pyvm2.py: Move more 2.x opcodes
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Update what's up here and fix mistaken impressions
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop27.py, xpython/byteop/byteop33.py,
+	xpython/pyvm2.py: Segregate 3.3 and 2.7 opcodes more
+
+2020-04-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/.gitignore, xpython/byteop/__init__.py,
+	xpython/byteop/byteop27.py, xpython/pyvm2.py: Start separating
+	bytecode operations from vm...  This will allow us to isolate bytecode sets per Python version.
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/test_no_builtins.py, tests/test_functions.py: Move
+	another test to its own file
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml, README.rst: Try CircleCI
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* .travis.yml: Try Travis CI
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* .gitignore, tests/.gitignore, tests/examples/.gitignore,
+	tests/examples/create-bytecode.sh, tests/examples/test_slice.py,
+	tests/test_basic.py, tests/test_basic_compat.py, tests/vmtest.py: 
+	One more test put into a file...  * vmtest.py: tweak separate line: show filename * create-bytecode.sh: script to create get compiled bytecode and add
+	to * test_basic_compat.py test_basic.py: move another test into a file
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* README.rst: More complete info about what's up here.
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* tests/vmtest.py: Revise vmtest.py to use xdis disassembly...  This allows along with the use of bytecode file us to contemplate
+	testing on Python versions other than 3.3 and 2.7.
+
+2020-04-29  rocky <rocky@dusytfeet.com>
+
+	* : commit 0be7d7425511bba23f479e45b9b5dc55430866a1 Author: rocky
+	<rocky@dusytfeet.com> Date:   Wed Apr 29 11:21:25 2020 -0400
+
+2020-04-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyvm2.py: Use xdis instead of dis to lookup opName...  and then we can run the interpreter on *bytecode*, more often on
+	close versions. (Running from source is from a different version is
+	a problem because `compile()` produces different bytecode.  For example, with this change we can run the current interpreter 3.3
+	3.3 bytecode on Python 3.7.
+
+2020-04-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyvm2.py: Use xdis instead of dis to lookup opName...  and then we can run the interpreter more often on close versions.  For example, with this change we can run the current interpreter
+	tests for 3.3 on Python 3.7.
+
+2020-04-28  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/test_globals.py, tests/test_basic.py,
+	tests/vmtest.py, xpython/pyobj.py: Move towards putting tests into
+	files
+
+2020-04-28  rocky <rocky@dusytfeet.com>
+
+	* tests/examples/.gitignore, tests/examples/compile-file.py,
+	tests/examples/test_decorator.py,
+	tests/examples/test_different_globals_may_have_different_builtins.p
+	y, tests/examples/test_for.py, tests/examples/test_for_loop.py: 
+	Start to put test programs in separate files...  and save bytecode files.  program to byte-compile file
+
+2020-04-28  rocky <rocky@dusytfeet.com>
+
+	* tests/test_basic.py, tests/test_exceptions.py,
+	xpython/execfile.py, xpython/pyobj.py, xpython/pyvm2.py: 3.3 failed
+	on 3.x function format...  Fix that. (Should also be fixed in byterun).  xAdd more cross-version support via xdis
+
+2020-04-28  rocky <rb@dustyfeet.com>
+
+	* xpython/__main__.py, xpython/execfile.py: Start *some* allowance
+	of cross compiling...
+
+2020-04-28  rocky <rb@dustyfeet.com>
+
+	* .gitignore, xpython/execfile.py: Handle reading in bytecode
+
+2020-04-28  rocky <rocky@dusytfeet.com>
+
+	* .gitignore, Makefile, README.rst, byterun/__main__.py,
+	requirements.txt, setup.py, tests/test_basic.py,
+	tests/test_exceptions.py, tests/vmtest.py, {byterun =>
+	xpython}/__init__.py, xpython/__main__.py, {byterun =>
+	xpython}/execfile.py, {byterun => xpython}/pyobj.py, {byterun =>
+	xpython}/pyvm2.py: State intent to use xdis Rename to xpython.  Some small renaming changes and tweaks.
+
+2019-10-15  Joe Jevnik <joe@quantopian.com>
+
+	* byterun/pyobj.py, tests/test_functions.py: BUG: Fix missing
+	builtins.  When a frame's globals differ from it's parents, or a frame is the
+	top of the execution stack, but there is no `__builtins__`, then the
+	builtins should just be {'None': None}.
+	https://github.com/python/cpython/blob/3cd21aa6a1467723ccc85e6411a6cbe7fa81ef76/Objects/frameobject.c#L636-L643
+
+2019-10-15  Joe Jevnik <joe@quantopian.com>
+
+	* byterun/pyobj.py, tests/test_functions.py: BUG: fix issue in how
+	builtins gets found in a frame.  According the CPython, the parent's builtins are only selected if
+	the `f_globals` of the parent are exactly the same as the
+	`f_globals` of the function to be executed. If not, the builtins are
+	read from the `__builtins__` of the current function's `f_globals`,
+	not the `f_locals`.
+	https://github.com/python/cpython/blob/3cd21aa6a1467723ccc85e6411a6cbe7fa81ef76/Objects/frameobject.c#L624-L654
+
+2016-11-03  z0rberg <z0rbergs@gmail.com>
+
+	* byterun/pyvm2.py, tests/test_basic.py: Added STORE_GLOBAL and a
+	test in test_basic. (#22) * Added byte_STORE_GLOBAL * Added a test, I think.  I used this small script to test STORE_GLOBAL and it worked.
+
+2016-02-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* CONTRIBUTE.md, CONTRIBUTE.rst, README => README.rst: Clean up the
+	text files
+
+2015-06-11  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #18 from The-Compiler/patch-1 Fix typo in --verbose argument.
+
+2014-08-20  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #16 from akaptur/yield-from-send-fix More yielding from
+
+2014-08-20  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Refactor value extraction off StopIteration This was way too close to the C code, which doesn't have lovely
+	exception handling like we do.
+
+2014-08-20  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py, tests/test_functions.py: Make YIELD_FROM behave
+	correctly when faced with ambiguous objects Don't use a method named `send` unless the object is actually a
+	Generator.
+
+2014-08-20  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #15 from akaptur/yield-from Support for YIELD_FROM
+
+2014-08-20  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: refactor weird jump in YIELD_FROM YIELD_FROM hides a loop in its implementation - it repeatedly
+	decrements the last instruction pointer so that YIELD_FROM will be
+	called again and again until the iterator it's consuming raises a
+	StopIteration.
+
+2014-08-20  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py, tests/test_functions.py: Support yielding from
+	iterators and add test
+
+2014-08-19  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py, tests/test_functions.py: 
+	Implement YIELD_FROM with @paultag
+
+2014-08-15  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyobj.py, tests/test_functions.py: Use list instead of
+	range() to avoid a generator in PY3
+
+2014-08-15  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #14 from akaptur/contribute-notes Contribute notes & docstrings
+
+2014-08-14  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* : commit 32067ff9fc97bb563afd2ab84a529e6679eac6d4 Author: Ned
+	Batchelder <ned@nedbatchelder.com> Date:   Sat Aug 9 22:21:05 2014
+	-0400
+
+2014-08-09  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, tox.ini: Remove a debugging artifact
+
+2014-08-09  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merged pull request 10
+
+2014-07-13  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #11 from akaptur/refactor-run-frame Break run_frame into some smaller components.
+
+2014-07-02  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py: Rip out the object system :(
+
+2014-07-02  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* tests/test_basic.py: Tests of descriptors
+
+2014-07-01  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* tests/test_basic.py: Another failing test of bad attribute lookup
+
+2014-06-12  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: small bug in closure naming
+
+2014-06-12  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py: Fix generator implementation I've come to believe that the right implementation of the VM has one
+	data stack per frame, not one data stack for the VM.  This is
+	consistent with halting and resuming frames using generators.  The
+	bug appeared to be around nested generators, but in fact it should
+	arise with any generator resuming a frame if the stack has been
+	modified in the meantime.
+
+2014-06-12  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* tests/test_functions.py: split up generator tests
+
+2014-06-12  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyobj.py: Fix scoping bug.  This causes the PY2 class inheiritance tests to start failing - they
+	were only working because of this scoping bug, I think.
+
+2014-06-12  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* tests/test_functions.py: expose a very bad scoping bug
+
+2014-06-12  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py, tests/test_basic.py: Clarify
+	that we're only doing PY2 classes, and add tests In PY3, we're falling back to the builtin implementation by relying
+	on __build_class__.  Add tests that show that something is going wrong with attribute
+	lookup.
+
+2014-04-05  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #8 from akaptur/unify-block-unwinding Unify block unwinding
+
+2014-03-04  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: rearrange functions to show similarity
+
+2013-12-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* tests/test_functions.py: Some tests of generator problems.
+
+2013-11-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, tests/test_basic.py: When building classes, use
+	a copy of the methods passed in.
+
+2013-11-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py, requirements.txt: Improved
+	debuggability of frames.
+
+2013-11-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py, tests/test_basic.py: Had the
+	operands to 'in' backwards.
+
+2013-11-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__main__.py: Make the argument handling nicer.
+
+2013-11-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__main__.py, byterun/pyvm2.py: A more usable way to deal
+	with logging.
+
+2013-11-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* tests/test_functions.py: Remove comments in tests.
+
+2013-11-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, tests/test_basic.py: Oops, typo prevented
+	generator expressions.
+
+2013-11-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py: Fix py2 bug with set comprehensions and
+	inspect.getcallargs
+
+2013-11-14  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, tests/test_basic.py: More opcodes:
+	comprehensions (not all work)
+
+2013-11-12  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__main__.py: This is the right way to pass all the rest of
+	the args to the program.
+
+2013-11-08  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, tests/test_basic.py: Extended slicing.
+
+2013-11-08  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, tests/test_basic.py: Better attribute access,
+	and method tests.
+
+2013-11-08  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py: Improve the __repr__'s of our objects.
+
+2013-11-08  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py, tests/test_basic.py: Improved
+	handling of method invocation, including error conditions.
+
+2013-11-07  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, tests/test_basic.py, tests/vmtest.py: Get the
+	PRINT opcodes right, and tested.
+
+2013-11-07  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__main__.py, byterun/execfile.py, byterun/pyobj.py,
+	byterun/pyvm2.py, tests/test_basic.py, tests/test_exceptions.py,
+	tests/test_functions.py, tests/test_with.py, tests/vmtest.py: Fix
+	(nearly) all the pep8 violations.
+
+2013-11-07  Ned Batchelder <ned@nedbatchelder.com>
+
+	* .coveragerc, tox.ini: Make it easier to run coverage measurements.
+
+2013-11-07  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #6 from akaptur/python3 Python3
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Implement RAISE_VARARGS for python3.  do_raise could probably be cleaned up a bit and maybe reused in the
+	py2 RAISE_VARARGS.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Prepare to write py3 RAISE_VARARGS RAISE_VARARGS is really different across versions.  We won't try to
+	integrate them into one function.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: SETUP_WITH creates a 'finally' block in py3 The only difference in py2 between a 'setup-with' and a 'finally'
+	block is that the 'setup-with' block normalizes an exception.  We
+	can probably consolidate this to eliminate the setup-with in py2.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Implement END_FINALLY for Py3 In python 3, END_FINALLY is responsible for a little more work.  If
+	a context manager should suppress an error, WITH_CLEANUP doesn't pop
+	the exception off the stack.  Instead, it pushes a new 'why' code,
+	WHY_SILENCED, onto the stack, and leaves the popping to END_FINALLY.  Context managers always end with an END_FINALLY in py3, even though
+	they don't start with a SETUP_FINALLY.  Context managers in py2
+	don't end with END_FINALLY, so this code won't be executed with
+	context managers in py2.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Implement WITH_CLEANUP in Python 3.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Rename except to setup-except This is to be more explicit that in Py3, there's both "setup-except"
+	and "except-handler".
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: The except-handler block doesn't have a block
+	handler In ceval.c, except-handler is pushed onto the block stack with a
+	handler of -1.  I think this -1 is a C-ism for False/None/not
+	applicable.  We'll never jump to the handler of an except-handler
+	block; except-handler is always unwound by the unwind_except_handler
+	method.  Except-handler is a weird beast, an "implicit block" that doesn't
+	map to any opcode.  (It has a byte value of 257!) See [this
+
+	thread](https://mail.python.org/pipermail/python-3000/2008-May/013740.html) for an explanation of what's going on here.  As far as I can tell, Antoine's patch was implemented just as he describes in his initial email.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Implement py3 block unwinding This is the equivalent of fast_block_end in ceval.c
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: This code is Py2 specific This is the equivalent of fast_block_end in ceval.c, and it works
+	pretty differently in python 3.
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Unwind except handler, if we have one Note that except handler is different than setup-except
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: factor our block popping
+
+2013-11-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py: Factor out block unwinding code
+
+2013-08-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #4 from akaptur/generator-syntax Use py2/py3 compatible generator syntax
+
+2013-08-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* AUTHORS, byterun/pyvm2.py: Add Laura to the AUTHORS, and leave a
+	note to ourselves about the dis docs.
+
+2013-08-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #2 from lindzey/exception_args Tests and bugfix for RAISE_VARARGS
+
+2013-08-20  Laura Lindzey <lindzey@gmail.com>
+
+	* tests/test_exceptions.py: Added tests to demonstrate bug in
+	RAISE_VARARGS (py2.7)
+
+2013-08-08  Ned Batchelder <ned@nedbatchelder.com>
+
+	* AUTHORS: Thanks, Allison!
+
+2013-08-08  Ned Batchelder <ned@nedbatchelder.com>
+
+	* : Merge pull request #1 from akaptur/division-fix Fix in-place division
+
+2013-08-05  Ned Batchelder <ned@nedbatchelder.com>
+
+	* AUTHORS: Add an authors file.
+
+2013-08-05  Allison Kaptur <allison.kaptur@gmail.com>
+
+	* byterun/pyvm2.py, tests/test_basic.py: Fix in-place division I've added support for the opcodes INPLACE_FLOOR_DIVIDE and
+	INPLACE_TRUE_DIVIDE.  As far as I can tell, Python3 should never
+	emit an INPLACE_DIVIDE (the opcode isn't defined in opcodes.py).  In
+	pyvm2.py, I've added the future division import so that the same
+	code ("/=") will behave the same way under py2 and py3.  I think
+	this makes the tests neater.  I wrote some tests for this functionality, but they're somewhat ugly
+	and I'm not sure if they're hitting the right level of abstraction,
+	so please let me know how they could be better.
+
+2013-04-05  Ned Batchelder <ned@nedbatchelder.com>
+
+	* requirements.txt: This is what we need to run.
+
+2013-03-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Log the data stack and the block stack
+
+2013-03-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* tests/test_basic.py: Forgot to make the Py3 exec test use the Py3
+	exec
+
+2013-03-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py: Functions should become methods by virtue of
+	being a descriptor.
+
+2013-03-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* tests/test_basic.py: Oops
+
+2013-03-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* tests/test_basic.py, tests/test_with.py: Keep py3 working.
+
+2013-03-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py, tests/test_basic.py,
+	tests/test_functions.py, tests/test_with.py: Crazy nested function
+	decorators, etc, work properly
+
+2013-03-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* .gitignore: Ignore egg-info
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/execfile.py, byterun/pyvm2.py: Better management of
+	globals
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__main__.py, byterun/pyvm2.py, tests/vmtest.py: Use real
+	logging
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* LICENSE: MIT licensed
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__main__.py, byterun/execfile.py: Main program
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* {test => tests}/__init__.py, {test => tests}/test_basic.py, {test
+	=> tests}/test_exceptions.py, {test => tests}/test_functions.py,
+	{test => tests}/test_with.py, {test => tests}/vmtest.py: Move test
+	-> tests to avoid conflict with stdlib test package.
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_functions.py: Make the stack
+	operations a little more convenient, and used more uniformly
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyobj.py, byterun/pyvm2.py: Move the py objects into their
+	own file.
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/test_basic.py: Cover the conditional bytecodes
+
+2013-02-02  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Cover the name deleting
+	opcodes.
+
+2013-02-01  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Cover some more stuff
+
+2013-02-01  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/test_basic.py, test/test_exceptions.py,
+	test/test_functions.py: Move some tests around.
+
+2013-02-01  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/test_with.py: With
+	statements are looking really good.
+
+2013-02-01  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/vmtest.py: A more convenent way to control the capturing of
+	stdout
+
+2013-02-01  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/vmtest.py: Make printing everything nicer.
+
+2013-01-31  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/test_basic.py, test/vmtest.py: Check that the code produced
+	the exception or not that we were expecting.
+
+2013-01-31  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: A basic with statement
+	works.
+
+2013-01-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/test_basic.py, test/vmtest.py: Recursive functions work.
+
+2013-01-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* .treerc: I didn't have one of these before?
+
+2013-01-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* .coveragerc: Don't measure code installed into tox
+
+2013-01-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Some py3 stuff that doesn't work yet
+
+2013-01-30  Ned Batchelder <ned@nedbatchelder.com>
+
+	* tox.ini: Let me run just one test.
+
+2013-01-26  Ned Batchelder <ned@nedbatchelder.com>
+
+	* .gitignore, setup.py, tox.ini: Make this tox'able.
+
+2013-01-24  Ned Batchelder <ned@nedbatchelder.com>
+
+	* README: A readme
+
+2013-01-23  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Make Generator work in py3.
+
+2013-01-22  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: Python 3
+	compatibility: not all tests pass on py3, but they run, and they all
+	pass on py2.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Simplify access to the current frame.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: PRINT_EXPR is odd
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/vmtest.py: More removal of leading
+	underscores, and some unneeded code.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/vmtest.py: Move the operator tables into
+	VirtualMachine, and PEP8-ify the attributes.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Finally clauses seem good.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/test_basic.py: Tests of unusual operations to get coverage of
+	more opcodes.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Break and continue work.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Get rid of some leading-underscore names, and
+	clean up the Frame code a little.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Rewrite the block stack to
+	more closely match how CPython's ceval.c works.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: A helper for jumping to a bytecode.
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Why be weird about __repr__?
+
+2013-01-21  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Exclude some bytecodes that aren't in 2.7
+
+2013-01-20  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Some stack helpers
+
+2013-01-20  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: Go back to
+	Paul's design with Python versions of Function, Class, Object, etc.
+	vm.run_frame is now invoke recursively for Python frames.
+
+2013-01-20  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/__init__.py: Make test importable.
+
+2013-01-19  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Hmm, generators are
+	tricky...
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/vmtest.py: Better ways to control test running so we can
+	debug.
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Rearrange all the bytecode methods, so they are
+	in some kind of logical order.
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Make everything new-style classes.
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Testing is wonderful.
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Mark some lines as not executed.
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Closures work now, and
+	implement a few other opcodes along the way.  Thanks to Alex Gaynor
+	for getting me through it...
+
+2013-01-18  Ned Batchelder <ned@nedbatchelder.com>
+
+	* test/vmtest.py: Improved diagnostics: stdout is displayed at the
+	end of the test, assertion failures are raised, disassemble all of
+	the code not just the top level.
+
+2013-01-17  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: Method
+	invocation details.
+
+2013-01-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Remove the discourse about security issues,
+	since that isn't what it's about now.
+
+2013-01-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Remove the custom Class,
+	Object and Method implementations.  class definitions work.
+
+2013-01-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: Imports
+	tested and fixed.
+
+2013-01-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: args and kwargs
+
+2013-01-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Functions are now native
+	functions.
+
+2013-01-16  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: Simpler hex id printing, fix
+	unpack_sequence, test more stuff.
+
+2013-01-15  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: Test and fix
+	slicing etc
+
+2013-01-14  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py: In-place operators work.
+
+2013-01-14  Ned Batchelder <ned@nedbatchelder.com>
+
+	* .coveragerc, byterun/pyvm2.py: Measure coverage, and use modern
+	'raise' syntax
+
+2013-01-14  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: More
+	logging, modern booleans, fix the definitions of POP_JUMP_IF_FALSE
+	and _TRUE, and pop returned values properly.
+
+2013-01-14  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py, test/test_basic.py, test/vmtest.py: More tests,
+	try to do exception handling.  Added a check that the stack finishes
+	cleanly, now all tests fail!
+
+2013-01-13  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/__init__.py, byterun/pyvm2.py, test/test_basic.py,
+	test/vmtest.py: Start a test suite, and start fixing bugs found.
+
+2013-01-13  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Convert to unix line endings
+
+2013-01-13  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: Make pyvm2 importable nicely.
+
+2013-01-13  Ned Batchelder <ned@nedbatchelder.com>
+
+	* byterun/pyvm2.py: pyvm2 by Paul Swartz (z3p) as pulled from
+	http://www.twistedmatrix.com/users/z3p/files/
+
+2013-01-13  Ned Batchelder <ned@nedbatchelder.com>
+
+	* Ignore stuff
+

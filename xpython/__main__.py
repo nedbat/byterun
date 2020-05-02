@@ -6,9 +6,16 @@ import sys
 
 from xpython import execfile
 from xpython.version import VERSION
+from xdis import PYTHON_VERSION
+
+def version_message():
+    mess = "xpython, version %s running from Python %s" % (
+        VERSION, PYTHON_VERSION
+    )
+    return mess
 
 @click.command()
-@click.version_option(version=VERSION)
+@click.version_option(version_message(), "-V", "--version")
 @click.option("-m", "--module", default=False,
               help="PATH is a module name, not a Python main program")
 @click.option("-d", "--debug-level", default=0,
