@@ -774,7 +774,7 @@ class VirtualMachine(object):
         func = self.pop()
         if hasattr(func, "im_func"):
             # Methods get self as an implicit first parameter.
-            if func.im_self:
+            if func.im_self is not None:
                 posargs.insert(0, func.im_self)
             # The first parameter must be the correct type.
             if not isinstance(posargs[0], func.im_class):

@@ -26,6 +26,9 @@ class TestIt(vmtest.VmTestCase):
     def test_inplace_operators(self):
         self.do_one()
 
+    def test_bound_method_on_falsy_objects(self):
+        self.do_one()
+
     if PY2:
         def test_inplace_division(self):
             self.assert_ok("""\
