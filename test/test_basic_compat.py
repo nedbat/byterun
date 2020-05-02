@@ -1,4 +1,4 @@
-"""Basic Python interpreter tests for xpython."""
+"""Basic Python interpreter tests for x-python."""
 from __future__ import print_function
 
 # These can within a major version even if the interpreter version mismatches.

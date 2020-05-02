@@ -1,4 +1,4 @@
-"""Testing tools for xpython."""
+"""Testing tools for x-python."""
 
 from __future__ import print_function
 

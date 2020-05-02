@@ -508,10 +508,12 @@ s        """
             self.vm.push(None)
 
     def MAKE_FUNCTION(self, argc):
-        if self.version >= 3.0:
-            name = self.vm.pop()
-        else:
-            name = None
+        """
+        Pushes a new function object on the stack. TOS is the code
+        associated with the function. The function object is defined to have
+        argc default parameters, which are found below TOS.
+        """
+        name = None
         code = self.vm.pop()
         defaults = self.vm.popn(argc)
         globs = self.vm.frame.f_globals

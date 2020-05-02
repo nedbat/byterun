@@ -46,6 +46,7 @@ class Function(object):
         "__code__",  # Python 3.x
         "__name__",
         "__defaults__",
+        "__kwdefaults__",
         "__closure__",
 
         "func_globals",
@@ -57,7 +58,9 @@ class Function(object):
         "_func",
     ]
 
-    def __init__(self, name, code, globs, defaults, closure, vm):
+    def __init__(self, name, code, globs, defaults, closure, vm,
+                 kwdefaults={},
+                 annotations={}):
         self._vm = vm
         self.version = vm.version
 
@@ -74,6 +77,10 @@ class Function(object):
         self.__dict__ = {}
         self.__doc__ = code.co_consts[0] if code.co_consts else None
 
+        # These are 3.x ish only
+        self.__kwdefaults__ = kwdefaults
+        self.__annonations = annotations
+
         # Sometimes, we need a real Python function.  This is for that.
         kw = {
             "argdefs": self.func_defaults,
@@ -88,6 +95,8 @@ class Function(object):
                 pass
         if isinstance(code, types.CodeType):
             self._func = types.FunctionType(code, globs, **kw)
+            self._func.__kwdefaults__ = kwdefaults
+            self._func.__annonations__ = annotations
         else:
             # cross version interpreting... FIXME: fix this up
             self._func = None

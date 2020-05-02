@@ -1,4 +1,4 @@
-"""Test the "with" statement for xpython."""
+"""Test the "with" statement for x-python."""
 
 from __future__ import print_function
 
