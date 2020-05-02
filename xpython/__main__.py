@@ -2,6 +2,7 @@
 
 import click
 import logging
+import sys
 
 from xpython import execfile
 from xpython.version import VERSION
@@ -31,7 +32,26 @@ def main(module, debug_level, path, args):
         level = logging.WARNING
     logging.basicConfig(level=level)
 
-    run_fn(path, args)
+    try:
+        run_fn(path, args)
+    except execfile.CannotCompile as e:
+        if debug_level > 1:
+            raise
+        print(e)
+        sys.exit(1)
+        pass
+    except execfile.NoSource as e:
+        if debug_level > 1:
+            raise
+        print(e)
+        sys.exit(2)
+        pass
+    except execfile.WrongBytecode as e:
+        if debug_level > 1:
+            raise
+        print(e)
+        sys.exit(3)
+        pass
 
 if __name__ == "__main__":
     main(auto_envvar_prefix="XPYTHON")

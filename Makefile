@@ -22,7 +22,7 @@ check:
 	cd test && nosetests
 
 #: Check across all Python versions
-check-all:
+check-full:
 	bash ./admin-tools/check-versions.sh
 
 #: Clean up temporary files and .pyc files

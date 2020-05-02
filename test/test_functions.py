@@ -1,4 +1,4 @@
-"""Test functions etc, for Byterun."""
+"""Test functions etc, for x-python."""
 
 from __future__ import print_function
 
@@ -7,7 +7,7 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis import PYTHON3
+from xdis import PYTHON3, PYTHON_VERSION
 
 class TestFunctions(vmtest.VmTestCase):
     def test_functions(self):
@@ -304,7 +304,7 @@ class TestGenerators(vmtest.VmTestCase):
             print(Thing().boom())
             """)
 
-    if PYTHON3: # PY3.3+ only
+    if PYTHON_VERSION >= 3.3:
         def test_yield_from(self):
             self.assert_ok("""\
                 def main():

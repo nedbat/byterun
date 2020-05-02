@@ -4,7 +4,7 @@ from __future__ import print_function
 
 from collections import deque
 from xdis import load_module
-from xdis.main import disco_loop, get_opcode
+from xdis.main import get_opcode
 import os.path as osp
 import inspect
 import sys
@@ -34,12 +34,6 @@ def parent_function_name():
         return inspect.stack()[2][3]
     else:
         return inspect.stack()[2].function
-
-def dis_code(code, version, out):
-    """Disassemble `code` and all the code it refers to."""
-    opc = get_opcode(version, False)
-    disco_loop(opc, version, deque([code]), out)
-
 
 LINE_STR = "-" * 25
 
@@ -77,9 +71,6 @@ class VmTestCase(unittest.TestCase):
             code = compile(code_str, "<%s>" % self.id(), "exec", 0, 1)
 
         real_stdout = sys.stdout
-
-        # Print the disassembly so we'll see it if the test fails.
-        dis_code(code, self.version, real_stdout)
 
         # Run the code through our VM.
 

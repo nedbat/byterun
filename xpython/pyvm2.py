@@ -266,8 +266,8 @@ class VirtualMachine(object):
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
 
-        log.debug("  %sdata: %s" % (indent, stack_rep))
-        log.debug("  %sblks: %s" % (indent, block_stack_rep))
+        log.debug("  %sframe.stack: %s" % (indent, stack_rep))
+        log.debug("  %sblocks     : %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
     def dispatch(self, byteName, arguments, opoffset):
@@ -716,7 +716,7 @@ class VirtualMachine(object):
     ## Functions
 
     def byte_MAKE_CLOSURE(self, argc):
-        if PYTHON3:
+        if PYTHON_VERSION >= 3.3:
             # TODO: the py3 docs don't mention this change.
             name = self.pop()
         else:
