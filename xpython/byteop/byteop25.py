@@ -14,7 +14,7 @@ class ByteOp25():
         self.version = 2.5
 
     # Order of function here is the same as in:
-    # https://docs.python.org/2.6/library/dis.html#python-bytecode-instructions
+    # https://docs.python.org/2.5/library/dis.html#python-bytecode-instructions
 
     def NOP(self):
         "Do nothing code. Used as a placeholder by the bytecode optimizer."
