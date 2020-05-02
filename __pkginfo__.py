@@ -1,7 +1,15 @@
 author='Rocky Bernstein, Ned Batchelder, Paul Swartz, Allison Kaptur and others'
 author_email='rb@dustyfeet.com'
 entry_points = {"console_scripts": ["xpython=xpython.__main__:main"]}
+
+# Python-version | package | last-version |
+# -----------------------------------------
+# 3.2            | click   | 4.0          |
+# 3.2            | pip     | 7.1.2        |
+
 install_requires=["six", "xdis", "click"],
+
+
 py_modules = None
 short_desc = "Python cross-version byte-code interpeter"
 url='http://github.com/rocky/xpython'

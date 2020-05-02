@@ -9,7 +9,7 @@ from xpython.version import VERSION
 from xdis import PYTHON_VERSION
 
 def version_message():
-    mess = "xpython, version %s running from Python %s" % (
+    mess = "%s running from Python %s" % (
         VERSION, PYTHON_VERSION
     )
     return mess
