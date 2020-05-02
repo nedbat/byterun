@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/rocky/xpython
+    working_directory: ~/rocky/x-python
     parallelism: 1
     shell: /bin/bash --login
     # CircleCI 2.0 does not support environment variables that refer to each other the same way as 1.0 did.
@@ -25,7 +25,7 @@ jobs:
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
     # This is based on your 1.0 configuration file or project settings
     - run:
-        working_directory: ~/rocky/python-uncompyle6
+        working_directory: ~/rocky/python-xpython
         command: pip install --user virtualenv && pip install --user nose && pip install --user pep8
     # Dependencies
     #   This would typically go in either a build or a build-and-test job when using workflows

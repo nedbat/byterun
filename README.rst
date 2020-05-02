@@ -1,4 +1,4 @@
-|TravisCI| |CircleCI|
+|buildstatus|
 
 xpython
 --------
@@ -7,10 +7,11 @@ This is a C Python interpreter written Python.
 
 You can use this to:
 
-* Learn about how the internals of CPython works since this models that
+* Learn about how the internals of CPython works since this models that.
+  Learn about the CPython internals in Python instead of C!
 * Use as a sandboxed environment inside a debugger for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
-  For example running Python 2.6 bytecode from Python 3.7.
+  For example running simple Python 2.6 bytecode from Python 3.7.
   No need to install Python 2.6!
 
 The sandboxed sandboxed environment in a debugger I find
@@ -27,7 +28,7 @@ also with the ability to step bytecode instructions.
 Status:
 +++++++
 
-Currently only Python 2.6 - 2.7, and 3.3 - 3.5 bytecode is well
+Currently only Python 2.6 - 2.7, and 3.2 - 3.5 bytecode is well
 understood.  Other versions will start to appear with the help of
 `xdis`.
 
@@ -74,7 +75,5 @@ a Python bytecode execution virtual machine.  Net Batchelder started
 it (based on work from Paul Swartz) to get a better understanding of
 bytecodes so he could fix branch coverage bugs in coverage.py.
 
-.. |CircleCI| image:: https://circleci.com/gh/rocky/xpython.svg?style=svg
-    :target: https://circleci.com/gh/rocky/xpython
-.. |TravisCI| image:: https://travis-ci.org/rocky/xpython.svg?branch=master
-		 :target: https://travis-ci.org/rocky/xpython
+.. |buildstatus| image:: https://circleci.com/gh/rocky/x-python.svg?style=svg
+    :target: https://circleci.com/gh/rocky/x-python

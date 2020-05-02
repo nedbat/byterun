@@ -1,9 +1,10 @@
 *.egg-info
 *.pyc
-/*~
 .coverage
 .tox
+/*~
 /.python-version
+/activate
 /tmp
 MANIFEST
 htmlcov

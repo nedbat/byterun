@@ -36,7 +36,7 @@ dist: clean
 
 #: Remove .pyc files
 clean_pyc:
-	( cd xpython && $(RM) -f *.pyc */*.pyc )
+	( cd x-python && $(RM) -f *.pyc */*.pyc )
 
 #: Create source tarball
 sdist:
@@ -47,7 +47,7 @@ lint: flake8
 
 #: Check StructuredText long description formatting
 check-rst:
-	$(PYTHON) setup.py --long-description | rst2html.py > xpython.html
+	$(PYTHON) setup.py --long-description | rst2html.py > x-python.html
 
 #: Lint program
 flake8:
