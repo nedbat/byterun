@@ -3,6 +3,7 @@
 from __future__ import print_function, division
 
 
+from xpython.pyobj import Function
 from xpython.byteop.byteop27 import ByteOp27
 from xpython.byteop.byteop25 import ByteOp25
 
@@ -26,6 +27,55 @@ class ByteOp33(ByteOp27):
     def __init__(self, vm):
         self.vm = vm
         self.version = 3.3
+
+    # Changed from 2.7
+    # 3.3 has kwdefaults that aren't allowed in 2.7
+    def MAKE_FUNCTION(self, argc):
+        """
+        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of:
+
+        * argc & 0xFF default argument objects in positional order
+        * (argc >> 8) & 0xFF pairs of name and default argument, with the name just below the object on the stack, for keyword-only parameters
+        * (argc >> 16) & 0x7FFF parameter annotation objects
+        * a tuple listing the parameter names for the annotations (only if there are ony annotation objects)
+        * the code associated with the function (at TOS1)
+        * the qualified name of the function (at TOS)
+        """
+        rest, default_count = divmod(argc, 256)
+        annotate_count, kw_default_count = divmod(rest, 256)
+
+        name = self.vm.pop()
+        code = self.vm.pop()
+        if annotate_count:
+            annotate_names = self.vm.pop()
+            # annotate count includes +1 for the above names
+            annotate_objects = self.vm.popn(annotate_count - 1)
+            n = len(annotate_names)
+            assert n == len(annotate_objects)
+            annotations = {annotate_names[i]:annotate_objects[i] for i in range(n)}
+        else:
+            annotations = {}
+
+        if kw_default_count:
+            kw_default_pairs = self.vm.popn(2 * kw_default_count)
+            kwdefaults = dict(kw_default_pairs[i:i+2] for i in range(0, len(kw_default_pairs), 2))
+        else:
+            kwdefaults = {}
+
+        if default_count:
+            defaults = self.vm.popn(default_count)
+        else:
+            defaults = tuple()
+
+        globs = self.vm.frame.f_globals
+
+        fn = Function(name, code, globs, defaults,
+                      closure=None,
+                      vm = self.vm,
+                      kwdefaults=kwdefaults,
+                      annotations=annotations)
+        fn.version = self.version
+        self.vm.push(fn)
 
     # Order of function here is the same as in:
     # https://docs.python.org/3.3/library/dis.html#python-bytecode-instructions
