@@ -5,11 +5,6 @@ from __future__ import print_function, division
 
 from xpython.byteop.byteop25 import ByteOp25
 
-import six
-import sys
-import operator
-from xpython.pyobj import Function
-
 class ByteOp26(ByteOp25):
     def __init__(self, vm):
         self.vm = vm

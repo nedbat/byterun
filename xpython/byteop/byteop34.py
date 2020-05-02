@@ -4,10 +4,12 @@ from __future__ import print_function, division
 
 import inspect
 import types
+
+from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop33 import ByteOp33
 
 # Gone since 3.3
-del ByteOp33.STORE_LOCALS
+del ByteOp32.STORE_LOCALS
 
 class ByteOp34(ByteOp33):
     def __init__(self, vm):
@@ -27,7 +29,10 @@ class ByteOp34(ByteOp33):
 
     # Changed in 3.4
 
-    # Note: If we can work around using built-in __build__class_() for making classes, possibly we can use 3.3 MAKE_FUNCTION.
+    # Python 3.4 __build_class__ is more strict about what can be a
+    # function type whereas in earlier version we could get away with
+    # our own kind of xpython.pyobj.Function object.
+    #
     def MAKE_FUNCTION(self, argc):
         """
         Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of
@@ -50,7 +55,7 @@ class ByteOp34(ByteOp33):
         * the qualified name of the function (at TOS)
         """
 
-        # FIXME: DRY with code in byteop33.py
+        # FIXME: DRY with code in byteop32.py
         rest, default_count = divmod(argc, 256)
         annotate_count, kw_default_count = divmod(rest, 256)
 

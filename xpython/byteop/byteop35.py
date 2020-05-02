@@ -3,12 +3,12 @@
 from __future__ import print_function, division
 
 from xpython.byteop.byteop25 import ByteOp25
-from xpython.byteop.byteop33 import ByteOp33
+from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop34 import ByteOp34
 
 # Gone in 3.5
 del ByteOp25.STORE_MAP
-del ByteOp33.WITH_CLEANUP
+del ByteOp32.WITH_CLEANUP
 
 class ByteOp35(ByteOp34):
     def __init__(self, vm):

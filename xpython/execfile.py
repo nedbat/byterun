@@ -7,7 +7,7 @@ import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION
 
-SUPPORTED_PYTHON_VERSIONS = (2.5, 2.6, 2.7, 3.3, 3.4, 3.5)
+SUPPORTED_PYTHON_VERSIONS = (2.5, 2.6, 2.7, 3.3, 3.2, 3.4, 3.5)
 
 from xpython.pyvm2 import VirtualMachine
 

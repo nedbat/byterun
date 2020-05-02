@@ -75,7 +75,7 @@ class Function(object):
         self.func_globals = globs
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
-        self.__doc__ = code.co_consts[0] if code.co_consts else None
+        self.__doc__ = code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
 
         # These are 3.x ish only
         self.__kwdefaults__ = kwdefaults
