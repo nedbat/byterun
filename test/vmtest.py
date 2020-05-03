@@ -38,14 +38,8 @@ LINE_STR = "-" * 25
 class VmTestCase(unittest.TestCase):
 
     def do_one(self):
-        if PYTHON_VERSION == 3.2:
-            self.version = 3.2
-        elif PYTHON_VERSION == 3.3:
-            self.version = 3.3
-        elif PYTHON_VERSION == 3.4:
-            self.version = 3.4
-        elif PYTHON_VERSION == 3.5:
-            self.version = 3.5
+        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6):
+            self.version = PYTHON_VERSION
         else:
             assert PYTHON_VERSION == 2.7
             self.version = 2.7

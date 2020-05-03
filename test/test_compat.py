@@ -21,6 +21,7 @@ COMPATABILITY_MATRIX = {
     # More or less punt on these for now
     3.4:  (),
     3.5: (),
+    3.6: (),
 }
 
 # How to increase compatablity above.

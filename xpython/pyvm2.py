@@ -80,7 +80,7 @@ class VirtualMachine(object):
                     from xpython.byteop.byteop33 import ByteOp33
                     self.byteop = ByteOp33(self)
                 else:
-                    self.byteop = None
+                    raise VirtualMachineError("Version %s not supported" % python_version)
             else:
                 if int_vers == 34:
                     from xpython.byteop.byteop34 import ByteOp34
@@ -88,8 +88,11 @@ class VirtualMachine(object):
                 elif int_vers == 35:
                     from xpython.byteop.byteop35 import ByteOp35
                     self.byteop = ByteOp35(self)
+                elif int_vers == 36:
+                    from xpython.byteop.byteop36 import ByteOp36
+                    self.byteop = ByteOp36(self)
                 else:
-                    self.byteop = None
+                    raise VirtualMachineError("Version %s not supported" % python_version)
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
