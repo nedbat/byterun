@@ -137,6 +137,9 @@ class VirtualMachine(object):
     def pop_block(self):
         return self.frame.block_stack.pop()
 
+    def top_block(self):
+        return self.frame.block_stack[-1]
+
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         log.debug("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
@@ -608,7 +611,7 @@ class VirtualMachine(object):
             why = v
             if why in ("return", "continue"):
                 self.return_value = self.pop()
-            if why == "silenced":  # PYTHON3
+            if why == "silenced":  # self.version >= 3.0
                 block = self.pop_block()
                 assert block.type == "except-handler"
                 self.unwind_block(block)
@@ -620,6 +623,12 @@ class VirtualMachine(object):
             val = self.pop()
             tb = self.pop()
             self.last_exception = (exctype, val, tb)
+            if self.version >= 3.5:
+                block = self.top_block()
+                while len(self.frame.stack) > block.level:
+                    self.pop()
+                self.push(tb, val, exctype)
+
             why = "reraise"
         else:  # pragma: no cover
             raise VirtualMachineError("Confused END_FINALLY")

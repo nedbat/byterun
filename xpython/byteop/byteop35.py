@@ -97,7 +97,7 @@ class ByteOp35(ByteOp34):
         is. Otherwise, implements TOS = iter(TOS).
         """
         TOS = self.vm.top()
-        if isinstance(TOS, types.GeneratorType) or isinstance(tos, types.CoroutineType):
+        if isinstance(TOS, types.GeneratorType) or isinstance(TOS, types.CoroutineType):
             return
         TOS = self.vm.pop()
         self.push(iter(TOS))
@@ -160,6 +160,6 @@ class ByteOp35(ByteOp34):
         be resumed.)
         """
         exit_ret = self.vm.pop(1)
-        second = self.vm.pop()
-        if type(second) is type and issubclass(u, BaseException) and res:
+        u = self.vm.pop()
+        if type(u) is type and issubclass(u, BaseException) and exit_ret:
             self.vm.push("silenced")

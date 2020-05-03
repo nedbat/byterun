@@ -14,11 +14,10 @@ class TestWithStatement(vmtest.VmTestCase):
     def test_simple_context_manager(self):
         self.do_one()
 
-    # FIXME - this a bug our 3.5 handling
-    if PYTHON_VERSION < 3.5:
-        def test_raise_in_context_manager(self):
-            self.do_one()
+    def test_raise_in_context_manager(self):
+        self.do_one()
 
+    if PYTHON_VERSION < 3.5:
         def test_suppressed_raise_in_context_manager(self):
             self.do_one()
 
@@ -53,10 +52,8 @@ class TestWithStatement(vmtest.VmTestCase):
     def test_break_in_with(self):
         self.do_one()
 
-    # FIXME - this a bug our 3.5 handling
-    if PYTHON_VERSION < 3.5:
-        def test_raise_in_with(self):
-            self.do_one()
+    def test_raise_in_with(self):
+        self.do_one()
 
     def test_at_context_manager_simplified(self):
         self.do_one()
