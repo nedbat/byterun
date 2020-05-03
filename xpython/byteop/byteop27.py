@@ -15,9 +15,29 @@ class ByteOp27(ByteOp26):
         self.version = version
 
 
-    # Changed in 2.7
-
     # New in 2.7
+
+    # Note SET_ADD and MAP_ADD don't seem to be documented in
+    # the 2.7 docs although the first appear there.
+    # The docstring for these below is taken from 3.1 docs.
+    # (3.0 doesn't have have MAP, although it has SET
+    # which is exactly what is below.)
+    def SET_ADD(self, count):
+        """Calls set.add(TOS1[-i], TOS). Used to implement set
+        comprehensions.
+        """
+        val = self.vm.pop()
+        the_set = self.vm.peek(count)
+        the_set.add(val)
+
+    def MAP_ADD(self, count):
+        """
+        Calls dict.setitem(TOS1[-i], TOS, TOS1). Used to implement dict
+        comprehensions.
+        """
+        val, key = self.vm.popn(2)
+        the_map = self.vm.peek(count)
+        the_map[key] = val
 
     def BUILD_SET(self, count):
         """Works as BUILD_TUPLE, but creates a set. New in version 2.7"""

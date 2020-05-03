@@ -13,6 +13,44 @@ class ByteOp25():
         self.vm = vm
         self.version = version
 
+    def print_item(self, item, to=None):
+        if to is None:
+            to = sys.stdout
+
+        # Python 2ish has file.sofspace whereas
+        # Python 3ish doesn't. Here is the doc on softspace:
+
+        # Boolean that indicates whether a space character needs to be
+        # printed before another value when using the print
+        # statement. Classes that are trying to simulate a file object
+        # should also have a writable softspace attribute, which
+        # should be initialized to zero. This will be automatic for
+        # most classes implemented in Python (care may be needed for
+        # objects that override attribute access); types implemented
+        # in C will have to provide a writable softspace attribute.
+
+        # Note This attribute is not used to control the print
+        # statement, but to allow the implementation of print to keep
+        # track of its internal state.
+        if hasattr(to, "softspace") and to.softspace:
+            print(" ", end="", file=to)
+            to.softspace = 0
+        print(item, end="", file=to)
+
+        if hasattr(to, "softspace"):
+            if isinstance(item, str):
+                if (not item) or (not item[-1].isspace()) or (item[-1] == " "):
+                    to.softspace = 1
+            else:
+                to.softspace = 1
+
+    def print_newline(self, to=None):
+        if to is None:
+            to = sys.stdout
+        print("", file=to)
+        if hasattr(to, "softspace"):
+            to.softspace = 0
+
     # Order of function here is the same as in:
     # https://docs.python.org/2.5/library/dis.html#python-bytecode-instructions
 
@@ -87,6 +125,8 @@ class ByteOp25():
         to = self.vm.pop()
         self.print_newline(to)
 
+    # End printing
+
     def BREAK_LOOP(self):
         """Terminates a loop due to a break statement."""
         return "break"
@@ -104,6 +144,14 @@ class ByteOp25():
         # into return_value.
         self.vm.return_value = dest
         return "continue"
+
+    def LIST_APPEND(self, count):
+        """Calls list.append(TOS1, TOS). Used to implement list
+        comprehensions.
+        """
+        val = self.vm.pop()
+        the_list = self.vm.peek(count)
+        the_list.append(val)
 
     def LOAD_LOCALS(self):
         """
@@ -128,43 +176,58 @@ class ByteOp25():
         self.vm.return_value = self.vm.pop()
         return "yield"
 
-    def print_item(self, item, to=None):
-        if to is None:
-            to = sys.stdout
 
-        # Python 2ish has file.sofspace whereas
-        # Python 3ish doesn't. Here is the doc on softspace:
+    def IMPORT_STAR(self):
+        """Loads all symbols not starting with '_' directly from the module
+        TOS to the local namespace. The module is popped after loading all
+        names. This opcode implements from module import *.
+        """
+        # TODO: this doesn't use __all__ properly.
+        mod = self.vm.pop()
+        for attr in dir(mod):
+            if attr[0] != "_":
+                self.vm.frame.f_locals[attr] = getattr(mod, attr)
 
-        # Boolean that indicates whether a space character needs to be
-        # printed before another value when using the print
-        # statement. Classes that are trying to simulate a file object
-        # should also have a writable softspace attribute, which
-        # should be initialized to zero. This will be automatic for
-        # most classes implemented in Python (care may be needed for
-        # objects that override attribute access); types implemented
-        # in C will have to provide a writable softspace attribute.
+    def EXEC_STMT(self):
+        """
+        Implements exec TOS2,TOS1,TOS. The compiler fills missing
+        optional parameters with None.
+        """
+        stmt, globs, locs = self.vm.popn(3)
+        six.exec_(stmt, globs, locs)
 
-        # Note This attribute is not used to control the print
-        # statement, but to allow the implementation of print to keep
-        # track of its internal state.
-        if hasattr(to, "softspace") and to.softspace:
-            print(" ", end="", file=to)
-            to.softspace = 0
-        print(item, end="", file=to)
+    def POP_BLOCK(self):
+        """
+        Removes one block from the block stack. Per frame, there is a
+        stack of blocks, denoting nested loops, try statements, and
+        such."""
+        self.vm.pop_block()
 
-        if hasattr(to, "softspace"):
-            if isinstance(item, str):
-                if (not item) or (not item[-1].isspace()) or (item[-1] == " "):
-                    to.softspace = 1
-            else:
-                to.softspace = 1
+    def BUILD_CLASS(self):
+        """
+        Creates a new class object. TOS is the methods dictionary, TOS1 the
+        tuple of the names of the base classes, and TOS2 the class name.
+        """
+        name, bases, methods = self.vm.popn(3)
+        self.vm.push(type(name, bases, methods))
 
-    def print_newline(self, to=None):
-        if to is None:
-            to = sys.stdout
-        print("", file=to)
-        if hasattr(to, "softspace"):
-            to.softspace = 0
+    def STORE_NAME(self, name):
+        """Implements name = TOS. namei is the index of name in the attribute
+        co_names of the code object. The compiler tries to use STORE_LOCAL or
+        STORE_GLOBAL if possible."""
+        self.vm.frame.f_locals[name] = self.vm.pop()
+
+    def DELETE_NAME(self, name):
+        """Implements del name, where namei is the index into co_names attribute of the code object."""
+        del self.vm.frame.f_locals[name]
+
+    def UNPACK_SEQUENCE(self, count):
+        """Unpacks TOS into count individual values, which are put onto the
+        stack right-to-left.
+        """
+        seq = self.vm.pop()
+        for x in reversed(seq):
+            self.vm.push(x)
 
     def DUP_TOPX(self, count):
         """
@@ -456,50 +519,6 @@ class ByteOp25():
 
     # End names
 
-    def IMPORT_STAR(self):
-        """Loads all symbols not starting with '_' directly from the module
-        TOS to the local namespace. The module is popped after loading all
-        names. This opcode implements from module import *.
-        """
-        # TODO: this doesn't use __all__ properly.
-        mod = self.vm.pop()
-        for attr in dir(mod):
-            if attr[0] != "_":
-                self.vm.frame.f_locals[attr] = getattr(mod, attr)
-
-    def EXEC_STMT(self):
-        """
-        Implements exec TOS2,TOS1,TOS. The compiler fills missing
-        optional parameters with None.
-        """
-        stmt, globs, locs = self.vm.popn(3)
-        six.exec_(stmt, globs, locs)
-
-    def POP_BLOCK(self):
-        """
-        Removes one block from the block stack. Per frame, there is a
-        stack of blocks, denoting nested loops, try statements, and
-        such."""
-        self.vm.pop_block()
-
-    def STORE_NAME(self, name):
-        """Implements name = TOS. namei is the index of name in the attribute
-        co_names of the code object. The compiler tries to use STORE_LOCAL or
-        STORE_GLOBAL if possible."""
-        self.vm.frame.f_locals[name] = self.vm.pop()
-
-    def DELETE_NAME(self, name):
-        """Implements del name, where namei is the index into co_names attribute of the code object."""
-        del self.vm.frame.f_locals[name]
-
-    def BUILD_CLASS(self):
-        """
-        Creates a new class object. TOS is the methods dictionary, TOS1 the
-        tuple of the names of the base classes, and TOS2 the class name.
-        """
-        name, bases, methods = self.vm.popn(3)
-        self.vm.push(type(name, bases, methods))
-
     # This opcode changes in 3.3
     def WITH_CLEANUP(self):
         """Cleans up the stack when a "with" statement block exits. On top of
@@ -585,6 +604,22 @@ class ByteOp25():
         globs = self.vm.frame.f_globals
         fn = Function(name, code, globs, defaults, closure, self.vm)
         self.vm.push(fn)
+
+    def BUILD_SLICE(self, count):
+        """
+        Pushes a slice object on the stack. argc must be 2 or 3. If it is
+        2, slice(TOS1, TOS) is pushed; if it is 3, slice(TOS2, TOS1,
+        TOS) is pushed. See the slice() built-in function for more
+        information.
+        """
+        if count == 2:
+            x, y = self.vm.popn(2)
+            self.vm.push(slice(x, y))
+        elif count == 3:
+            x, y, z = self.vm.popn(3)
+            self.vm.push(slice(x, y, z))
+        else:  # pragma: no cover
+            raise self.VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
 
     def CALL_FUNCTION(self, arg):
         """

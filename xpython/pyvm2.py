@@ -543,38 +543,6 @@ class VirtualMachine(object):
         else:
             self.push(l[start:end])
 
-    ## Attributes and indexing
-
-    def byte_UNPACK_SEQUENCE(self, count):
-        seq = self.pop()
-        for x in reversed(seq):
-            self.push(x)
-
-    def byte_BUILD_SLICE(self, count):
-        if count == 2:
-            x, y = self.popn(2)
-            self.push(slice(x, y))
-        elif count == 3:
-            x, y, z = self.popn(3)
-            self.push(slice(x, y, z))
-        else:  # pragma: no cover
-            raise VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
-
-    def byte_LIST_APPEND(self, count):
-        val = self.pop()
-        the_list = self.peek(count)
-        the_list.append(val)
-
-    def byte_SET_ADD(self, count):
-        val = self.pop()
-        the_set = self.peek(count)
-        the_set.add(val)
-
-    def byte_MAP_ADD(self, count):
-        val, key = self.popn(2)
-        the_map = self.peek(count)
-        the_map[key] = val
-
     ## Blocks
 
     def byte_END_FINALLY(self):
