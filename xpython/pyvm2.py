@@ -734,18 +734,6 @@ class VirtualMachine(object):
 
     ## Functions
 
-    def byte_MAKE_CLOSURE(self, argc):
-        if PYTHON_VERSION >= 3.3:
-            # TODO: the py3 docs don't mention this change.
-            name = self.pop()
-        else:
-            name = None
-        closure, code = self.popn(2)
-        defaults = self.popn(argc)
-        globs = self.frame.f_globals
-        fn = Function(name, code, globs, defaults, closure, self)
-        self.push(fn)
-
     def byte_CALL_FUNCTION_VAR(self, arg):
         args = self.pop()
         return self.call_function(arg, args, {})

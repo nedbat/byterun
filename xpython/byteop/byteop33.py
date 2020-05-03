@@ -6,9 +6,9 @@ from __future__ import print_function, division
 from xpython.byteop.byteop32 import ByteOp32
 
 class ByteOp33(ByteOp32):
-    def __init__(self, vm):
+    def __init__(self, vm, version=3.3):
         self.vm = vm
-        self.version = 3.3
+        self.version = version
 
     # Right now 3.3 is largely the same as 3.2 here. How nice!
 

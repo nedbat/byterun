@@ -10,9 +10,9 @@ del ByteOp25.JUMP_IF_FALSE
 del ByteOp25.JUMP_IF_TRUE
 
 class ByteOp27(ByteOp26):
-    def __init__(self, vm):
+    def __init__(self, vm, version=2.7):
         self.vm = vm
-        self.version = 2.7
+        self.version = version
 
 
     # Changed in 2.7

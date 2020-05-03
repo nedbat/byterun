@@ -25,9 +25,9 @@ del ByteOp25.DUP_TOPX
 
 
 class ByteOp32(ByteOp27):
-    def __init__(self, vm):
+    def __init__(self, vm, version=3.2):
         self.vm = vm
-        self.version = 3.2
+        self.version = version
 
     # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7

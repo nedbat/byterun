@@ -9,9 +9,9 @@ import operator
 from xpython.pyobj import Function
 
 class ByteOp25():
-    def __init__(self, vm):
+    def __init__(self, vm, version=2.5):
         self.vm = vm
-        self.version = 2.5
+        self.version = version
 
     # Order of function here is the same as in:
     # https://docs.python.org/2.5/library/dis.html#python-bytecode-instructions
@@ -519,6 +519,25 @@ s        """
         globs = self.vm.frame.f_globals
         fn = Function(name, code, globs, defaults, None, self.vm)
         fn.version = self.version
+        self.vm.push(fn)
+
+    def MAKE_CLOSURE(self, argc):
+        """
+        Creates a new function object, sets its func_closure slot, and
+        pushes it on the stack. TOS is the code associated with the
+        function. If the code object has N free variables, the next N
+        items on the stack are the cells for these variables. The
+        function also has argc default parameters, where are found
+        before the cells.
+        """
+        if self.version >= 3.3:
+            name = self.vm.pop()
+        else:
+            name = None
+        closure, code = self.vm.popn(2)
+        defaults = self.vm.popn(argc)
+        globs = self.vm.frame.f_globals
+        fn = Function(name, code, globs, defaults, closure, self.vm)
         self.vm.push(fn)
 
     def CALL_FUNCTION(self, arg):

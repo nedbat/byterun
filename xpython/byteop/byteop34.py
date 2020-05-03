@@ -13,9 +13,9 @@ from xpython.byteop.byteop33 import ByteOp33
 del ByteOp32.STORE_LOCALS
 
 class ByteOp34(ByteOp33):
-    def __init__(self, vm):
+    def __init__(self, vm, version=3.4):
         self.vm = vm
-        self.version = 3.4
+        self.version = version
 
     # New in 3.4
 

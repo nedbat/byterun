@@ -11,9 +11,9 @@ del ByteOp25.STORE_MAP
 del ByteOp32.WITH_CLEANUP
 
 class ByteOp35(ByteOp34):
-    def __init__(self, vm):
+    def __init__(self, vm, version=3.5):
         self.vm = vm
-        self.version = 3.5
+        self.version = version
 
     # Changed in 3.5
 
