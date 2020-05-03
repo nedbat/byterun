@@ -87,6 +87,39 @@ class ByteOp25():
         to = self.vm.pop()
         self.print_newline(to)
 
+    def BREAK_LOOP(self):
+        """Terminates a loop due to a break statement."""
+        return "break"
+
+    def CONTINUE_LOOP(self, dest):
+        """
+        Continues a loop due to a continue statement. target is the
+        address to jump to (which should be a FOR_ITER instruction).
+        """
+        # This is a trick with the return value.
+        # While unrolling blocks, continue and return both have to preserve
+        # state as the finally blocks are executed.  For continue, it's
+        # where to jump to, for return, it's the value to return.  It gets
+        # pushed on the stack for both, so continue puts the jump destination
+        # into return_value.
+        self.vm.return_value = dest
+        return "continue"
+
+    def RETURN_VALUE(self):
+        """Returns with TOS to the caller of the function.
+        """
+        self.vm.return_value = self.vm.pop()
+        if self.vm.frame.generator:
+            self.vm.frame.generator.finished = True
+        return "return"
+
+    def YIELD_VALUE(self):
+        """
+        Pops TOS and yields it from a generator.
+        """
+        self.vm.return_value = self.vm.pop()
+        return "yield"
+
     def print_item(self, item, to=None):
         if to is None:
             to = sys.stdout
@@ -324,7 +357,7 @@ class ByteOp25():
         stack. delta points to the first except block.
 
         Note: jump = delta + f.f_lasti set in parse_byte_and_args()
-s        """
+        """
 
         self.vm.push_block("setup-except", jump_offset)
 
@@ -403,8 +436,10 @@ s        """
                 self.vm.frame.f_locals[attr] = getattr(mod, attr)
 
     def EXEC_STMT(self):
-
-        """Implements exec TOS2,TOS1,TOS. The compiler fills missing optional parameters with None."""
+        """
+        Implements exec TOS2,TOS1,TOS. The compiler fills missing
+        optional parameters with None.
+        """
         stmt, globs, locs = self.vm.popn(3)
         six.exec_(stmt, globs, locs)
 

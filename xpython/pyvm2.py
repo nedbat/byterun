@@ -598,19 +598,6 @@ class VirtualMachine(object):
 
     ## Blocks
 
-    def byte_BREAK_LOOP(self):
-        return "break"
-
-    def byte_CONTINUE_LOOP(self, dest):
-        # This is a trick with the return value.
-        # While unrolling blocks, continue and return both have to preserve
-        # state as the finally blocks are executed.  For continue, it's
-        # where to jump to, for return, it's the value to return.  It gets
-        # pushed on the stack for both, so continue puts the jump destination
-        # into return_value.
-        self.return_value = dest
-        return "continue"
-
     def byte_END_FINALLY(self):
         """
         Terminates a "finally" clause. The interpreter recalls whether the
@@ -789,16 +776,6 @@ class VirtualMachine(object):
         retval = func(*posargs, **namedargs)
 
         self.push(retval)
-
-    def byte_RETURN_VALUE(self):
-        self.return_value = self.pop()
-        if self.frame.generator:
-            self.frame.generator.finished = True
-        return "return"
-
-    def byte_YIELD_VALUE(self):
-        self.return_value = self.pop()
-        return "yield"
 
     def byte_YIELD_FROM(self):
         u = self.pop()

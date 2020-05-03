@@ -12,7 +12,7 @@ You can use this to:
 * Have one Python program that runs multiple versions of Python bytecode.
   For example running Python 2.5 or 2.6 bytecode from Python 3.7.
   No need to install Python 2.6!
-* Use in a fuzzer in coholic exection for analysis
+* Use in a dynamic fuzzer or in coholic execution for analysis
 
 The sandboxed environment in a debugger I find interesting. Since
 there is a separate execution, and traceback stack, inside a debugger
