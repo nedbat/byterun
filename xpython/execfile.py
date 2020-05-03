@@ -114,7 +114,10 @@ def run_python_file(filename, args, package=None):
     # Set sys.argv and the first path element properly.
     old_argv = sys.argv
     old_path0 = sys.path[0]
-    sys.argv = args
+
+    # Note: the type of args is a tuple; we want type(sys.argv) == list
+    sys.argv = list(args)
+
     if package:
         sys.path[0] = ""
     else:
@@ -214,7 +217,6 @@ def run_python_string(source, package=None):
         sys.modules["__main__"] = old_main_mod
 
         # Restore the old argv and path
-        sys.argv = old_argv
         sys.path[0] = old_path0
 
 if __name__ == "__main__":
