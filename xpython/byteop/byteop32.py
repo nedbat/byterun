@@ -29,7 +29,7 @@ class ByteOp32(ByteOp27):
         self.vm = vm
         self.version = version
 
-    # Changed from 2.7
+# Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7
     def MAKE_FUNCTION(self, argc):
         """
@@ -84,7 +84,7 @@ class ByteOp32(ByteOp27):
         self.vm.push(fn)
 
     # Order of function here is the same as in:
-    # https://docs.python.org/3.3/library/dis.html#python-bytecode-instructions
+    # https://docs.python.org/3.2/library/dis.html#python-bytecode-instructions
 
     # Note these are only the functions that aren't in the parent class
     # here, Python 2.7
@@ -93,6 +93,18 @@ class ByteOp32(ByteOp27):
         """Duplicates the reference on top of the stack."""
         a, b = self.vm.popn(2)
         self.vm.push(a, b, a, b)
+
+    def POP_EXCEPT(self):
+        """
+        Removes one block from the block stack. The popped block must be an
+        exception handler block, as implicitly created when entering an except
+        handler. In addition to popping extraneous values from the frame
+        stack, the last three popped values are used to restore the exception
+        state."""
+        block = self.vm.pop_block()
+        if block.type != "except-handler":
+            raise self.VirtualMachineError("popped block is not an except handler; is %s" % block)
+        self.vm.unwind_block(block)
 
     def LOAD_BUILD_CLASS(self):
         """Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class."""

@@ -105,6 +105,14 @@ class ByteOp25():
         self.vm.return_value = dest
         return "continue"
 
+    def LOAD_LOCALS(self):
+        """
+        Pushes a reference to the locals of the current scope on the
+        stack. This is used in the code for a class definition: After the
+        class body is evaluated, the locals are passed to the class
+        definition."""
+        self.vm.push(self.vm.frame.f_locals)
+
     def RETURN_VALUE(self):
         """Returns with TOS to the caller of the function.
         """
@@ -157,6 +165,30 @@ class ByteOp25():
         print("", file=to)
         if hasattr(to, "softspace"):
             to.softspace = 0
+
+    def DUP_TOPX(self, count):
+        """
+        Duplicate count items, keeping them in the same order. Due to
+        implementation limits, count should be between 1 and 5 inclusive.
+        """
+        items = self.vm.popn(count)
+        for i in [1, 2]:
+            self.vm.push(*items)
+
+    def STORE_ATTR(self, name):
+        """Implements TOS.name = TOS1, where namei is the index of name in co_names."""
+        val, obj = self.vm.popn(2)
+        setattr(obj, name, val)
+
+    def DELETE_ATTR(self, name):
+        """Implements del TOS.name, using namei as index into co_names."""
+        obj = self.vm.pop()
+        delattr(obj, name)
+
+    def STORE_GLOBAL(self, name):
+        "Works as STORE_NAME, but stores the name as a global."
+        f = self.vm.frame
+        f.f_globals[name] = self.vm.pop()
 
     def LOAD_CONST(self, const):
         """Pushes co_consts[consti] onto the stack."""
@@ -443,43 +475,22 @@ class ByteOp25():
         stmt, globs, locs = self.vm.popn(3)
         six.exec_(stmt, globs, locs)
 
-    def DUP_TOPX(self, count):
+    def POP_BLOCK(self):
         """
-        Duplicate count items, keeping them in the same order. Due to
-        implementation limits, count should be between 1 and 5 inclusive.
-        """
-        items = self.vm.popn(count)
-        for i in [1, 2]:
-            self.vm.push(*items)
+        Removes one block from the block stack. Per frame, there is a
+        stack of blocks, denoting nested loops, try statements, and
+        such."""
+        self.vm.pop_block()
 
-    # Not ready for prime time.
-    # def END_FINALLY(self):
-    #     """
-    #     Terminates a "finally" clause. The interpreter recalls whether the
-    #     exception has to be re-raised, or whether the function
-    #     returns, and continues with the outer-next block.
-    #     """
-    #     v = self.vm.pop()
-    #     if isinstance(v, str):
-    #         why = v
-    #         if why in ("return", "continue"):
-    #             self.return_value = self.vm.pop()
-    #         if why == "silenced":  # PYTHON3
-    #             block = self.vm.pop_block()
-    #             assert block.type == "except-handler"
-    #             self.vm.unwind_block(block)
-    #             why = None
-    #     elif v is None:
-    #         why = None
-    #     elif issubclass(v, BaseException):
-    #         exctype = v
-    #         val = self.vm.pop()
-    #         tb = self.vm.pop()
-    #         self.last_exception = (exctype, val, tb)
-    #         why = "reraise"
-    #     else:  # pragma: no cover
-    #         raise self.VirtualMachineError("Confused END_FINALLY")
-    #     return why
+    def STORE_NAME(self, name):
+        """Implements name = TOS. namei is the index of name in the attribute
+        co_names of the code object. The compiler tries to use STORE_LOCAL or
+        STORE_GLOBAL if possible."""
+        self.vm.frame.f_locals[name] = self.vm.pop()
+
+    def DELETE_NAME(self, name):
+        """Implements del name, where namei is the index into co_names attribute of the code object."""
+        del self.vm.frame.f_locals[name]
 
     def BUILD_CLASS(self):
         """

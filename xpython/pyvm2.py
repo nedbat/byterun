@@ -361,7 +361,7 @@ class VirtualMachine(object):
             self.jump(block.handler)
             return why
 
-        if PY2:
+        if self.version < 3.0:
             if (
                 block.type == "finally"
                 or (block.type == "setup-except" and why == "exception")
@@ -379,7 +379,7 @@ class VirtualMachine(object):
                 self.jump(block.handler)
                 return why
 
-        elif PYTHON3:
+        else:
             if why == "exception" and block.type in ["setup-except", "finally"]:
                 self.push_block("except-handler")
                 exctype, value, tb = self.last_exception
@@ -450,21 +450,6 @@ class VirtualMachine(object):
             # six.reraise(self.last_exception[0], None)
 
         return self.return_value
-
-    ## Names
-
-    def byte_STORE_NAME(self, name):
-        self.frame.f_locals[name] = self.pop()
-
-    def byte_DELETE_NAME(self, name):
-        del self.frame.f_locals[name]
-
-    def byte_STORE_GLOBAL(self, name):
-        f = self.frame
-        f.f_globals[name] = self.pop()
-
-    def byte_LOAD_LOCALS(self):
-        self.push(self.frame.f_locals)
 
     ## Operators
 
@@ -560,14 +545,6 @@ class VirtualMachine(object):
 
     ## Attributes and indexing
 
-    def byte_STORE_ATTR(self, name):
-        val, obj = self.popn(2)
-        setattr(obj, name, val)
-
-    def byte_DELETE_ATTR(self, name):
-        obj = self.pop()
-        delattr(obj, name)
-
     def byte_UNPACK_SEQUENCE(self, count):
         seq = self.pop()
         for x in reversed(seq):
@@ -634,13 +611,16 @@ class VirtualMachine(object):
             raise VirtualMachineError("Confused END_FINALLY")
         return why
 
-    def byte_POP_BLOCK(self):
-        self.pop_block()
-
     if PY2:
 
         def byte_RAISE_VARARGS(self, argc):
-            # NOTE: the dis docs are completely wrong about the order of the
+            """
+            Raises an exception. argc indicates the number of parameters to the
+            raise statement, ranging from 0 to 3. The handler will find
+            the traceback as TOS2, the parameter as TOS1, and the
+            exception as TOS.
+            """
+            # NOTE: the dis docs quoted above are completely wrong about the order of the
             # operands on the stack!
             exctype = val = tb = None
             if argc == 0:
@@ -670,6 +650,12 @@ class VirtualMachine(object):
     elif PYTHON3:
 
         def byte_RAISE_VARARGS(self, argc):
+            """
+            Raises an exception. argc indicates the number of arguments to the
+            raise statement, ranging from 0 to 3. The handler will find
+            the traceback as TOS2, the parameter as TOS1, and the
+            exception as TOS.
+            """
             cause = exc = None
             if argc == 2:
                 cause = self.pop()
@@ -710,12 +696,6 @@ class VirtualMachine(object):
 
             self.last_exception = exc_type, val, val.__traceback__
             return "exception"
-
-    def byte_POP_EXCEPT(self):
-        block = self.pop_block()
-        if block.type != "except-handler":
-            raise Exception("popped block is not an except handler")
-        self.unwind_block(block)
 
     def byte_SETUP_WITH(self, dest):
         ctxmgr = self.pop()

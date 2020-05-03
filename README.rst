@@ -3,7 +3,7 @@
 x-python
 --------
 
-This is a C Python interpreter written Python.
+This is a C Python bytecode interpreter written Python.
 
 You can use this to:
 
@@ -11,7 +11,7 @@ You can use this to:
 * Use as a sandboxed environment inside a debugger for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
   For example running Python 2.5 or 2.6 bytecode from Python 3.7.
-  No need to install Python 2.6!
+  No need to install Python 2.5 or 2.6!
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
 The sandboxed environment in a debugger I find interesting. Since
