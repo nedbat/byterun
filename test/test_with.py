@@ -19,9 +19,8 @@ class TestWithStatement(vmtest.VmTestCase):
         def test_raise_in_context_manager(self):
             self.do_one()
 
-        if PYTHON_VERSION > 3.2:
-            def test_suppressed_raise_in_context_manager(self):
-                self.do_one()
+        def test_suppressed_raise_in_context_manager(self):
+            self.do_one()
 
     def test_return_in_with(self):
         self.assert_ok("""\
@@ -51,12 +50,11 @@ class TestWithStatement(vmtest.VmTestCase):
     def test_continue_in_with(self):
         self.do_one()
 
-    if 3.2 < PYTHON_VERSION:
-        def test_break_in_with(self):
-            self.do_one()
+    def test_break_in_with(self):
+        self.do_one()
 
     # FIXME - this a bug our 3.5 handling
-    if 3.2 < PYTHON_VERSION < 3.5:
+    if PYTHON_VERSION < 3.5:
         def test_raise_in_with(self):
             self.do_one()
 
