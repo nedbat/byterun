@@ -675,20 +675,6 @@ class VirtualMachine(object):
             self.push_block("finally", dest)
         self.push(ctxmgr_obj)
 
-    ## Functions
-
-    def byte_CALL_FUNCTION_VAR(self, arg):
-        args = self.pop()
-        return self.call_function(arg, args, {})
-
-    def byte_CALL_FUNCTION_KW(self, arg):
-        kwargs = self.pop()
-        return self.call_function(arg, [], kwargs)
-
-    def byte_CALL_FUNCTION_VAR_KW(self, arg):
-        args, kwargs = self.popn(2)
-        return self.call_function(arg, args, kwargs)
-
     def call_function(self, arg, args, kwargs):
         namedargs = {}
         if self.version < 3.6:

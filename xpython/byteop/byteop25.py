@@ -650,3 +650,32 @@ class ByteOp25():
         and pushes the return value returned by the callable object.
         """
         return self.vm.call_function(arg, [], {})
+
+    def CALL_FUNCTION_VAR(self, arg):
+        """
+        Calls a function. argc is interpreted as in
+        CALL_FUNCTION. The top element on the stack contains the
+        variable argument list, followed by keyword and positional
+        arguments.
+        """
+        args = self.vm.pop()
+        return self.vm.call_function(arg, args, {})
+
+    def CALL_FUNCTION_KW(self, arg):
+        """Calls a function. argc is interpreted as in CALL_FUNCTION.
+        The top element on the stack contains the keyword arguments
+        dictionary, followed by explicit keyword and positional
+        arguments.
+        """
+        kwargs = self.vm.pop()
+        return self.vm.call_function(arg, [], kwargs)
+
+    def CALL_FUNCTION_VAR_KW(self, arg):
+        """
+        Calls a function. argc is interpreted as in
+        CALL_FUNCTION. The top element on the stack contains the keyword
+        arguments dictionary, followed by the variable-arguments tuple,
+        followed by explicit keyword and positional arguments.
+        """
+        args, kwargs = self.vm.popn(2)
+        return self.vm.call_function(arg, args, kwargs)
