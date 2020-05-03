@@ -128,6 +128,44 @@ class VmTestCase(unittest.TestCase):
         self.assertEqual(str(e1), str(e2))
         self.assertIs(type(e1), type(e2))
 
+    def assert_runs_ok(self, path_or_code, raises=None, arg_type="string"):
+        """Run `code` in our VM."""
+
+        if arg_type == "bytecode-file":
+            self.version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(path_or_code)
+        else:
+            self.version = PYTHON_VERSION
+            if arg_type == "source":
+                code_str = open(path_or_code, "r").read()
+            else:
+                assert arg_type == "string", "arg_type parameter needs to be either: bytecode-file, source or string; got %s" % arg_type
+                code_str = textwrap.dedent(path_or_code)
+
+            code = compile(code_str, "<%s>" % self.id(), "exec", 0, 1)
+
+        print("%s bytecode %s for %s %s "
+              % (LINE_STR, self.version, code.co_filename, LINE_STR))
+        vm = VirtualMachine()
+
+        vm_value = vm_exc = None
+        try:
+            vm_value = vm.run_code(code)
+        except VirtualMachineError:         # pragma: no cover
+            # If the VM code raises an error, show it.
+            self.assertTrue(False)
+            raise
+        except AssertionError:              # pragma: no cover
+            # If test code fails an assert, show it.
+            raise
+        except Exception as e:
+            # Otherwise, keep the exception for comparison later.
+            if not CAPTURE_EXCEPTION:       # pragma: no cover
+                raise
+            vm_exc = e
+        else:
+            self.assertTrue(True)
+
+
 if __name__ == "__main__":
 
     class TestOne(VmTestCase):
