@@ -1,6 +1,6 @@
 SKIP_TESTS=(
-    [test_buffer.py]=1  # FIXME: Works on c90ff51
-    [test_cmath.py]=1  # FIXME: Works on c90ff51
+    [test_abc.py]=1  #
+    [test_ast.py] = 1
 
     [test_atexit.py]=1  # The atexit test starting at 3.3 looks for specific comments in error lines
 

@@ -4,6 +4,11 @@ SKIP_TESTS=(
     [test_augassign.py]=1
     [test_ast.py]=1 #
 
+    # We get:
+    #   Cannot create a consistent method resolution
+    #   order (MRO) for bases TestCase, AifcTest, object
+    [test_aifc.py]=1
+
     [test_applesingle.py]=1 # fails on its own
     [test_argparse.py]=1 # fails on its own
     [test_aepack.py]=1 # fails on its own

@@ -111,12 +111,12 @@ def run_python_file(filename, args, package=None):
         main_mod.__package__ = package
     main_mod.__builtins__ = BUILTINS
 
-    # Set sys.argv and the first path element properly.
+    # set sys.argv and the first path element properly.
     old_argv = sys.argv
     old_path0 = sys.path[0]
 
-    # Note: the type of args is a tuple; we want type(sys.argv) == list
-    sys.argv = list(args)
+    # note: the type of args is na tuple; we want type(sys.argv) == list
+    sys.argv = [filename] + list(args)
 
     if package:
         sys.path[0] = ""
@@ -185,15 +185,14 @@ def run_python_string(source, package=None):
     old_main_mod = sys.modules["__main__"]
     main_mod = imp.new_module("__main__")
     sys.modules["__main__"] = main_mod
-    main_mod.__file__ = "<string %s>" % source[:20]
+    fake_path = main_mod.__file__ = "<string %s>" % source[:20]
     if package:
         main_mod.__package__ = package
     main_mod.__builtins__ = BUILTINS
 
     # Set sys.argv and the first path element properly.
-    old_argv = sys.argv
     old_path0 = sys.path[0]
-    sys.argv = ()
+    sys.argv = [fake_path]
 
     try:
         if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
@@ -206,7 +205,7 @@ def run_python_string(source, package=None):
         # so make sure it is, then compile a code object from it.
         if not source or source[-1] != "\n":
             source += "\n"
-        code = compile(source, main_mod.__file__, "exec")
+        code = compile(source, fake_path, "exec")
         python_version = PYTHON_VERSION
 
         # Execute the source file.

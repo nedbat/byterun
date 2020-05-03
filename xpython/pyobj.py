@@ -4,7 +4,7 @@ import collections
 import inspect
 import types
 from xdis.util import CO_GENERATOR
-from xdis import PYTHON3
+from xdis import PYTHON3, PYTHON_VERSION
 
 import six
 
@@ -107,13 +107,15 @@ class Function(object):
     def __get__(self, instance, owner):
         if instance is not None:
             return Method(instance, owner, self)
-        if self.version < 3.0:
+        version = self.version if hasattr(self, "version") else PYTHON_VERSION
+        if version < 3.0:
             return Method(None, owner, self)
         else:
             return self
 
     def __call__(self, *args, **kwargs):
-        if self.version < 3.0 and self.func_name in [
+        version = self.version if hasattr(self, "version") else PYTHON_VERSION
+        if version < 3.0 and self.func_name in [
             "<setcomp>",
             "<dictcomp>",
             "<genexpr>",

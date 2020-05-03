@@ -131,6 +131,7 @@ fulldir=$(pwd)
 
 # COMPILER=uncompyle2
 COMPILER=${COMPILER:-"xpython"}
+OPTS=${OPTS:-""}
 TESTDIR=/tmp/test${PYVERSION}
 if [[ -e $TESTDIR ]] ; then
     rm -fr $TESTDIR
@@ -201,7 +202,7 @@ for file in $files; do
     bytecode_file=${short_name}.pyc
     $fulldir/compile-file.py $file && \
     echo ==========  $(date +%X) Running $file ===========
-    $COMPILER $bytecode_file
+    $COMPILER $OPTS $bytecode_file
     rc=$?
     (( rc != 0 && allerrs++ ))
     if (( STOP_ONERROR && rc )) ; then

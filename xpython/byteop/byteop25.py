@@ -209,7 +209,16 @@ class ByteOp25():
         tuple of the names of the base classes, and TOS2 the class name.
         """
         name, bases, methods = self.vm.popn(3)
-        self.vm.push(type(name, bases, methods))
+        # Note: type() wants to only create new-style classes, while
+        # bases might include only old-style classes. This will
+        # trigger this error: TypeError: a new-style class can't have
+        # only classic bases So what we'll do is thow in "object" so
+        # there is at least one new-style class.
+        try:
+            klass = type(name, bases, methods)
+        except TypeError:
+            klass = type(name, tuple([object] + list(bases)), methods)
+        self.vm.push(klass)
 
     def STORE_NAME(self, name):
         """Implements name = TOS. namei is the index of name in the attribute
