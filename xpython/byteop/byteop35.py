@@ -2,6 +2,7 @@
 """
 from __future__ import print_function, division
 
+import types
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop34 import ByteOp34
@@ -80,7 +81,6 @@ class ByteOp35(ByteOp34):
         # FIXME: This is probably not right
         self.vm.call_function(arg, 0, kwargs)
 
-
     def GET_AITER(self):
         raise self.VirtualMachineError("GET_AITER not implemented yet")
 
@@ -92,7 +92,15 @@ class ByteOp35(ByteOp34):
         return
 
     def GET_YIELD_FROM_ITER(self):
-        raise self.VirtualMachineError("GET_YIELD_FROM_ITER not implemented yet")
+        """
+        If TOS is a generator iterator or coroutine object it is left as
+        is. Otherwise, implements TOS = iter(TOS).
+        """
+        TOS = self.vm.top()
+        if isinstance(TOS, types.GeneratorType) or isinstance(tos, types.CoroutineType):
+            return
+        TOS = self.vm.pop()
+        self.push(iter(TOS))
 
     def GET_AWAITABLE(self):
         raise self.VirtualMachineError("GET_AWAITABLE not implemented yet")
