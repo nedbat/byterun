@@ -125,7 +125,7 @@ class ByteOp35(ByteOp34):
         second = third = fourth = None
         TOS = self.vm.top()
         if TOS is None:
-            exit_func = self.vm.pop(1)
+            exit_method = self.vm.pop(1)
         elif isinstance(TOS, str):
             # FIXME: This code does something funky with pushing "continue"
             # See the comment under CONTINUE_LOOP.
@@ -134,24 +134,21 @@ class ByteOp35(ByteOp34):
             # the jump address. This means that the comment or semantics
             # described above isn't strictly correct.
             if TOS in ("return", "continue"):
-                exit_func = self.vm.pop(2)
-                second = TOS
+                exit_method = self.vm.pop(2)
             else:
-                exit_func = self.vm.pop(1)
-                second = None
+                exit_method = self.vm.pop(1)
         elif issubclass(TOS, BaseException):
             fourth, third, second = self.vm.popn(3)
             tp, exc, tb = self.vm.popn(3)
+            exit_method = self.vm.pop()
             self.vm.push(None)
             self.vm.push(fourth, third, second)
             block = self.vm.pop_block()
             assert block.type == "except-handler"
             self.vm.push_block(block.type, block.handler, block.level - 1)
-        else:
-            pass
-        exit_ret = exit_func(second, third, fourth)
-        self.vm.push(exit_ret)
+        exit_ret = exit_method(second, third, fourth)
         self.vm.push(second)
+        self.vm.push(exit_ret)
 
     def WITH_CLEANUP_FINISH(self):
         """Pops exception type and result of "exit" function call from the stack.
@@ -162,11 +159,7 @@ class ByteOp35(ByteOp34):
         from re-raising the exception. (But non-local gotos will still
         be resumed.)
         """
-        # FIXME: Not sure what this is supposed to be
         exit_ret = self.vm.pop(1)
-        if bool(exit_ret):
-            # An error occurred, and was suppressed
+        second = self.vm.pop()
+        if type(second) is type and issubclass(u, BaseException) and res:
             self.vm.push("silenced")
-        else:
-            self.vm.pop(1)
-            pass
