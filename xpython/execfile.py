@@ -175,6 +175,48 @@ def run_python_file(filename, args, package=None):
         sys.path[0] = old_path0
 
 
+def run_python_string(source, package=None):
+    """Run a python string as if it were the main program on the command line.
+    """
+    # Create a module to serve as __main__
+    old_main_mod = sys.modules["__main__"]
+    main_mod = imp.new_module("__main__")
+    sys.modules["__main__"] = main_mod
+    main_mod.__file__ = "<string %s>" % source[:20]
+    if package:
+        main_mod.__package__ = package
+    main_mod.__builtins__ = BUILTINS
+
+    # Set sys.argv and the first path element properly.
+    old_argv = sys.argv
+    old_path0 = sys.path[0]
+    sys.argv = ()
+
+    try:
+        if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
+            raise CannotCompile(
+                "We need Python 2.5 - 2.7 or 3.2 - 3.5 to compile source code; you are running Python %s"
+                % PYTHON_VERSION
+            )
+
+        # `compile` still needs the last line to be clean,
+        # so make sure it is, then compile a code object from it.
+        if not source or source[-1] != "\n":
+            source += "\n"
+        code = compile(source, main_mod.__file__, "exec")
+        python_version = PYTHON_VERSION
+
+        # Execute the source file.
+        exec_code_object(code, main_mod.__dict__, python_version)
+
+    finally:
+        # Restore the old __main__
+        sys.modules["__main__"] = old_main_mod
+
+        # Restore the old argv and path
+        sys.argv = old_argv
+        sys.path[0] = old_path0
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: execfile.py <filename> args")
