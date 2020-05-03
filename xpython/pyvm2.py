@@ -11,11 +11,11 @@ import sys
 import six
 from six.moves import reprlib
 
-from xdis import PYTHON3, PYTHON_VERSION, instruction_size, op_has_argument
+from xdis import PYTHON3, PYTHON_VERSION, op_has_argument
 from xdis.util import code2num
 from xdis.op_imports import get_opcode_module
 
-from xpython.pyobj import Frame, Block, Function, Generator
+from xpython.pyobj import Frame, Block
 
 PY2 = not PYTHON3
 log = logging.getLogger(__name__)
@@ -57,7 +57,6 @@ class VirtualMachine(object):
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)
-        self.extended_arg_size = instruction_size(self.opc.EXTENDED_ARG, self.opc)
         if int_vers < 30:
             if int_vers == 27:
                 from xpython.byteop.byteop27 import ByteOp27
@@ -776,30 +775,6 @@ class VirtualMachine(object):
         retval = func(*posargs, **namedargs)
 
         self.push(retval)
-
-    def byte_YIELD_FROM(self):
-        u = self.pop()
-        x = self.top()
-
-        try:
-            if not isinstance(x, Generator) or u is None:
-                # Call next on iterators.
-                retval = next(x)
-            else:
-                retval = x.send(u)
-            self.return_value = retval
-        except StopIteration as e:
-            self.pop()
-            self.push(e.value)
-        else:
-            # YIELD_FROM decrements f_lasti, so that it will be called
-            # repeatedly until a StopIteration is raised.
-            self.jump(self.frame.f_lasti - 1)
-            # Returning "yield" prevents the block stack cleanup code
-            # from executing, suspending the frame in its current state.
-            return "yield"
-
-    ## Importing
 
     ## And the rest...
 

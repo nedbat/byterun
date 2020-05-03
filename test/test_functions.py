@@ -288,6 +288,7 @@ class TestGenerators(vmtest.VmTestCase):
             """)
 
     if PYTHON_VERSION >= 3.3:
+        # yield from starts in 3.3
         def test_yield_from(self):
             self.assert_ok("""\
                 def main():
@@ -307,16 +308,7 @@ class TestGenerators(vmtest.VmTestCase):
                 """)
 
         def test_yield_from_tuple(self):
-            self.assert_ok("""\
-                def main():
-                    for x in outer():
-                        print(x)
-
-                def outer():
-                    yield from (1, 2, 3, 4)
-
-                main()
-                """)
+            self.do_one()
 
         def test_distinguish_iterators_and_generators(self):
             self.assert_ok("""\
