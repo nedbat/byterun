@@ -16,6 +16,10 @@ class ByteOp35(ByteOp34):
         self.vm = vm
         self.version = version
 
+    def build_container_flat(self, count, container_fn) :
+        elts = self.vm.popn(count)
+        self.vm.push(container_fn(e for l in elts for e in l))
+
     # Changed in 3.5
 
     def BUILD_MAP(self, count):
@@ -39,16 +43,14 @@ class ByteOp35(ByteOp34):
         and pushes the result. Implements iterable unpacking in
         tuple displays (*x, *y, *z).
         """
-        elts = self.vm.popn(count)
-        self.vm.push(tuple(e for l in elts for e in l))
+        self.build_container_flat(count, tuple)
 
     def BUILD_LIST_UNPACK(self, count):
         """
         This is similar to BUILD_TUPLE_UNPACK, but pushes a list instead of tuple.
         Implements iterable unpacking in list displays [*x, *y, *z].
         """
-        elts = self.vm.popn(count)
-        self.vm.push(list(e for l in elts for e in l))
+        self.build_container_flat(count, list)
 
     def BUILD_SET_UNPACK(self, count):
         """
@@ -56,8 +58,7 @@ class ByteOp35(ByteOp34):
         dictionary, and pushes the result. Implements dictionary
         unpacking in dictionary displays {**x, **y, **z}.
         """
-        elts = self.vm.popn(count)
-        self.vm.push(set(e for l in elts for e in l))
+        self.build_container_flat(count, set)
 
     def BUILD_MAP_UNPACK(self, count):
         """
@@ -65,8 +66,7 @@ class ByteOp35(ByteOp34):
         and pushes the result. Implements iterable unpacking in
         tuple displays (*x, *y, *z).
         """
-        elts = self.vm.popn(count)
-        self.vm.push({k:v for m in elts for k, v in m.items()})
+        self.build_container(count, dict)
 
     def BUILD_MAP_UNPACK_WITH_CALL(self, oparg):
         """

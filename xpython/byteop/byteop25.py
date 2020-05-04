@@ -13,6 +13,10 @@ class ByteOp25():
         self.vm = vm
         self.version = version
 
+    def build_container(self, count, container_fn) :
+        elts = self.vm.popn(count)
+        self.vm.push(container_fn(elts))
+
     def print_item(self, item, to=None):
         if to is None:
             to = sys.stdout
@@ -285,8 +289,7 @@ class ByteOp25():
         """Creates a tuple consuming count items from the stack, and pushes
         the resulting tuple onto the stack.
         """
-        elts = self.vm.popn(count)
-        self.vm.push(tuple(elts))
+        self.build_container(count, tuple)
 
     def BUILD_LIST(self, count):
         """Works as BUILD_TUPLE, but creates a list."""
@@ -630,7 +633,7 @@ class ByteOp25():
         else:  # pragma: no cover
             raise self.VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
 
-    def CALL_FUNCTION(self, arg):
+    def CALL_FUNCTION(self, argc):
         """
         Calls a callable object.
         The low byte of argc indicates the number of positional
@@ -649,9 +652,9 @@ class ByteOp25():
         off the stack, calls the callable object with those arguments,
         and pushes the return value returned by the callable object.
         """
-        return self.vm.call_function(arg, [], {})
+        return self.vm.call_function(argc, [], {})
 
-    def CALL_FUNCTION_VAR(self, arg):
+    def CALL_FUNCTION_VAR(self, argc):
         """
         Calls a function. argc is interpreted as in
         CALL_FUNCTION. The top element on the stack contains the
@@ -659,18 +662,18 @@ class ByteOp25():
         arguments.
         """
         args = self.vm.pop()
-        return self.vm.call_function(arg, args, {})
+        return self.vm.call_function(argc, args, {})
 
-    def CALL_FUNCTION_KW(self, arg):
+    def CALL_FUNCTION_KW(self, argc):
         """Calls a function. argc is interpreted as in CALL_FUNCTION.
         The top element on the stack contains the keyword arguments
         dictionary, followed by explicit keyword and positional
         arguments.
         """
         kwargs = self.vm.pop()
-        return self.vm.call_function(arg, [], kwargs)
+        return self.vm.call_function(argc, [], kwargs)
 
-    def CALL_FUNCTION_VAR_KW(self, arg):
+    def CALL_FUNCTION_VAR_KW(self, argc):
         """
         Calls a function. argc is interpreted as in
         CALL_FUNCTION. The top element on the stack contains the keyword
@@ -678,4 +681,4 @@ class ByteOp25():
         followed by explicit keyword and positional arguments.
         """
         args, kwargs = self.vm.popn(2)
-        return self.vm.call_function(arg, args, kwargs)
+        return self.vm.call_function(argc, args, kwargs)
