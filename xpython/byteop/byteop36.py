@@ -30,8 +30,16 @@ class ByteOp36(ByteOp35):
     def FORMAT_VALUE(self):
         raise self.VirtualMachineError("FORMAT_VALUE not implemented yet")
 
-    def BUILD_CONST_KEY_MAP(self):
-        raise self.VirtualMachineError("BUILD_CONST_KEYMAP not implemented yet")
+    def BUILD_CONST_KEY_MAP(self, count):
+        """
+        The version of BUILD_MAP specialized for constant keys. count
+        values are consumed from the stack. The top element on the
+        stack contains a tuple of keys.
+        """
+        keys = self.vm.pop()
+        values = self.vm.popn(count)
+        kvs = dict(zip(keys, values))
+        self.vm.push(kvs)
 
     def CALL_FUNCTION_EX(self):
         raise self.VirtualMachineError("CALL_FUNCTION_EX not implemented yet")

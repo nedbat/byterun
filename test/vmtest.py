@@ -47,6 +47,17 @@ class VmTestCase(unittest.TestCase):
         path = osp.join(srcdir, "bytecode-%s" % self.version, parent_function_name() + ".pyc")
         self.assert_ok(path, arg_type="bytecode-file")
 
+    def self_checking(self):
+        """Use this for a program that has asserts to check its validity"""
+        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6):
+            self.version = PYTHON_VERSION
+        else:
+            assert PYTHON_VERSION == 2.7
+            self.version = 2.7
+
+        path = osp.join(srcdir, "bytecode-%s" % self.version, parent_function_name() + ".pyc")
+        self.assert_runs_ok(path, arg_type="bytecode-file")
+
     def assert_ok(self, path_or_code, raises=None, arg_type="string"):
         """Run `code` in our VM and in real Python: they behave the same."""
 
@@ -86,7 +97,7 @@ class VmTestCase(unittest.TestCase):
                 raise
             vm_exc = e
         finally:
-            real_stdout.write("\n%s %s stdout %s\n\n"
+            real_stdout.write("\n%s %s output %s\n\n"
                               % (LINE_STR, code.co_filename, LINE_STR))
             real_stdout.write(vm_stdout.getvalue())
 
