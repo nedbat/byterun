@@ -2,6 +2,10 @@
 #
 # Python 3.5+ PEP 448 - Additional Unpacking Generalizations for dictionaries
 # RUNNABLE!
+
+# Tests opcodes:
+# BUILD_MAP, BUILD_MAP_UNPACK, BUILD_LIST, BUILD_LIST_UNPACK, and BUILD_CONST_KEY_MAP
+
 b = {**{}}
 assert b == {}
 c = {**{'a': 1, 'b': 2}}
