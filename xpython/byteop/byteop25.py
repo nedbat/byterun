@@ -19,16 +19,15 @@ class ByteOp25():
 
     def call_function(self, arg, args, kwargs):
         namedargs = {}
-        if self.version < 3.6:
-            lenKw, lenPos = divmod(arg, 256)
-            for i in range(lenKw):
-                key, val = self.vm.popn(2)
-                namedargs[key] = val
-            namedargs.update(kwargs)
-        else:
-            lenKw, lenPos = 0, arg
+        lenKw, lenPos = divmod(arg, 256)
+        for i in range(lenKw):
+            key, val = self.vm.popn(2)
+            namedargs[key] = val
+        namedargs.update(kwargs)
         posargs = self.vm.popn(lenPos)
         posargs.extend(args)
+
+        # FIXME: DRY with byteop26.py code
 
         func = self.vm.pop()
         if hasattr(func, "im_func"):

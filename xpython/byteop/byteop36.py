@@ -8,6 +8,7 @@ from xpython.byteop.byteop35 import ByteOp35
 # Gone in 3.6
 del ByteOp25.MAKE_CLOSURE
 del ByteOp25.CALL_FUNCTION_VAR
+del ByteOp25.CALL_FUNCTION_KW
 del ByteOp25.CALL_FUNCTION_VAR_KW
 
 def identity(x): return x
@@ -24,6 +25,48 @@ class ByteOp36(ByteOp35):
         self.vm = vm
         self.version = version
 
+    def call_function_kw(self, argc):
+        namedargs = {}
+        namedargs_tup = self.vm.pop()
+        for name in namedargs_tup:
+            namedargs[name] = self.vm.pop()
+
+        lenPos = argc - len(namedargs_tup)
+        posargs = self.vm.popn(lenPos)
+
+        # FIXME: DRY with byteop25.py code
+
+        func = self.vm.pop()
+        if hasattr(func, "im_func"):
+            # Methods get self as an implicit first parameter.
+            if func.im_self is not None:
+                posargs.insert(0, func.im_self)
+            # The first parameter must be the correct type.
+            if not isinstance(posargs[0], func.im_class):
+                raise TypeError(
+                    "unbound method %s() must be called with %s instance "
+                    "as first argument (got %s instance instead)"
+                    % (
+                        func.im_func.func_name,
+                        func.im_class.__name__,
+                        type(posargs[0]).__name__,
+                    )
+                )
+            func = func.im_func
+
+        # FIXME: there has to be a better way to do this, like on
+        # initial loading of the code rather than every function call.
+        if not hasattr(func, "version"):
+            try:
+                func.version = self.version
+            except:
+                # Could be a builtin type, or "str", etc.
+                pass
+
+        retval = func(*posargs, **namedargs)
+
+        self.vm.push(retval)
+
     def format_value(self, attr, value):
         if attr & 4:
             value = self.vm.pop()
@@ -39,8 +82,26 @@ class ByteOp36(ByteOp35):
 
     # Changed in 3.6
 
-    # def CALL_FUNCTION_KW
-    # changes are made in vm.call_function. Nothing to do here.
+    def CALL_FUNCTION_KW(self, argc):
+        """
+        Calls a callable object with positional (if any) and keyword
+        arguments.
+
+        argc indicates the total number of positional and
+        keyword arguments. The top element on the stack contains a tuple
+        of keyword argument names. Below that are keyword arguments in
+        the order corresponding to the tuple. Below that are positional
+        arguments, with the right-most parameter on top. Below the
+        arguments is a callable object to call. CALL_FUNCTION_KW pops
+        all arguments and the callable object off the stack, calls the
+        callable object with those arguments, and pushes the return
+        value returned by the callable object.
+
+        Changed in version 3.6: Keyword arguments are packed in a tuple
+        instead of a dictionary, argc indicates the total number of
+        arguments.
+        """
+        return self.call_function_kw(argc)
 
     # New in 3.6
 
