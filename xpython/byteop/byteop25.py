@@ -17,19 +17,8 @@ class ByteOp25():
         elts = self.vm.popn(count)
         self.vm.push(container_fn(elts))
 
-    def call_function(self, arg, args, kwargs):
-        namedargs = {}
-        lenKw, lenPos = divmod(arg, 256)
-        for i in range(lenKw):
-            key, val = self.vm.popn(2)
-            namedargs[key] = val
-        namedargs.update(kwargs)
-        posargs = self.vm.popn(lenPos)
-        posargs.extend(args)
+    def call_function_with_args_resolved(self, func, posargs, namedargs):
 
-        # FIXME: DRY with byteop26.py code
-
-        func = self.vm.pop()
         if hasattr(func, "im_func"):
             # Methods get self as an implicit first parameter.
             if func.im_self is not None:
@@ -57,8 +46,20 @@ class ByteOp25():
                 pass
 
         retval = func(*posargs, **namedargs)
-
         self.vm.push(retval)
+
+    def call_function(self, arg, args, kwargs):
+        namedargs = {}
+        lenKw, lenPos = divmod(arg, 256)
+        for i in range(lenKw):
+            key, val = self.vm.popn(2)
+            namedargs[key] = val
+        namedargs.update(kwargs)
+        posargs = self.vm.popn(lenPos)
+        posargs.extend(args)
+
+        func = self.vm.pop()
+        self.call_function_with_args_resolved(func, posargs, namedargs)
 
     def lookup_name(self, name):
         """Returns the value in the current frame associated for name"""

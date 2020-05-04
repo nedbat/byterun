@@ -33,39 +33,8 @@ class ByteOp36(ByteOp35):
 
         lenPos = argc - len(namedargs_tup)
         posargs = self.vm.popn(lenPos)
-
-        # FIXME: DRY with byteop25.py code
-
         func = self.vm.pop()
-        if hasattr(func, "im_func"):
-            # Methods get self as an implicit first parameter.
-            if func.im_self is not None:
-                posargs.insert(0, func.im_self)
-            # The first parameter must be the correct type.
-            if not isinstance(posargs[0], func.im_class):
-                raise TypeError(
-                    "unbound method %s() must be called with %s instance "
-                    "as first argument (got %s instance instead)"
-                    % (
-                        func.im_func.func_name,
-                        func.im_class.__name__,
-                        type(posargs[0]).__name__,
-                    )
-                )
-            func = func.im_func
-
-        # FIXME: there has to be a better way to do this, like on
-        # initial loading of the code rather than every function call.
-        if not hasattr(func, "version"):
-            try:
-                func.version = self.version
-            except:
-                # Could be a builtin type, or "str", etc.
-                pass
-
-        retval = func(*posargs, **namedargs)
-
-        self.vm.push(retval)
+        self.call_function_with_args_resolved(func, posargs, namedargs)
 
     def format_value(self, attr, value):
         if attr & 4:
@@ -159,7 +128,10 @@ class ByteOp36(ByteOp35):
         callable object with those arguments, and pushes the return
         value returned by the callable object.
         """
-        raise self.vm.VirtualMachineError("CALL_FUNCTION_EX not implemented yet")
+        namedargs = self.vm.pop() if flags & 1 else {}
+        posargs = self.vm.pop()
+        func = self.vm.pop()
+        self.call_function_with_args_resolved(func, posargs, namedargs)
 
     def SETUP_ANNOTATIONS(self):
         """

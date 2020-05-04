@@ -75,11 +75,21 @@ class ByteOp35(ByteOp34):
         mappings, the relative position of the corresponding callable
         f is encoded in the second byte of oparg.
         """
-        arg, count = divmod(oparg, 256)
+        from trepan.api import debug; debug()
+        fn_pos, count = divmod(oparg, 256)
         elts = self.vm.popn(count)
-        kwargs = {k:v for m in elts for k, v in m.items()}
-        # FIXME: This is probably not right
-        self.call_function(arg, 0, kwargs)
+        if elts:
+            kwargs = {k:v for m in elts for k, v in m.items()}
+        else:
+            kwargs = None
+        posargs = self.vm.pop()
+        func = self.vm.pop(fn_pos)
+
+        # Put everything in the right order for CALL_FUNCTION_EX
+        self.vm.push(func)
+        self.vm.push(posargs)
+        if kwargs:
+            self.vm.push(kwargs)
 
     # Coroutine opcodes
 
