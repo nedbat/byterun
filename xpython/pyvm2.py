@@ -30,6 +30,7 @@ repr_obj = reprlib.Repr()
 repr_obj.maxother = 120
 repper = repr_obj.repr
 
+
 class VirtualMachineError(Exception):
     """For raising errors in the operation of the VM."""
 
@@ -60,13 +61,16 @@ class VirtualMachine(object):
         if int_vers < 30:
             if int_vers == 27:
                 from xpython.byteop.byteop27 import ByteOp27
+
                 self.byteop = ByteOp27(self)
             elif int_vers == 26:
                 from xpython.byteop.byteop26 import ByteOp26
+
                 self.byteop = ByteOp26(self)
                 pass
             elif int_vers == 25:
                 from xpython.byteop.byteop25 import ByteOp25
+
                 self.byteop = ByteOp25(self)
                 pass
             pass
@@ -75,24 +79,33 @@ class VirtualMachine(object):
             if int_vers < 34:
                 if int_vers == 32:
                     from xpython.byteop.byteop32 import ByteOp32
+
                     self.byteop = ByteOp32(self)
                 elif int_vers == 33:
                     from xpython.byteop.byteop33 import ByteOp33
+
                     self.byteop = ByteOp33(self)
                 else:
-                    raise VirtualMachineError("Version %s not supported" % python_version)
+                    raise VirtualMachineError(
+                        "Version %s not supported" % python_version
+                    )
             else:
                 if int_vers == 34:
                     from xpython.byteop.byteop34 import ByteOp34
+
                     self.byteop = ByteOp34(self)
                 elif int_vers == 35:
                     from xpython.byteop.byteop35 import ByteOp35
+
                     self.byteop = ByteOp35(self)
                 elif int_vers == 36:
                     from xpython.byteop.byteop36 import ByteOp36
+
                     self.byteop = ByteOp36(self)
                 else:
-                    raise VirtualMachineError("Version %s not supported" % python_version)
+                    raise VirtualMachineError(
+                        "Version %s not supported" % python_version
+                    )
 
     def top(self):
         """Return the value at the top of the stack, with no changes."""
@@ -146,9 +159,13 @@ class VirtualMachine(object):
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         # The callargs default is safe because we never modify the dict.
         # pylint: disable=dangerous-default-value
-        log.debug("make_frame: code=%r, callargs=%s, f_globals=%r, f_locals=%r",
-                 code, repper(callargs), (type(f_globals), id(f_globals)),
-                  (type(f_locals), id(f_locals)))
+        log.debug(
+            "make_frame: code=%r, callargs=%s, f_globals=%r, f_locals=%r",
+            code,
+            repper(callargs),
+            (type(f_globals), id(f_globals)),
+            (type(f_locals), id(f_locals)),
+        )
         if f_globals is not None:
             f_globals = f_globals
             if f_locals is None:
@@ -190,9 +207,7 @@ class VirtualMachine(object):
         for f in self.frames:
             filename = f.f_code.co_filename
             lineno = f.line_number()
-            print('  File "%s", line %d, in %s' % (
-                filename, lineno, f.f_code.co_name
-            ))
+            print('  File "%s", line %d, in %s' % (filename, lineno, f.f_code.co_name))
             linecache.checkcache(filename)
             line = linecache.getline(filename, lineno, f.f_globals)
             if line:
@@ -212,8 +227,7 @@ class VirtualMachine(object):
         if self.frames:  # pragma: no cover
             raise VirtualMachineError("Frames left over!")
         if self.frame and self.frame.stack:  # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" %
-                                      self.frame.stack)
+            raise VirtualMachineError("Data left on stack! %r" % self.frame.stack)
 
         return val
 
@@ -253,15 +267,19 @@ class VirtualMachine(object):
                     # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
                     f.f_lasti += 1
                     if byteCode == self.opc.EXTENDED_ARG:
-                        extended_arg = (intArg << 8)
+                        extended_arg = intArg << 8
                         continue
                     else:
                         extended_arg = 0
                 else:
-                    intArg = code2num(co_code, f.f_lasti) + code2num(co_code, f.f_lasti+1)*256 + extended_arg
+                    intArg = (
+                        code2num(co_code, f.f_lasti)
+                        + code2num(co_code, f.f_lasti + 1) * 256
+                        + extended_arg
+                    )
                     f.f_lasti += 2
                     if byteCode == self.opc.EXTENDED_ARG:
-                        extended_arg = intArg*65536
+                        extended_arg = intArg * 65536
                         continue
                     else:
                         extended_arg = 0
@@ -316,9 +334,14 @@ class VirtualMachine(object):
         def instruction_info():
             frame = self.frame
             code = frame.f_code
-            return ("%d: %s %s\n\t%s in %s:%s" %
-                    (opoffset, byteName, arguments,
-                     code.co_name, code.co_filename, frame.f_lineno))
+            return "%d: %s %s\n\t%s in %s:%s" % (
+                opoffset,
+                byteName,
+                arguments,
+                code.co_name,
+                code.co_filename,
+                frame.f_lineno,
+            )
 
         why = None
         try:
@@ -339,8 +362,10 @@ class VirtualMachine(object):
                     bytecode_fn = getattr(self, "byte_%s" % byteName, None)
 
                 if not bytecode_fn:  # pragma: no cover
-                    raise VirtualMachineError("Unknown bytecode type: %s\n\t%s" %
-                                              (instruction_info(), byteName))
+                    raise VirtualMachineError(
+                        "Unknown bytecode type: %s\n\t%s"
+                        % (instruction_info(), byteName)
+                    )
                 why = bytecode_fn(*arguments)
 
         except:
@@ -352,8 +377,10 @@ class VirtualMachine(object):
             # should be removed.
             self.last_exception = sys.exc_info()
             log.info(
-                ("Caught exception during execution of "
-                 "instruction:\n\t%s" % instruction_info())
+                (
+                    "Caught exception during execution of "
+                    "instruction:\n\t%s" % instruction_info()
+                )
             )
             why = "exception"
 

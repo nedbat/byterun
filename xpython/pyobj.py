@@ -25,8 +25,7 @@ def make_cell(value):
 # It might be the case that this is more useful in Python 2.x
 # which doesn't seem to show traceback of interpreted code.
 # Python 3.x does this but it also shows junk at the end.
-Traceback = collections.namedtuple("_Traceback",
-     "tb_frame tb_lasti tb_lineno tb_next")
+Traceback = collections.namedtuple("_Traceback", "tb_frame tb_lasti tb_lineno tb_next")
 try:
     _Traceback.tb_frame.__doc__ = "frame object at this level"
     _Traceback.tb_lasti.__doc__ = "index of last attempted instruction in bytecode"
@@ -35,20 +34,18 @@ try:
 except:
     pass
 
+
 class Function(object):
     __slots__ = [
-
         "func_code",  # Python 2.x
         "func_name",
         "func_defaults",
         "func_closure",
-
         "__code__",  # Python 3.x
         "__name__",
         "__defaults__",
         "__kwdefaults__",
         "__closure__",
-
         "func_globals",
         "func_locals",
         "func_dict",
@@ -58,9 +55,9 @@ class Function(object):
         "_func",
     ]
 
-    def __init__(self, name, code, globs, defaults, closure, vm,
-                 kwdefaults={},
-                 annotations={}):
+    def __init__(
+        self, name, code, globs, defaults, closure, vm, kwdefaults={}, annotations={}
+    ):
         self._vm = vm
         self.version = vm.version
 
@@ -75,7 +72,9 @@ class Function(object):
         self.func_globals = globs
         self.func_locals = self._vm.frame.f_locals
         self.__dict__ = {}
-        self.__doc__ = code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
+        self.__doc__ = (
+            code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
+        )
 
         # These are 3.x ish only
         self.__kwdefaults__ = kwdefaults
@@ -192,12 +191,14 @@ Block = collections.namedtuple("Block", "type, handler, level")
 
 
 class Frame(object):
-    def __init__(self, f_code, f_globals, f_locals, f_back):
+    def __init__(self, f_code, f_globals, f_locals, f_back, version=PYTHON_VERSION):
         self.f_code = f_code
         self.f_globals = f_globals
         self.f_locals = f_locals
         self.f_back = f_back
         self.stack = []
+        self.f_trace = None
+        self.version = PYTHON_VERSION
         if f_back and f_back.f_globals is f_globals:
             # If we share the globals, we share the builtins.
             self.f_builtins = f_back.f_builtins
@@ -211,6 +212,10 @@ class Frame(object):
                 self.f_builtins = {"None": None}
 
         self.f_lineno = f_code.co_firstlineno
+
+        # Python 2.2.3 initializes this to 0. But by 2.4.6 it is initialized to -1.
+        # Note that this has to be coordinated with parse_byte_and_args() of pyvm2.py
+        # and other places which is why we don't set it to the more correct -1.
         self.f_lasti = 0
 
         if f_code.co_cellvars:
