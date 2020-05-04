@@ -168,6 +168,10 @@ class TestFunctions(vmtest.VmTestCase):
 
 
 class TestClosures(vmtest.VmTestCase):
+    if PYTHON_VERSION > 3.2:
+        def test_closure_vars_from_static_parent(self):
+            self.self_checking()
+
     def test_closures(self):
         self.assert_ok("""\
             def make_adder(x):
