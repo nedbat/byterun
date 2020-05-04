@@ -12,7 +12,7 @@ import six
 from six.moves import reprlib
 
 from xdis import PYTHON3, PYTHON_VERSION, op_has_argument
-from xdis.util import code2num
+from xdis.util import code2num, CO_NEWLOCALS
 from xdis.op_imports import get_opcode_module
 
 from xpython.pyobj import Frame, Block
@@ -144,7 +144,11 @@ class VirtualMachine(object):
         return self.frame.block_stack[-1]
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
-        log.debug("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
+        # The callargs default is safe because we never modify the dict.
+        # pylint: disable=dangerous-default-value
+        log.debug("make_frame: code=%r, callargs=%s, f_globals=%r, f_locals=%r",
+                 code, repper(callargs), (type(f_globals), id(f_globals)),
+                  (type(f_locals), id(f_locals)))
         if f_globals is not None:
             f_globals = f_globals
             if f_locals is None:
@@ -153,14 +157,21 @@ class VirtualMachine(object):
             f_globals = self.frame.f_globals
             f_locals = {}
         else:
+            # TODO(ampere): __name__, __doc__, __package__ below are not correct
             f_globals = f_locals = {
                 "__builtins__": __builtins__,
                 "__name__": "__main__",
                 "__doc__": None,
                 "__package__": None,
             }
+
+        # Implement NEWLOCALS flag. See Objects/frameobject.c in CPython.
+        if code.co_flags & CO_NEWLOCALS:
+            f_locals = {}
+
         f_locals.update(callargs)
         frame = Frame(code, f_globals, f_locals, self.frame)
+        log.debug("%r", frame)
         return frame
 
     def push_frame(self, frame):
@@ -179,7 +190,9 @@ class VirtualMachine(object):
         for f in self.frames:
             filename = f.f_code.co_filename
             lineno = f.line_number()
-            print('  File "%s", line %d, in %s' % (filename, lineno, f.f_code.co_name))
+            print('  File "%s", line %d, in %s' % (
+                filename, lineno, f.f_code.co_name
+            ))
             linecache.checkcache(filename)
             line = linecache.getline(filename, lineno, f.f_globals)
             if line:
@@ -187,6 +200,7 @@ class VirtualMachine(object):
 
     def resume_frame(self, frame):
         frame.f_back = self.frame
+        log.debug("resume_frame: %r", frame)
         val = self.run_frame(frame)
         frame.f_back = None
         return val
@@ -198,7 +212,8 @@ class VirtualMachine(object):
         if self.frames:  # pragma: no cover
             raise VirtualMachineError("Frames left over!")
         if self.frame and self.frame.stack:  # pragma: no cover
-            raise VirtualMachineError("Data left on stack! %r" % self.frame.stack)
+            raise VirtualMachineError("Data left on stack! %r" %
+                                      self.frame.stack)
 
         return val
 

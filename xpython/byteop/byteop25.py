@@ -17,6 +17,20 @@ class ByteOp25():
         elts = self.vm.popn(count)
         self.vm.push(container_fn(elts))
 
+    def lookup_name(self, name):
+        """Returns the value in the current frame associated for name"""
+        frame = self.vm.frame
+        if name in frame.f_locals:
+            val = frame.f_locals[name]
+        elif name in frame.f_globals:
+            val = frame.f_globals[name]
+        elif name in frame.f_builtins:
+            val = frame.f_builtins[name]
+        else:
+            raise NameError("name '%s' is not defined" % name)
+        return val
+
+
     def print_item(self, item, to=None):
         if to is None:
             to = sys.stdout
@@ -272,16 +286,7 @@ class ByteOp25():
 
     def LOAD_NAME(self, name):
         """Pushes the value associated with co_names[namei] onto the stack."""
-        frame = self.vm.frame
-        if name in frame.f_locals:
-            val = frame.f_locals[name]
-        elif name in frame.f_globals:
-            val = frame.f_globals[name]
-        elif name in frame.f_builtins:
-            val = frame.f_builtins[name]
-        else:
-            raise NameError("name '%s' is not defined" % name)
-        self.vm.push(val)
+        self.vm.push(self.lookup_name(name))
 
     # Building
 

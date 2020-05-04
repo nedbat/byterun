@@ -10,10 +10,32 @@ del ByteOp25.MAKE_CLOSURE
 del ByteOp25.CALL_FUNCTION_VAR
 del ByteOp25.CALL_FUNCTION_VAR_KW
 
+def identity(x): return x
+
+FSTRING_CONVERSION_MAP = {
+    0: identity,
+    1: str,
+    2: repr,
+    3: ascii,
+}
+
 class ByteOp36(ByteOp35):
     def __init__(self, vm, version=3.6):
         self.vm = vm
         self.version = version
+
+    def format_value(self, attr, value):
+        if attr & 4:
+            value = self.vm.pop()
+            attr_flags = attr & 3
+            if attr_flags:
+                conversion_fn = FSTRING_CONVERSION_MAP.get(attr_flags, identity)
+            else:
+                conversion_fn = identity
+        else:
+            conversion_fn = FSTRING_CONVERSION_MAP.get(attr, identity)
+
+        return conversion_fn(value)
 
     # Changed in 3.6
 
@@ -45,8 +67,7 @@ class ByteOp36(ByteOp35):
         Formatting is performed using PyObject_Format(). The result is
         pushed on the stack.
         """
-        # If we do nothing, then we are doing the identify formatting, which is good
-        # enough to start off with.
+        self.vm.push(self.format_value(flags, self.vm.pop()))
 
     def BUILD_CONST_KEY_MAP(self, count):
         """
