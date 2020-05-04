@@ -81,11 +81,32 @@ class ByteOp35(ByteOp34):
         # FIXME: This is probably not right
         self.call_function(arg, 0, kwargs)
 
+    # Coroutine opcodes
+
+    def GET_AWAITABLE(self):
+        """
+        Implements TOS = get_awaitable(TOS), where get_awaitable(o)
+        returns o if o is a coroutine object or a generator object
+        with the CO_ITERABLE_COROUTINE flag, or resolves
+        o.__await__.
+        """
+        raise self.VirtualMachineError("GET_AWAITABLE not implemented yet")
+
     def GET_AITER(self):
-        raise self.VirtualMachineError("GET_AITER not implemented yet")
+        """
+        Implements TOS = get_awaitable(TOS.__aiter__()). See GET_AWAITABLE
+        for details about get_awaitable
+        """
+        TOS = self.vm.pop()
+        self.vm.push(get_awaitable(TOS.__aiter__()))
 
     def GET_ANEXT(self):
-        raise self.VirtualMachineError("GET_ANEXT not implemented yet")
+        """
+        Implements PUSH(get_awaitable(TOS.__anext__())). See GET_AWAITABLE
+        for details about get_awaitable
+        """
+        TOS = self.vm.pop()
+        self.vm.push(get_awaitable(TOS.__anext()))
 
     def BEFORE_ASYNC_WITH(self):
         raise self.VirtualMachineError("BEFORE_ASYNC_WITH not implemented yet")
@@ -101,9 +122,6 @@ class ByteOp35(ByteOp34):
             return
         TOS = self.vm.pop()
         self.push(iter(TOS))
-
-    def GET_AWAITABLE(self):
-        raise self.VirtualMachineError("GET_AWAITABLE not implemented yet")
 
     def WITH_CLEANUP_START(self):
         """Cleans up the stack when a with statement block exits.

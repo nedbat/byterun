@@ -78,7 +78,7 @@ class ByteOp36(ByteOp35):
         else:
             conversion_fn = FSTRING_CONVERSION_MAP.get(attr, identity)
 
-        return conversion_fn(value)
+        return str(conversion_fn(value))
 
     # Changed in 3.6
 
