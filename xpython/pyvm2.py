@@ -693,50 +693,6 @@ class VirtualMachine(object):
             self.push_block("finally", dest)
         self.push(ctxmgr_obj)
 
-    def call_function(self, arg, args, kwargs):
-        namedargs = {}
-        if self.version < 3.6:
-            lenKw, lenPos = divmod(arg, 256)
-            for i in range(lenKw):
-                key, val = self.popn(2)
-                namedargs[key] = val
-            namedargs.update(kwargs)
-        else:
-            lenKw, lenPos = 0, arg
-        posargs = self.popn(lenPos)
-        posargs.extend(args)
-
-        func = self.pop()
-        if hasattr(func, "im_func"):
-            # Methods get self as an implicit first parameter.
-            if func.im_self is not None:
-                posargs.insert(0, func.im_self)
-            # The first parameter must be the correct type.
-            if not isinstance(posargs[0], func.im_class):
-                raise TypeError(
-                    "unbound method %s() must be called with %s instance "
-                    "as first argument (got %s instance instead)"
-                    % (
-                        func.im_func.func_name,
-                        func.im_class.__name__,
-                        type(posargs[0]).__name__,
-                    )
-                )
-            func = func.im_func
-
-        # FIXME: there has to be a better way to do this, like on
-        # initial loading of the code rather than every function call.
-        if not hasattr(func, "version"):
-            try:
-                func.version = self.version
-            except:
-                # Could be a builtin type, or "str", etc.
-                pass
-
-        retval = func(*posargs, **namedargs)
-
-        self.push(retval)
-
     ## And the rest...
 
     if 0:  # Not in py2.7

@@ -1,4 +1,4 @@
-"""Test functions etc, for x-python."""
+"""Test functions, function, function signatures, etc."""
 
 from __future__ import print_function
 
@@ -7,9 +7,14 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis import PYTHON3, PYTHON_VERSION
+from xdis import PYTHON_VERSION
 
 class TestFunctions(vmtest.VmTestCase):
+
+    if PYTHON_VERSION > 3.2:
+        def test_pos_args(self):
+            self.do_one()
+
     def test_functions(self):
         self.assert_ok("""\
             def fn(a, b=17, c="Hello", d=[]):
@@ -168,7 +173,8 @@ class TestFunctions(vmtest.VmTestCase):
 
 
 class TestClosures(vmtest.VmTestCase):
-    if PYTHON_VERSION > 3.2:
+    if PYTHON_VERSION > 3.3:
+        # Investigate for < 3.3
         def test_closure_vars_from_static_parent(self):
             self.self_checking()
 

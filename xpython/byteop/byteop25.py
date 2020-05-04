@@ -17,6 +17,50 @@ class ByteOp25():
         elts = self.vm.popn(count)
         self.vm.push(container_fn(elts))
 
+    def call_function(self, arg, args, kwargs):
+        namedargs = {}
+        if self.version < 3.6:
+            lenKw, lenPos = divmod(arg, 256)
+            for i in range(lenKw):
+                key, val = self.vm.popn(2)
+                namedargs[key] = val
+            namedargs.update(kwargs)
+        else:
+            lenKw, lenPos = 0, arg
+        posargs = self.vm.popn(lenPos)
+        posargs.extend(args)
+
+        func = self.vm.pop()
+        if hasattr(func, "im_func"):
+            # Methods get self as an implicit first parameter.
+            if func.im_self is not None:
+                posargs.insert(0, func.im_self)
+            # The first parameter must be the correct type.
+            if not isinstance(posargs[0], func.im_class):
+                raise TypeError(
+                    "unbound method %s() must be called with %s instance "
+                    "as first argument (got %s instance instead)"
+                    % (
+                        func.im_func.func_name,
+                        func.im_class.__name__,
+                        type(posargs[0]).__name__,
+                    )
+                )
+            func = func.im_func
+
+        # FIXME: there has to be a better way to do this, like on
+        # initial loading of the code rather than every function call.
+        if not hasattr(func, "version"):
+            try:
+                func.version = self.version
+            except:
+                # Could be a builtin type, or "str", etc.
+                pass
+
+        retval = func(*posargs, **namedargs)
+
+        self.vm.push(retval)
+
     def lookup_name(self, name):
         """Returns the value in the current frame associated for name"""
         frame = self.vm.frame
@@ -657,7 +701,7 @@ class ByteOp25():
         off the stack, calls the callable object with those arguments,
         and pushes the return value returned by the callable object.
         """
-        return self.vm.call_function(argc, [], {})
+        return self.call_function(argc, [], {})
 
     def CALL_FUNCTION_VAR(self, argc):
         """
@@ -667,7 +711,7 @@ class ByteOp25():
         arguments.
         """
         args = self.vm.pop()
-        return self.vm.call_function(argc, args, {})
+        return self.call_function(argc, args, {})
 
     def CALL_FUNCTION_KW(self, argc):
         """Calls a function. argc is interpreted as in CALL_FUNCTION.
@@ -676,7 +720,7 @@ class ByteOp25():
         arguments.
         """
         kwargs = self.vm.pop()
-        return self.vm.call_function(argc, [], kwargs)
+        return self.call_function(argc, [], kwargs)
 
     def CALL_FUNCTION_VAR_KW(self, argc):
         """
@@ -686,4 +730,4 @@ class ByteOp25():
         followed by explicit keyword and positional arguments.
         """
         args, kwargs = self.vm.popn(2)
-        return self.vm.call_function(argc, args, kwargs)
+        return self.call_function(argc, args, kwargs)

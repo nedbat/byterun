@@ -79,7 +79,7 @@ class ByteOp35(ByteOp34):
         elts = self.vm.popn(count)
         kwargs = {k:v for m in elts for k, v in m.items()}
         # FIXME: This is probably not right
-        self.vm.call_function(arg, 0, kwargs)
+        self.call_function(arg, 0, kwargs)
 
     def GET_AITER(self):
         raise self.VirtualMachineError("GET_AITER not implemented yet")

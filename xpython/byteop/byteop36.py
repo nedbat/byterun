@@ -40,6 +40,7 @@ class ByteOp36(ByteOp35):
     # Changed in 3.6
 
     # def CALL_FUNCTION_KW
+    # changes are made in vm.call_function. Nothing to do here.
 
     # New in 3.6
 
@@ -47,7 +48,7 @@ class ByteOp36(ByteOp35):
         """
         Stores TOS as locals()['__annotations__'][co_names[namei]] = TOS.
         """
-        raise self.vm.VirtualMachineError("STORE_ANNOTATION not implemented yet")
+        self.vm.frame.f_locals["__annotations__"][name] = self.vm.pop()
 
     def SETUP_ASYNC_WITH(self):
         """Creates a new frame object."""
@@ -106,7 +107,8 @@ class ByteOp36(ByteOp35):
         class or module body contains variable annotations
         statically.
         """
-        raise self.vm.VirtualMachineError("SETUP_ANNOTATIONS not implemented yet")
+        if "__annotations__" not in self.vm.frame.f_locals:
+            self.vm.frame.f_locals["__annotations__"] = {}
 
     def BUILD_STRING(self, count):
         """
