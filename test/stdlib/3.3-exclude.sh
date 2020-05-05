@@ -1,12 +1,15 @@
 SKIP_TESTS=(
     [test_abc.py]=1  #
-    [test_ast.py] = 1
-
+    [test_argparse.py]=1
+    [test_array.py]=1
+    [test_ast.py]=1
+    [test_asynchat.py]=1
+    [test_asyncore.py]=1
     [test_atexit.py]=1  # The atexit test starting at 3.3 looks for specific comments in error lines
 
     [test_cmd_line.py]=1 # too long?
     [test_concurrent_futures.py]=1  # too long?
-
+    [test_cgitb.py]=1
     [test_decimal.py]=1 # test takes too long to run: 18 seconds
     [test_descr.py]=1  # test assertion errors
     [test_doctest.py]=1  # test assertion errors

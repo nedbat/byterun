@@ -376,12 +376,13 @@ class VirtualMachine(object):
             # In both cases there is a *lot* of interpreter junk at the end which
             # should be removed.
             self.last_exception = sys.exc_info()
-            log.info(
-                (
-                    "Caught exception during execution of "
-                    "instruction:\n\t%s" % instruction_info()
+            if self.last_exception[0] != SystemExit:
+                log.info(
+                    (
+                        "Caught exception during execution of "
+                        "instruction:\n\t%s" % instruction_info()
+                    )
                 )
-            )
             why = "exception"
 
         return why

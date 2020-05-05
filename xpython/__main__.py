@@ -72,6 +72,10 @@ def main(module, verbose, command_to_run, path, args):
         print(e)
         sys.exit(3)
         pass
+    except SystemExit:
+        # Program ran sys.exit();
+        # Respect that.
+        raise
 
 if __name__ == "__main__":
     main(auto_envvar_prefix="XPYTHON")
