@@ -1,7 +1,6 @@
 SKIP_TESTS=(
-    [test_buffer.py]=1  # FIXME: Works on c90ff51
-    [test_cmath.py]=1  # FIXME: Works on c90ff51
-    [test_strftime.py]=1  # FIXME: Works on c90ff51
+    [test_decimal.py]=1  # Takes too long to run: 25 seconds
+    [test_buffer.py]=1  # test takes too long to run: 16 seconds
 
     [test___all__.py]=1  # it fails on its own
     [test_atexit.py]=1  # The atexit test looks for specific comments in error lines
@@ -9,38 +8,30 @@ SKIP_TESTS=(
     [test_cmd_line.py]=1 # takes too long to run
     [test_concurrent_futures.py]=1  # too long?
 
-    [test_configparser.py]=1  # Doesn't terminate
     [test_ctypes.py]=1 # it fails on its own
     [test_curses.py]=1 # Investigate
 
     [test_dbm_gnu.py]=1   # fails on its own
     [test_devpoll.py]=1 # it fails on its own
-    [test_descr.py]=1   # test assertion errors
-    [test_dis.py]=1   # We change line numbers - duh!
+    [test_dis.py]=1   #
     [test_distutils.py]=1 # it fails on its own
-    [test_doctest2.py]=1
-    [test_doctest.py]=1  # test assert failures
-    [test_docxmlrpc.py]=1
+    [test_doctest.py]=1  # it fails on its own
 
-    [test_enum.py]=1 # compile syntax?
+    [test_enum.py]=1 #
     [test_exceptions.py]=1
 
     [test_faulthandler.py]=1
-    [test_file_eintr.py]=1   # parse error
     [test_fork1.py]=1 # too long
 
     [test_gdb.py]=1 # it fails on its own
-    [test_grammar.py]=1 # parse error
 
     [test_httplib.py]=1 # it fails on its own
 
     [test_import.py]=1 # it fails on its own
-    [test_io.py]=1
+    [test_io.py]=1 # Too long to run
     [test_ioctl.py]=1 # it fails on its own
-    [test_inspect.py]=1 # Syntax error Investigate
 
     [test_logging.py]=1 # Too long to run
-    [test_long.py]=1 # FIXME: Works on c90ff51
 
     [test_modulefinder.py]=1  # test assertion error
     [test_multiprocessing_fork.py]=1 # doesn't terminate
