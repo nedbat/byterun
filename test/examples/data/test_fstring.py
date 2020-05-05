@@ -1,9 +1,8 @@
-# Self-checking test.
 # String interpolation tests
+"""This program is self-checking!"""
 
 # This test program is from uncompyle6
 
-# RUNNABLE!
 var1 = 'x'
 var2 = 'y'
 abc  = 'def'

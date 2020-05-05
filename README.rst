@@ -3,14 +3,14 @@
 x-python
 --------
 
-This is a C Python bytecode interpreter written Python.
+This is a CPython bytecode interpreter written Python.
 
 You can use this to:
 
 * Learn about how the internals of CPython works since this models that
-* Use as a sandboxed environment inside a debugger for trying pieces of execution
+* Use as a sandboxed environment for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
-  For example running Python 2.5 or 2.6 bytecode from Python 3.7.
+  For a number of things you can Python 2.5 or 2.6 bytecode from inside Python 3.7;
   No need to install Python 2.5 or 2.6!
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
@@ -26,12 +26,23 @@ Going the other way, I may at some point hook in `my debugger
 you'll have a conventional pdb/gdb like debugger also with the ability
 to step bytecode instructions.
 
+Another unexplored avenue implied above is mixing interpretation and
+direct CPython execution. In fact, there are bugs so this happens
+right now, but it will be turned into a feature. Some functions or
+classes you may want to not run under a slow interpreter while others
+you do want to run under the interpreter.
+
+
 Status:
 +++++++
 
-Currently only Python 2.5 - 2.7, and 3.2 - 3.5 bytecode is well
-understood.  Other versions will start to appear with the help of
-`xdis <https://pypi.python.org/pypi/xdis>`_.
+Currently only Python 2.5 - 2.7, and 3.2 - 3.7 bytecode is well
+understood. Until there is more interest or I get support or funding,
+I am not contemplating expanding to 3.8 and beyond for a while.
+
+A shout out to `xdis <https://pypi.python.org/pypi/xdis>`_ which has
+made cross version interpretation and expanding to other versions
+easier.
 
 Whereas *Byterun* was a bit loose in accepting bytecode opcodes that
 is invalid for particular Python but may be valid for another;
@@ -62,15 +73,27 @@ supported bytecode close enough, the interpreter can (and does) make use
 interpreter internals. For example, built-in functions like `range()`
 are supported this way.
 
-However running 2.7 bytecode on 3.x is often not feasible since the
+Currently running 2.7 bytecode on 3.x is often not feasible since the
 runtime and internal libraries used like `inspect` are too different.
+
+Over time more of Python's internals may get added so we have better
+cross-version compatability, so that is a possibility. Harder is to
+run later byecode from earlier Python versions. The callenge here is
+that many new features like asynchronous I/O and concurrency
+primatives are not in the older versions and may not easily be
+simulated. However that too is a possibility if there is interest.
 
 I would say this is more than a a simple toy interpreter, but it will
 never be as complete as CPython or PyPy.
 
+Right now this program works best on Python up to 3.4 when life in
+Python was much simpler. You can run many of the tests that Python uses
+to test itself, and those work.  Python 3.5 is pretty good too. Python
+3.6 and 3.7 is okay but needs work.
+
 
 History
-+++++++
+++++++
 
 This is a fork of *Byterun.* which is a pure-Python implementation of
 a Python bytecode execution virtual machine.  Net Batchelder started

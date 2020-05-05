@@ -6,7 +6,7 @@
 # Tests opcodes:
 #   BUILD_MAP, BUILD_MAP_UNPACK, BUILD_LIST, BUILD_LIST_UNPACK, and BUILD_CONST_KEY_MAP
 
-# RUNNABLE!
+"""This program is self-checking!"""
 
 b = {**{}}
 assert b == {}

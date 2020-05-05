@@ -1,8 +1,9 @@
 # -*- shell-script -*-
 # Sets PYVERSIONS to be pyenv versions that
 # we can use in the master branch.
+export PYVERSIONS='2.7.18 3.6.10 3.3.7 3.2.6 3.4.10 3.5.9 3.7.7'
 if [[ $0 == ${BASH_SOURCE[0]} ]] ; then
-    echo "This script should be *sourced* rather than run directly through bash"
+    typeset -p PYVERSIONS
+    echo "Note: this script should be *sourced* rather than run directly through bash"
     exit 1
 fi
-export PYVERSIONS='2.7.18 3.3.7 3.2.6 3.4.10 3.5.9'

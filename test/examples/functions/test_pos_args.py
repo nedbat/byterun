@@ -1,12 +1,12 @@
 # Python 3.3+
 #
-# This file is 02_pos_args in the uncompyle6 distribution.
+# This file is derived from 02_pos_args in the uncompyle6 distribution.
 #
 # From Python 3.3.6 hmac.py
 # Problem was getting wrong placement of positional args.
 # In 3.6+ parameter handling changes
 
-# RUNNABLE!
+"""This program is self-checking!"""
 
 digest_cons = lambda d=b'': 5
 

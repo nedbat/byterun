@@ -4,7 +4,8 @@ from typing import List
 # This test program is part of the uncompyle6 test suite.
 # tests STORE_ANNOTATION and SETUP_ANOTATIONS
 
-# RUNNABLE!
+"""This program is self-checking!"""
+
 y = 2
 x: bool
 z: int = 5
