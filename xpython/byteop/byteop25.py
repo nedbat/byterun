@@ -54,6 +54,11 @@ class ByteOp25:
                         # Use the frame's locals(), not the interpreter's
                         self.vm.push(self.vm.frame.f_globals)
                         return
+                    elif self.version >= 3.7 and hasattr(func, "__name__") and func.__name__ == "join" :
+                        # In Python 3.7 it is an error to pass in **namedargs)
+                        retval = func(posargs)
+                        self.vm.push(retval)
+                        return
                 pass
 
         retval = func(*posargs, **namedargs)
