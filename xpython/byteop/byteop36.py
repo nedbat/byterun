@@ -2,6 +2,9 @@
 """
 from __future__ import print_function, division
 
+import inspect
+import types
+
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop35 import ByteOp35
 
@@ -11,7 +14,10 @@ del ByteOp25.CALL_FUNCTION_VAR
 del ByteOp25.CALL_FUNCTION_KW
 del ByteOp25.CALL_FUNCTION_VAR_KW
 
-def identity(x): return x
+
+def identity(x):
+    return x
+
 
 FSTRING_CONVERSION_MAP = {
     0: identity,
@@ -19,6 +25,7 @@ FSTRING_CONVERSION_MAP = {
     2: repr,
     3: ascii,
 }
+
 
 class ByteOp36(ByteOp35):
     def __init__(self, vm, version=3.6):
@@ -49,6 +56,18 @@ class ByteOp36(ByteOp35):
 
         return str(conversion_fn(value))
 
+    ##############################################################################
+    # Order of function here is the same as in:
+    # https://docs.python.org/3.6/library/dis.htmls#python-bytecode-instructions
+    #
+    # A note about parameter names. Generally they are the same as
+    # what is described above, however there are some slight changes:
+    #
+    # * when a parameter name is `namei` (an int), it appears as
+    #   `name` (a str) below because the lookup on co_names[namei] has
+    #   already been performed in parse_byte_and_args().
+    ##############################################################################
+
     # Changed in 3.6
 
     def CALL_FUNCTION_KW(self, argc):
@@ -71,6 +90,63 @@ class ByteOp36(ByteOp35):
         arguments.
         """
         return self.call_function_kw(argc)
+
+    def MAKE_FUNCTION(self, argc):
+        """
+        Pushes a new function object on the stack. From bottom to top,
+        the consumed stack must consist of values if the argument
+        carries a specified flag value
+
+        * 0x01 a tuple of default values for positional-only and positional-or-keyword parameters in positional order
+        * 0x02 a dictionary of keyword-only parameters  default values
+        * 0x04 an annotation dictionary
+        * 0x08 a tuple containing cells for free variables, making a closure
+          the code associated with the function (at TOS1)
+        * the qualified name of the function (at TOS)
+        """
+        name = self.vm.pop()
+        code = self.vm.pop()
+
+        slot_names = ("defaults", "kwdefaults", "annotations", "closure")
+        slot = {
+            "defaults": tuple(),
+            "kwdefaults": {},
+            "annotations": {},
+            "closure": tuple(),
+        }
+        assert argc < 17
+        for i in range(4):
+            if argc & 1:
+                slot[slot_names[i]] = self.vm.pop()
+            argc >>= 1
+            if argc == 0:
+                break
+
+        # FIXME: DRY with code in byteop3{2,4}.py
+
+        globs = self.vm.frame.f_globals
+
+        # FIXME: we should test PYTHON_VERSION to check for sanity.
+        if not inspect.iscode(code) and hasattr(code, "to_native"):
+            code = code.to_native()
+
+        # Python 3.4 __build_class__ is more strict about what can be a
+        # function type whereas in earlier version we could get away with
+        # our own kind of xpython.pyobj.Function object.
+        #
+
+        fn = types.FunctionType(
+            code,
+            globals=globs,
+            name=name,
+            argdefs=slot["defaults"],
+            closure=slot["closure"],
+        )
+        fn.__kwdefaults__ = slot["kwdefaults"]
+        fn.__annonations__ = slot["annotations"]
+
+        fn.version = self.version  # This is our extra tagging.
+        self.vm.push(fn)
 
     # New in 3.6
 
@@ -122,7 +198,7 @@ class ByteOp36(ByteOp35):
         BUILD_TUPLE_UNPACK_WITH_CALL can be used for merging multiple
         mapping objects and iterables containing arguments. Before the
         callable is called, the mapping object and iterable object are
-        each “unpacked” and their contents passed in as keyword and
+        each  unpacked  and their contents passed in as keyword and
         positional arguments respectively. CALL_FUNCTION_EX pops all
         arguments and the callable object off the stack, calls the
         callable object with those arguments, and pushes the return
@@ -150,7 +226,7 @@ class ByteOp36(ByteOp35):
         stack contains a tuple of keys.
         """
         values = self.vm.popn(count)
-        self.vm.push(''.join(values))
+        self.vm.push("".join(values))
 
     def BUILD_TUPLE_UNPACK_WITH_CALL(self, count):
         """
@@ -158,4 +234,6 @@ class ByteOp36(ByteOp35):
         call syntax. The stack item at position count + 1 should be the
         corresponding callable f.
         """
-        raise self.vm.VirtualMachineError("BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet")
+        raise self.vm.VirtualMachineError(
+            "BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet"
+        )

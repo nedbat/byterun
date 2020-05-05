@@ -9,12 +9,13 @@ import six
 import sys
 from xpython.pyobj import Function
 
-class ByteOp25():
+
+class ByteOp25:
     def __init__(self, vm, version=2.5):
         self.vm = vm
         self.version = version
 
-    def build_container(self, count, container_fn) :
+    def build_container(self, count, container_fn):
         elts = self.vm.popn(count)
         self.vm.push(container_fn(elts))
 
@@ -84,7 +85,6 @@ class ByteOp25():
             raise NameError("name '%s' is not defined" % name)
         return val
 
-
     def print_item(self, item, to=None):
         if to is None:
             to = sys.stdout
@@ -123,8 +123,17 @@ class ByteOp25():
         if hasattr(to, "softspace"):
             to.softspace = 0
 
+    ############################################################################
     # Order of function here is the same as in:
     # https://docs.python.org/2.5/library/dis.html#python-bytecode-instructions
+    #
+    # A note about parameter names. Generally they are the same as
+    # what is described above, however there are some slight changes:
+    #
+    # * when a parameter name is `namei` (an int), it appears as
+    #   `name` (a str) below because the lookup on co_names[namei] has
+    #   already been performed in parse_byte_and_args().
+    ############################################################################
 
     def NOP(self):
         "Do nothing code. Used as a placeholder by the bytecode optimizer."
@@ -247,7 +256,6 @@ class ByteOp25():
         """
         self.vm.return_value = self.vm.pop()
         return "yield"
-
 
     def IMPORT_STAR(self):
         """Loads all symbols not starting with '_' directly from the module
@@ -415,9 +423,7 @@ class ByteOp25():
         """
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
-        self.vm.push(
-            __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
-        )
+        self.vm.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
 
     def IMPORT_FROM(self, name):
         """
@@ -431,8 +437,15 @@ class ByteOp25():
         if not hasattr(mod, name):
             # FIXME: figure out how to fake a traceback object
             # TODO: Create PyTraceBack_Here function.
-            self.vm.last_exception = (ImportError, name,
-                                      [self.vm.frame.f_code.co_filename, "bogus_function()", self.vm.frame.f_lineno])
+            self.vm.last_exception = (
+                ImportError,
+                name,
+                [
+                    self.vm.frame.f_code.co_filename,
+                    "bogus_function()",
+                    self.vm.frame.f_lineno,
+                ],
+            )
             return "reexception"
 
         self.vm.push(getattr(mod, name))
@@ -593,7 +606,7 @@ class ByteOp25():
     # This opcode changes in 3.3
     def WITH_CLEANUP(self):
         """Cleans up the stack when a "with" statement block exits. On top of
-        the stack are 1–3 values indicating how/why the finally clause
+        the stack are 1 3 values indicating how/why the finally clause
         was entered:
 
         * TOP = None
@@ -601,15 +614,15 @@ class ByteOp25():
         * TOP = WHY_*; no retval below it
         * (TOP, SECOND, THIRD) = exc_info()
 
-        Under them is EXIT, the context manager’s __exit__() bound method.
+        Under them is EXIT, the context manager s __exit__() bound method.
 
         In the last case, EXIT(TOP, SECOND, THIRD) is called,
         otherwise EXIT(None, None, None).
 
         EXIT is removed from the stack, leaving the values above it in
         the same order. In addition, if the stack represents an
-        exception, and the function call returns a ‘true’ value, this
-        information is “zapped”, to prevent END_FINALLY from
+        exception, and the function call returns a  true  value, this
+        information is  zapped , to prevent END_FINALLY from
         re-raising the exception. (But non-local gotos should still be
         resumed.)
 
@@ -737,7 +750,7 @@ class ByteOp25():
         object to call below that.
 
         Each keyword argument is represented with two values on the
-        stack: the argument’s name, and its value, with the argument's
+        stack: the argument s name, and its value, with the argument's
         value above the name on the stack. The positional arguments
         are pushed in the order that they are passed in to the
         callable object, with the right-most positional argument on

@@ -28,6 +28,12 @@ class ByteOp34(ByteOp33):
         self.vm.push(self.vm.frame.cells[count].get())
 
 
+    ##############################################################################
+    # Order of function here is the same as in:
+    # https://docs.python.org/3.4/library/dis.htmls#python-bytecode-instructions
+    #
+    ##############################################################################
+
     # Changed in 3.4
 
     # Python 3.4 __build_class__ is more strict about what can be a
@@ -45,18 +51,7 @@ class ByteOp34(ByteOp33):
         * the code associated with the function (at TOS1)
         * the qualified name of the function (at TOS)
         """
-        """
-        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of:
 
-        * argc & 0xFF default argument objects in positional order
-        * (argc >> 8) & 0xFF pairs of name and default argument, with the name just below the object on the stack, for keyword-only parameters
-        * (argc >> 16) & 0x7FFF parameter annotation objects
-        * a tuple listing the parameter names for the annotations (only if there are ony annotation objects)
-        * the code associated with the function (at TOS1)
-        * the qualified name of the function (at TOS)
-        """
-
-        # FIXME: DRY with code in byteop32.py
         rest, default_count = divmod(argc, 256)
         annotate_count, kw_default_count = divmod(rest, 256)
 
@@ -82,6 +77,8 @@ class ByteOp34(ByteOp33):
             defaults = self.vm.popn(default_count)
         else:
             defaults = tuple()
+
+        # FIXME: DRY with code in byteop3{2,6}.py
 
         globs = self.vm.frame.f_globals
 

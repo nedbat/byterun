@@ -29,8 +29,36 @@ class ByteOp37(ByteOp36):
 
     # New in 3.7
 
-    def LOAD_METHOD(self, count):
+    ##############################################################################
+    # Order of function here is the same as in:
+    # https://docs.python.org/3.7/library/dis.htmls#python-bytecode-instructions
+    #
+    # A note about parameter names. Generally they are the same as
+    # what is described above, however there are some slight changes:
+    #
+    # * when a parameter name is `namei` (an int), it appears as
+    #   `name` (a str) below because the lookup on co_names[namei] has
+    #   already been performed in parse_byte_and_args().
+    ##############################################################################
+
+    def LOAD_METHOD(self, name):
+        """
+        Loads a method named co_names[namei] from the TOS object. TOS is
+        popped. This bytecode distinguishes two cases: if TOS has a
+        method with the correct name, the bytecode pushes the unbound
+        method and TOS. TOS will be used as the first argument (self)
+        by CALL_METHOD when calling the unbound method. Otherwise,
+        NULL and the object return by the attribute lookup are pushed.
+        """
         raise self.vm.VirtualMachineError("LOAD_METHOD not implemented yet")
 
     def CALL_METHOD(self, count):
+        """Calls a method. argc is the number of positional
+        arguments. Keyword arguments are not supported. This opcode is
+        designed to be used with LOAD_METHOD. Positional arguments are
+        on top of the stack. Below them, the two items described in
+        LOAD_METHOD are on the stack (either self and an unbound
+        method object or NULL and an arbitrary callable). All of them
+        are popped and the return value is pushed.
+        """
         raise self.vm.VirtualMachineError("CALL_METHOD not implemented yet")

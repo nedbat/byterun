@@ -11,7 +11,8 @@ from xdis import PYTHON_VERSION
 
 class TestFunctions(vmtest.VmTestCase):
 
-    if 3.2 < PYTHON_VERSION > 3.6:
+    # test_pos_args has function syntax added in 3.3
+    if PYTHON_VERSION >= 3.3:
         def test_pos_args(self):
             self.do_one()
 
