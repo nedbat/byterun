@@ -11,19 +11,24 @@ RM      ?= rm
 LINT    = flake8
 SHELL   ?= bash
 
-#EXTRA_DIST=ipython/ipy_trepan.py trepan
-PHONY=all check clean unittest dist distclean lint flake8 test rmChangeLog clean_pyc
+PHONY=all check check-compat check-full clean unittest dist distclean lint flake8 test rmChangeLog clean_pyc
 
 #: Default target - same as "check"
 all: check
 
 # Run all tests, exluding those that need pyenv
 check:
-	cd test && nosetests
+	cd test && SKIP_COMPAT=1 nosetests
 
 #: Check across all Python versions
 check-full:
 	SKIP_COMPAT=1 bash ./admin-tools/check-versions.sh
+
+# There is a bug somewhere that causes check-compat not to run
+# when run with the other tests.
+#: Check across all Python versions
+check-compat:
+	pyenv local 2.7.18 && nosetests test/test_compat.py
 
 #: Clean up temporary files and .pyc files
 clean: clean_pyc

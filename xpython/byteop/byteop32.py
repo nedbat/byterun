@@ -19,6 +19,7 @@ del ByteOp25.PRINT_NEWLINE
 del ByteOp25.PRINT_NEWLINE_TO
 del ByteOp25.BUILD_CLASS
 del ByteOp25.EXEC_STMT
+del ByteOp25.RAISE_VARARGS
 
 # Gone since 3.2
 del ByteOp25.DUP_TOPX
@@ -29,7 +30,40 @@ class ByteOp32(ByteOp27):
         self.vm = vm
         self.version = version
 
-# Changed from 2.7
+    def do_raise(self, exc, cause):
+        if exc is None:  # reraise
+            exc_type, val, tb = self.vm.last_exception
+            if exc_type is None:
+                return "exception"  # error
+            else:
+                return "reraise"
+
+        elif type(exc) == type:
+            # As in `raise ValueError`
+            exc_type = exc
+            val = exc()  # Make an instance.
+        elif isinstance(exc, BaseException):
+            # As in `raise ValueError('foo')`
+            exc_type = type(exc)
+            val = exc
+        else:
+            return "exception"  # error
+
+        # If you reach this point, you're guaranteed that
+        # val is a valid exception instance and exc_type is its class.
+        # Now do a similar thing for the cause, if present.
+        if cause:
+            if type(cause) == type:
+                cause = cause()
+            elif not isinstance(cause, BaseException):
+                return "exception"  # error
+
+            val.__cause__ = cause
+
+        self.vm.last_exception = exc_type, val, val.__traceback__
+        return "exception"
+
+    # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7
     def MAKE_FUNCTION(self, argc):
         """
@@ -58,13 +92,15 @@ class ByteOp32(ByteOp27):
             annotate_objects = self.vm.popn(annotate_count - 1)
             n = len(annotate_names)
             assert n == len(annotate_objects)
-            annotations = {annotate_names[i]:annotate_objects[i] for i in range(n)}
+            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
         else:
             annotations = {}
 
         if kw_default_count:
             kw_default_pairs = self.vm.popn(2 * kw_default_count)
-            kwdefaults = dict(kw_default_pairs[i:i+2] for i in range(0, len(kw_default_pairs), 2))
+            kwdefaults = dict(
+                kw_default_pairs[i : i + 2] for i in range(0, len(kw_default_pairs), 2)
+            )
         else:
             kwdefaults = {}
 
@@ -75,11 +111,16 @@ class ByteOp32(ByteOp27):
 
         globs = self.vm.frame.f_globals
 
-        fn = Function(name, code, globs, defaults,
-                      closure=None,
-                      vm = self.vm,
-                      kwdefaults=kwdefaults,
-                      annotations=annotations)
+        fn = Function(
+            name,
+            code,
+            globs,
+            defaults,
+            closure=None,
+            vm=self.vm,
+            kwdefaults=kwdefaults,
+            annotations=annotations,
+        )
         fn.version = self.version
         self.vm.push(fn)
 
@@ -103,7 +144,9 @@ class ByteOp32(ByteOp27):
         state."""
         block = self.vm.pop_block()
         if block.type != "except-handler":
-            raise self.VirtualMachineError("popped block is not an except handler; is %s" % block)
+            raise self.VirtualMachineError(
+                "popped block is not an except handler; is %s" % block
+            )
         self.vm.unwind_block(block)
 
     def LOAD_BUILD_CLASS(self):
@@ -115,7 +158,7 @@ class ByteOp32(ByteOp27):
         """Cleans up the stack when a `with` statement block exits. TOS is the
         context manager's `__exit__()` bound method.
 
-        Below TOS are 1–3 values indicating how/why the finally clause
+        Below TOS are 1 3 values indicating how/why the finally clause
         was entered:
 
         * SECOND = None
@@ -127,7 +170,7 @@ class ByteOp32(ByteOp27):
         otherwise TOS(None, None, None). In addition, TOS is removed from the stack.
 
         If the stack represents an exception, and the function call
-        returns a ‘true’ value, this information is “zapped” and
+        returns a  true  value, this information is  zapped  and
         replaced with a single WHY_SILENCED to prevent END_FINALLY
         from re-raising the exception. (But non-local gotos will still
         be resumed.)
@@ -161,12 +204,27 @@ class ByteOp32(ByteOp27):
         err = (u is not None) and bool(exit_ret)
         if err:
             # An error occurred, and was suppressed
-                self.vm.push("silenced")
+            self.vm.push("silenced")
 
     # Note: this is gone in 3.4
     def STORE_LOCALS(self):
         """Pops TOS from the stack and stores it as the current frame s f_locals. This is used in class construction."""
         self.vm.frame.f_locals = self.vm.pop()
+
+    def RAISE_VARARGS(self, argc):
+        """
+        Raises an exception. argc indicates the number of arguments to the
+        raise statement, ranging from 0 to 3. The handler will find
+        the traceback as TOS2, the parameter as TOS1, and the
+        exception as TOS.
+        """
+        cause = exc = None
+        if argc == 2:
+            cause = self.vm.pop()
+            exc = self.vm.pop()
+        elif argc == 1:
+            exc = self.vm.pop()
+        return self.do_raise(exc, cause)
 
 
 if __name__ == "__main__":

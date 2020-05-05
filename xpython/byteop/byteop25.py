@@ -692,6 +692,40 @@ class ByteOp25():
         else:  # pragma: no cover
             raise self.VirtualMachineError("Strange BUILD_SLICE count: %r" % count)
 
+    def RAISE_VARARGS(self, argc):
+        """
+        Raises an exception. argc indicates the number of parameters to the
+        raise statement, ranging from 0 to 3. The handler will find
+        the traceback as TOS2, the parameter as TOS1, and the
+        exception as TOS.
+        """
+        # NOTE: the dis docs quoted above are completely wrong about the order of the
+        # operands on the stack!
+        exctype = val = tb = None
+        if argc == 0:
+            exctype, val, tb = self.vm.last_exception
+        elif argc == 1:
+            exctype = self.vm.pop()
+        elif argc == 2:
+            val = self.vm.pop()
+            exctype = self.vm.pop()
+        elif argc == 3:
+            tb = self.vm.pop()
+            val = self.vm.pop()
+            exctype = self.vm.pop()
+
+        # There are a number of forms of "raise", normalize them somewhat.
+        if isinstance(exctype, BaseException):
+            val = exctype
+            exctype = type(val)
+
+        self.vm.last_exception = (exctype, val, tb)
+
+        if tb:
+            return "reraise"
+        else:
+            return "exception"
+
     def CALL_FUNCTION(self, argc):
         """
         Calls a callable object.
