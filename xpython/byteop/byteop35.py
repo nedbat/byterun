@@ -66,7 +66,12 @@ class ByteOp35(ByteOp34):
         and pushes the result. Implements iterable unpacking in
         tuple displays (*x, *y, *z).
         """
-        self.build_container(count, dict)
+        # Note: this isn't the same thing as build_container_flat
+        elts = self.vm.popn(count)
+        result = {}
+        for d in elts:
+            result.update(d)
+        self.vm.push(result)
 
     def BUILD_MAP_UNPACK_WITH_CALL(self, oparg):
         """

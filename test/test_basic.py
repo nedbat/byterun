@@ -162,15 +162,6 @@ class TestIt(vmtest.VmTestCase):
             print(-x, ~x, not x)
             """)
 
-    def test_attributes(self):
-        self.assert_ok("""\
-            l = lambda: 1   # Just to have an object...
-            l.foo = 17
-            print(hasattr(l, "foo"), l.foo)
-            del l.foo
-            print(hasattr(l, "foo"))
-            """)
-
     def test_attribute_inplace_ops(self):
         self.assert_ok("""\
             l = lambda: 1   # Just to have an object...

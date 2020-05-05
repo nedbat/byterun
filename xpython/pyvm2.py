@@ -76,7 +76,7 @@ class VirtualMachine(object):
             pass
         else:
             # 3.0 or greater
-            if int_vers < 34:
+            if int_vers < 35:
                 if int_vers == 32:
                     from xpython.byteop.byteop32 import ByteOp32
 
@@ -85,16 +85,16 @@ class VirtualMachine(object):
                     from xpython.byteop.byteop33 import ByteOp33
 
                     self.byteop = ByteOp33(self)
+                elif int_vers == 34:
+                    from xpython.byteop.byteop34 import ByteOp34
+
+                    self.byteop = ByteOp34(self)
                 else:
                     raise VirtualMachineError(
                         "Version %s not supported" % python_version
                     )
             else:
-                if int_vers == 34:
-                    from xpython.byteop.byteop34 import ByteOp34
-
-                    self.byteop = ByteOp34(self)
-                elif int_vers == 35:
+                if int_vers == 35:
                     from xpython.byteop.byteop35 import ByteOp35
 
                     self.byteop = ByteOp35(self)
@@ -102,6 +102,10 @@ class VirtualMachine(object):
                     from xpython.byteop.byteop36 import ByteOp36
 
                     self.byteop = ByteOp36(self)
+                elif int_vers == 37:
+                    from xpython.byteop.byteop37 import ByteOp37
+
+                    self.byteop = ByteOp37(self)
                 else:
                     raise VirtualMachineError(
                         "Version %s not supported" % python_version

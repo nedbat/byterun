@@ -14,4 +14,4 @@ install:
 - pip install -e .
 
 script:
-- make check
+- SKIP_COMPAT=1 make check

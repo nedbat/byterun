@@ -23,7 +23,7 @@ check:
 
 #: Check across all Python versions
 check-full:
-	bash ./admin-tools/check-versions.sh
+	SKIP_COMPAT=1 bash ./admin-tools/check-versions.sh
 
 #: Clean up temporary files and .pyc files
 clean: clean_pyc

@@ -7,7 +7,7 @@ import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION
 
-SUPPORTED_PYTHON_VERSIONS = (2.5, 2.6, 2.7, 3.3, 3.2, 3.4, 3.5, 3.6)
+SUPPORTED_PYTHON_VERSIONS = (2.5, 2.6, 2.7, 3.3, 3.2, 3.4, 3.5, 3.6, 3.7)
 
 from xpython.pyvm2 import VirtualMachine
 
@@ -152,7 +152,7 @@ def run_python_file(filename, args, package=None):
 
                 if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
                     raise CannotCompile(
-                        "We need Python 2.5 - 2.7 or 3.2 - 3.6 to compile source code; you are running Python %s"
+                        "We need Python 2.5 - 2.7 or 3.2 - 3.7 to compile source code; you are running Python %s"
                         % PYTHON_VERSION
                     )
 
@@ -197,7 +197,7 @@ def run_python_string(source, package=None):
     try:
         if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
             raise CannotCompile(
-                "We need Python 2.5 - 2.7 or 3.2 - 3.5 to compile source code; you are running Python %s"
+                "We need Python 2.5 - 2.7 or 3.2 - 3.7 to compile source code; you are running Python %s"
                 % PYTHON_VERSION
             )
 

@@ -22,6 +22,7 @@ COMPATABILITY_MATRIX = {
     3.4:  (),
     3.5: (),
     3.6: (),
+    3.7: (),
 }
 
 # How to increase compatablity above.
@@ -32,15 +33,16 @@ COMPATABILITY_MATRIX = {
 
 class TestCompat(vmtest.VmTestCase):
 
-    def test_cross_version_compatablity(self):
-        compatible_versions = COMPATABILITY_MATRIX.get(PYTHON_VERSION, ())
-        # import logging
-        # logging.basicConfig(level=logging.DEBUG)
-        for version in compatible_versions:
-            os.chdir(os.path.join(vmtest.srcdir, "bytecode-%s" % version))
-            for bytecode_file in iglob("*.pyc"):
-                # print(bytecode_file, version)
-                self.assert_runs_ok(bytecode_file, arg_type="bytecode-file")
+    if not os.environ.get("SKIP_COMPAT", False):
+        def test_cross_version_compatablity(self):
+            compatible_versions = COMPATABILITY_MATRIX.get(PYTHON_VERSION, ())
+            # import logging
+            # logging.basicConfig(level=logging.DEBUG)
+            for version in compatible_versions:
+                os.chdir(os.path.join(vmtest.srcdir, "bytecode-%s" % version))
+                for bytecode_file in iglob("*.pyc"):
+                    # print(bytecode_file, version)
+                    self.assert_runs_ok(bytecode_file, arg_type="bytecode-file")
 
 if __name__ == "__main__":
     import unittest

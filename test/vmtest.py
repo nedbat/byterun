@@ -150,7 +150,8 @@ class VmTestCase(unittest.TestCase):
 
         print("%s bytecode %s for %s %s "
               % (LINE_STR, self.version, code.co_filename, LINE_STR))
-        vm = VirtualMachine()
+
+        vm = VirtualMachine(python_version=self.version)
 
         vm_value = vm_exc = None
         try:
