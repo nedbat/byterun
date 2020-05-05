@@ -3,9 +3,10 @@
 """
 from __future__ import print_function, division
 
+import operator
+import types
 import six
 import sys
-import operator
 from xpython.pyobj import Function
 
 class ByteOp25():
@@ -42,15 +43,24 @@ class ByteOp25():
             try:
                 func.version = self.version
             except:
-                # Could be a builtin type, or "str", etc.
+                # FIXME: should we special casing in a function?
+                if isinstance(func, types.BuiltinFunctionType):
+                    if func == globals:
+                        # Use the frame's globals(), not the interpreter's
+                        self.vm.push(self.vm.frame.f_globals)
+                        return
+                    elif func == locals:
+                        # Use the frame's locals(), not the interpreter's
+                        self.vm.push(self.vm.frame.f_globals)
+                        return
                 pass
 
         retval = func(*posargs, **namedargs)
         self.vm.push(retval)
 
-    def call_function(self, arg, args, kwargs):
+    def call_function(self, argc, args, kwargs):
         namedargs = {}
-        lenKw, lenPos = divmod(arg, 256)
+        lenKw, lenPos = divmod(argc, 256)
         for i in range(lenKw):
             key, val = self.vm.popn(2)
             namedargs[key] = val
