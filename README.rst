@@ -36,9 +36,9 @@ you do want to run under the interpreter.
 Status:
 +++++++
 
-Currently only Python 2.5 - 2.7, and 3.2 - 3.7 bytecode is well
-understood. Until there is more interest or I get support or funding,
-I am not contemplating expanding to 3.8 and beyond for a while.
+Currently only Python 2.5 - 2.7, and 3.2 - 3.7 bytecode is supported.
+Until there is more interest or I get support or funding, I am not
+contemplating expanding to 3.8 and beyond for a while.
 
 A shout out to `xdis <https://pypi.python.org/pypi/xdis>`_ which has
 made cross version interpretation and expanding to other versions
@@ -82,9 +82,6 @@ run later byecode from earlier Python versions. The callenge here is
 that many new features like asynchronous I/O and concurrency
 primatives are not in the older versions and may not easily be
 simulated. However that too is a possibility if there is interest.
-
-I would say this is more than a a simple toy interpreter, but it will
-never be as complete as CPython or PyPy.
 
 Right now this program works best on Python up to 3.4 when life in
 Python was much simpler. You can run many of the tests that Python uses
