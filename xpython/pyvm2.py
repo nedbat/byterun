@@ -37,8 +37,10 @@ class VirtualMachineError(Exception):
 
     pass
 
+
 class VMRuntimeError(Exception):
     """RuntimeError in operation of the VM."""
+
     pass
 
 
@@ -54,8 +56,20 @@ class VirtualMachine(object):
         self.version = python_version
 
         # FIXME: until we figure out how to fix up test/vmtest.el
-        # this changes how we report a VMRuntime error
+        # This changes how we report a VMRuntime error.
         self.vmtest_testing = vmtest_testing
+
+        # Like sys.exc_info() tuple
+        self.last_exception = None
+
+        # FIXME: Hack alert. this is used in Python 2.x where
+        # we can't capture in Python's traceback the traceback.
+        # it is used to determine if we are in the process of
+        # unwinding the frame stack. Figure out a more direct way
+        # to say we are in the process of unwinding the stack
+        # to where we need to get to.
+        self.last_frames = []
+        self.last_last_exception = (None, None, None)
 
         # This is somewhat hoaky:
         # Give byteop routines a way to raise an error, without having
@@ -120,6 +134,9 @@ class VirtualMachine(object):
                         "Version %s not supported" % python_version
                     )
 
+    ##############################################
+    # Frame operations. First the frame stack....
+    ##############################################
     def top(self):
         """Return the value at the top of the stack, with no changes."""
         return self.frame.stack[-1]
@@ -154,9 +171,8 @@ class VirtualMachine(object):
         """Get a value `n` entries down in the stack, without changing the stack."""
         return self.frame.stack[-n]
 
-    def jump(self, jump):
-        """Move the bytecode pointer to `jump`, so it will execute next."""
-        self.frame.f_lasti = jump
+    # end of frame stack operations
+    # onto frame block operations..
 
     def push_block(self, type, handler=None, level=None):
         if level is None:
@@ -168,6 +184,10 @@ class VirtualMachine(object):
 
     def top_block(self):
         return self.frame.block_stack[-1]
+
+    def jump(self, jump):
+        """Move the bytecode pointer to `jump`, so it will execute next."""
+        self.frame.f_lasti = jump
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         # The callargs default is safe because we never modify the dict.
@@ -216,7 +236,7 @@ class VirtualMachine(object):
             self.frame = None
 
     def print_frames(self):
-        """Print the call stack, for debugging."""
+        """Print the call stack, for showing an exception and for debugging."""
         for f in self.frames:
             filename = f.f_code.co_filename
             lineno = f.line_number()
@@ -233,20 +253,26 @@ class VirtualMachine(object):
         frame.f_back = None
         return val
 
+    ##############################################
+    # End Frame operations.
+    ##############################################
+
+    # This is the main entry point
     def run_code(self, code, f_globals=None, f_locals=None):
+        """run code using f_globals and f_locals in our VM"""
         frame = self.make_frame(code, f_globals=f_globals, f_locals=f_locals)
         try:
             val = self.run_frame(frame)
         except Exception as e:
-            if self.vmtest_testing or not hasattr(e, "__traceback__"):
+            if self.vmtest_testing:
                 raise
-
-            # FIXME: limit the traceback to those
-            # frames that aren't in the VM.
-            traceback.print_tb(e.__traceback__)
+            elif hasattr(e, "__traceback__"):
+                # FIXME: limit the traceback to those
+                # frames that aren't in the VM.
+                traceback.print_tb(e.__traceback__)
             raise VMRuntimeError
 
-        # Check some invariants
+        # Frame ran to normal completion... check some invariants
         if self.frames:  # pragma: no cover
             raise VirtualMachineError("Frames left over!")
         if self.frame and self.frame.stack:  # pragma: no cover
@@ -389,19 +415,33 @@ class VirtualMachine(object):
 
         except:
             # Deal with exceptions encountered while executing the op.
-            # In Python 2.x we are not capturing the traceback as seen by
-            # the interpreter. In Python 3.x we are. We may want to do something
-            # fancier in Python 2.x.
-            # In both cases there is a *lot* of interpreter junk at the end which
-            # should be removed.
             self.last_exception = sys.exc_info()
-            if self.last_exception[0] != SystemExit:
+            exception = self.last_exception[0]
+            if exception != SystemExit:
                 log.info(
                     (
                         "Caught exception during execution of "
                         "instruction:\n\t%s" % instruction_info()
                     )
                 )
+            # Python 3.x seems to capture the VM-interpeter's
+            # traceback in the __traceback__ attribute of the
+            # exception while in Python 2.x this is not the case.
+            # So for 2.x, we'll get it from our own records.
+            #
+            # However until we fix up test/vmtest.py which does this
+            # fancy auto comparison of Python output
+            # we need to keep things the old ugly way.
+            if not self.vmtest_testing:
+                if not hasattr(exception, "__traceback__"):
+                    if (self.last_last_exception[0:2] != self.last_exception[0:2]
+                        or self.last_frames[:-1] != self.frames):
+                        self.last_last_exception = self.last_exception
+                        self.last_frames = list(self.frames)
+                        self.print_frames()
+                        print("%s: %s" % (exception.__name__, '\n'.join(self.last_exception[1].args)))
+                    self.last_frames = list(self.frames)
+
             why = "exception"
 
         return why
