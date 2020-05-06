@@ -288,6 +288,40 @@ class ByteOp25:
         such."""
         self.vm.pop_block()
 
+    def END_FINALLY(self):
+        """
+        Terminates a "finally" clause. The interpreter recalls whether the
+        exception has to be re-raised, or whether the function
+        returns, and continues with the outer-next block.
+        """
+        v = self.vm.pop()
+        if isinstance(v, str):
+            why = v
+            if why in ("return", "continue"):
+                self.vm.return_value = self.vm.pop()
+            if why == "silenced":  # self.version >= 3.0
+                block = self.vm.pop_block()
+                assert block.type == "except-handler"
+                self.vm.unwind_block(block)
+                why = None
+        elif v is None:
+            why = None
+        elif issubclass(v, BaseException):
+            exctype = v
+            val = self.vm.pop()
+            tb = self.vm.pop()
+            self.vm.last_exception = (exctype, val, tb)
+            if self.version >= 3.5:
+                block = self.vm.top_block()
+                while len(self.vm.frame.stack) > block.level:
+                    self.vm.pop()
+                self.vm.push(tb, val, exctype)
+
+            why = "reraise"
+        else:  # pragma: no cover
+            raise self.VirtualMachineError("Confused END_FINALLY")
+        return why
+
     def BUILD_CLASS(self):
         """
         Creates a new class object. TOS is the methods dictionary, TOS1 the
@@ -607,6 +641,26 @@ class ByteOp25:
         self.vm.frame.cells[name].set(self.vm.pop())
 
     # End names
+
+
+    if 0:
+        def SET_LINENO(self, lineno):
+            """
+            This opcode is obsolete.
+
+            It we last seen in Python 2.2.
+            """
+            self.vm.frame.f_lineno = lineno
+
+    def SETUP_WITH(self, dest):
+        ctxmgr = self.vm.pop()
+        self.vm.push(ctxmgr.__exit__)
+        ctxmgr_obj = ctxmgr.__enter__()
+        if self.version < 3.0:
+            self.vm.push_block("with", dest)
+        else:
+            self.vm.push_block("finally", dest)
+        self.vm.push(ctxmgr_obj)
 
     # This opcode changes in 3.3
     def WITH_CLEANUP(self):

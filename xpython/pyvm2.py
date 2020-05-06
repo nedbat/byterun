@@ -380,10 +380,6 @@ class VirtualMachine(object):
                 # dispatch
                 if hasattr(self.byteop, byteName):
                     bytecode_fn = getattr(self.byteop, byteName, None)
-                else:
-                    # This branch is disappearing...
-                    bytecode_fn = getattr(self, "byte_%s" % byteName, None)
-
                 if not bytecode_fn:  # pragma: no cover
                     raise VirtualMachineError(
                         "Unknown bytecode type: %s\n\t%s"
@@ -611,56 +607,3 @@ class VirtualMachine(object):
             del l[start:end]
         else:
             self.push(l[start:end])
-
-    ## Blocks
-
-    def byte_END_FINALLY(self):
-        """
-        Terminates a "finally" clause. The interpreter recalls whether the
-        exception has to be re-raised, or whether the function
-        returns, and continues with the outer-next block.
-        """
-        v = self.pop()
-        if isinstance(v, str):
-            why = v
-            if why in ("return", "continue"):
-                self.return_value = self.pop()
-            if why == "silenced":  # self.version >= 3.0
-                block = self.pop_block()
-                assert block.type == "except-handler"
-                self.unwind_block(block)
-                why = None
-        elif v is None:
-            why = None
-        elif issubclass(v, BaseException):
-            exctype = v
-            val = self.pop()
-            tb = self.pop()
-            self.last_exception = (exctype, val, tb)
-            if self.version >= 3.5:
-                block = self.top_block()
-                while len(self.frame.stack) > block.level:
-                    self.pop()
-                self.push(tb, val, exctype)
-
-            why = "reraise"
-        else:  # pragma: no cover
-            raise VirtualMachineError("Confused END_FINALLY")
-        return why
-
-    def byte_SETUP_WITH(self, dest):
-        ctxmgr = self.pop()
-        self.push(ctxmgr.__exit__)
-        ctxmgr_obj = ctxmgr.__enter__()
-        if PY2:
-            self.push_block("with", dest)
-        elif PYTHON3:
-            self.push_block("finally", dest)
-        self.push(ctxmgr_obj)
-
-    ## And the rest...
-
-    if 0:  # Not in py2.7
-
-        def byte_SET_LINENO(self, lineno):
-            self.frame.f_lineno = lineno
