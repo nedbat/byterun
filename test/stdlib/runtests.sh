@@ -140,6 +140,8 @@ fi
 PYENV_ROOT=${PYENV_ROOT:-$HOME/.pyenv}
 pyenv_local=$(pyenv local)
 
+echo Python version is $pyenv_local
+
 # pyenv version update
 for dir in ../ ../../ ; do
     cp -v .python-version $dir
@@ -158,13 +160,15 @@ pyenv local $FULLVERSION
 export PYTHONPATH=$TESTDIR
 export PATH=${PYENV_ROOT}/shims:${PATH}
 
+DONT_SKIP_TESTS=${DONT_SKIP_TESTS:-0}
+
 # Run tests
 typeset -i i=0
 typeset -i allerrs=0
 if [[ -n $1 ]] ; then
-    files=$1
-    typeset -a files_ary=( $(echo $1) )
-    if (( ${#files_ary[@]} == 1 )) ; then
+    files=$@
+    typeset -a files_ary=( $(echo $@) )
+    if (( ${#files_ary[@]} == 1 || DONT_SKIP_TESTS == 1 )) ; then
 	SKIP_TESTS=()
     fi
 else
@@ -196,13 +200,13 @@ for file in $files; do
     typeset -i ENDTIME=$(date +%s)
     typeset -i time_diff
     (( time_diff =  ENDTIME - STARTTIME))
-    if (( time_diff > 10 )) ; then
+    if (( time_diff > $timeout )) ; then
 	echo "Skipping test $file -- test takes too long to run: $time_diff seconds"
 	continue
     fi
 
     ((i++))
-    (( i > 10 )) && break ## debug
+    ## (( i > 10 )) && break ## debug
     short_name=$(basename $file .py)
     bytecode_file=${short_name}.pyc
     $fulldir/compile-file.py $file && \

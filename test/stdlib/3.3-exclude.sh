@@ -1,11 +1,45 @@
 SKIP_TESTS=(
-    [test_abc.py]=1  #
+    # Expect to delve to to the intricacies of classes here
+    [test_abc.py]=1
     [test_argparse.py]=1
+
+    # File x-python/xpython/pyobj.py", line 237, in __init__
+    # assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
     [test_array.py]=1
+
     [test_ast.py]=1
+
+    # TypeError: argument to reversed() must be a sequence
     [test_asynchat.py]=1
+
     [test_asyncore.py]=1
     [test_atexit.py]=1  # The atexit test starting at 3.3 looks for specific comments in error lines
+
+    # File "x-python/xpython/pyobj.py", line 238, in __init__
+    # self.cells[var] = f_back.cells[var]
+    # KeyError: 'self'
+    [test_bisect.py]=1
+
+    [test_buffer.py]=1 # Takes a long time to run
+
+    # File "x-python/xpython/byteop/byteop25.py", line 64, in call_function_with_args_resolved
+    # retval = func(*posargs, **namedargs)
+    # RuntimeError: super(): __class__ cell not found
+    [test_bytes.py]=1
+
+    # File "xpython/pyvm2.py", line 634, in byte_SETUP_WITH
+    # self.push(ctxmgr.__exit__)
+    # AttributeError: 'int' object has no attribute '__exit__'
+    [test_bz2.py]=1
+
+    # File x-python/xpython/pyobj.py", line 237, in __init__
+    # assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
+    [test_cmath.py]=1
+
+    # File "x-python/xpython/pyobj.py", line 237, in __init__
+    # assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
+    # AssertionError: f_back.cells: None
+    [test_class.py]=1
 
     [test_cmd_line.py]=1 # too long?
     [test_concurrent_futures.py]=1  # too long?

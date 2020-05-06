@@ -83,10 +83,13 @@ that many new features like asynchronous I/O and concurrency
 primatives are not in the older versions and may not easily be
 simulated. However that too is a possibility if there is interest.
 
-Right now this program works best on Python up to 3.4 when life in
-Python was much simpler. You can run many of the tests that Python uses
-to test itself, and those work.  Python 3.5 is pretty good too. Python
-3.6 and 3.7 is okay but needs work.
+You can run many of the tests that Python uses to test itself, and
+those work. Right now this program works best on Python up to 3.4 when
+life in Python was much simpler. It runs over 300 in Python's test
+suite for itself without problems.
+
+Moving back and forward from 3.4 things worse. Python 3.5 is pretty
+good. Python 3.6 and 3.7 is okay but needs work.
 
 
 History

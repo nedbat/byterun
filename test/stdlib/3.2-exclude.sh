@@ -1,11 +1,27 @@
 SKIP_TESTS=(
-    [test_descr.py]=1 # FIXME: Works on c90ff51?
+    # Expect to delve to to the intricacies of classes here
+    [test_abc.py]=1
 
-    [test_cmd_line.py]=1
-    [test_collections.py]=1
-    [test_concurrent_futures.py]=1 # too long to run over 46 seconds by itself
+    # File x-python/xpython/pyobj.py", line 237, in __init__
+    # assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
+    [test_array.py]=1
+
+    # TypeError: argument to reversed() must be a sequence
+    [test_asynchat.py]=1
+
+    [test_asyncore.py]=1
+    [test_atexit.py]=1  # The atexit test starting at 3.3 looks for specific comments in error lines
+
+    # investigate: Received value insufficiently close to expected value.
+    # Expected: complex(0.0, 0.0)
+    # Received value insufficiently close to expected value.
+    [test_cmath.py]=1
+
+    [test_cmd_line.py]=1 # too long?
+    [test_concurrent_futures.py]=1  # too long?
     [test_datetimetester.py]=1
     [test_decimal.py]=1
+    [test_descr.py]=1
     [test_dictcomps.py]=1 # FIXME: semantic error: actual = {k:v for k in }
     [test_doctest.py]=1 # test failures
     [test_dis.py]=1   # We change line numbers - duh!

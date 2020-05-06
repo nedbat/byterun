@@ -1,40 +1,24 @@
 SKIP_TESTS=(
     [test_buffer.py]=1  # FIXME: Works on c90ff51
-    [test_platform.py]=1  # FIXME: Works on c90ff51
-    [test_pyclbr.py]=1  # FIXME: Works on c90ff51
 
-    [test___all__.py]=1 # it fails on its own
     [test_aifc.py]=1  #
     [test_asdl_parser.py]=1 # it fails on its own
     [test_atexit.py]=1  # The atexit test looks for specific comments in error lines
 
-    [test_bisect.py]=1  # it fails on its own
     [test_cmath]=1
     [test_cmd_line.py]=1 #
-    [test_codecmaps_cn.py]=1 # it fails on its own
-    [test_codecmaps_hk.py]=1 # it fails on its own
-    [test_codecmaps_jp.py]=1 # it fails on its own
-    [test_codecmaps_kr.py]=1 # it fails on its own
-    [test_codecmaps_tw.py]=1 # it fails on its own
     [test_codecs.py]=1 # test assertion failure
     [test_collections.py]=1
-    [test_compile.py]=1  # Code introspects on co_consts in a non-decompilable way
     [test_concurrent_futures.py]=1 # Takes long to run
     [test_curses.py]=1 #
 
-    [test_devpoll.py]=1 # it fails on its own
-    [test_dict.py]=1   #
     [test_dis.py]=1   # We change line numbers - duh!
     [test_distutils.py]=1 # it fails on its own
     [test_dbm_ndbm.py]=1 # it fails on its own
-    [test_descr.py]=1   # test assertion errors
-    [test_doctest2.py]=1  #
-    [test_doctest.py]=1  #
 
-    [file_eintr.py]=1
-    [test_enum.py]=1  #
-    [test_exceptions.py]=1 # parse error
+    [test_enum.py]=1
 
+    [test_faulthandler.py]=1 # takes too long to run: 20 seconds
     [test_format.py]=1
     [test_ftplib.py]=1 # Test assertion failures
 
@@ -42,8 +26,6 @@ SKIP_TESTS=(
     [test_glob.py]=1 #
     [test_grammar.py]=1 # parse error
     [test_grp.py]=1  # Long test
-
-    [test_heapq.py]=1 # test assertion failures
 
     [test_imaplib.py]=1
     [test_inspect.py]=1 # Syntax error Investigate
@@ -124,6 +106,32 @@ SKIP_TESTS=(
     [test_zipimport_support.py]=1
     [test_zipfile.py]=1 # it fails on its own
     [test_zlib.py]=1
+
+    [test___all__.py]=1  # it fails on its own
+    [test_bisect.py]=1  # it fails on its own
+    [test_ctypes.py]=1  # it fails on its own
+    [test_codecmaps_cn.py]=1 # it fails on its own
+    [test_codecmaps_hk.py]=1 # it fails on its own
+    [test_codecmaps_jp.py]=1 # it fails on its own
+    [test_codecmaps_kr.py]=1 # it fails on its own
+    [test_codecmaps_tw.py]=1 # it fails on its own
+    [test_devpoll.py]=1 # it fails on its own
+    [test_dbm_ndbm.py]=1  # it fails on its own
+    [test_idle.py]=1  # it fails on its own
+    [test_kqueue.py]=1 # it fails on its own
+    [test_lib2to3.py]=1 # it fails on its own
+    [test_msilib.py]=1 # it fails on its own
+    [test_ossaudiodev.py]=1 # it fails on its own
+    [test_pkgutil.py]=1 # it fails on its own
+    [test_ssl.py]=1 # it fails on its own
+    [test_startfile.py]=1 # it fails on its own
+    [test_tk.py]=1 # it fails on its own
+    [test_tokenize.py]=1 # it fails on its own
+    [test_trace.py]=1 # it fails on its own
+    [test_ttk_guionly.py]=1 # it fails on its own
+    [test_ttk_textonly.py]=1 # it fails on its own
+    [test_winreg.py]=1 # it fails on its own
+    [test_winsound.py]=1 # it fails on its own
 )
 # About 260 unit-test in about 16 minutes
 
