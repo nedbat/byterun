@@ -7,6 +7,7 @@ import linecache
 import logging
 import operator
 import sys
+import traceback
 
 import six
 from six.moves import reprlib
@@ -36,9 +37,13 @@ class VirtualMachineError(Exception):
 
     pass
 
+class VMRuntimeError(Exception):
+    """RuntimeError in operation of the VM."""
+    pass
+
 
 class VirtualMachine(object):
-    def __init__(self, python_version=PYTHON_VERSION):
+    def __init__(self, python_version=PYTHON_VERSION, vmtest_testing=False):
         # The call stack of frames.
         self.frames = []
         # The current frame.
@@ -47,6 +52,10 @@ class VirtualMachine(object):
         self.last_exception = None
         self.last_traceback_limit = None
         self.version = python_version
+
+        # FIXME: until we figure out how to fix up test/vmtest.el
+        # this changes how we report a VMRuntime error
+        self.vmtest_testing = vmtest_testing
 
         # This is somewhat hoaky:
         # Give byteop routines a way to raise an error, without having
@@ -226,7 +235,17 @@ class VirtualMachine(object):
 
     def run_code(self, code, f_globals=None, f_locals=None):
         frame = self.make_frame(code, f_globals=f_globals, f_locals=f_locals)
-        val = self.run_frame(frame)
+        try:
+            val = self.run_frame(frame)
+        except Exception as e:
+            if self.vmtest_testing or not hasattr(e, "__traceback__"):
+                raise
+
+            # FIXME: limit the traceback to those
+            # frames that aren't in the VM.
+            traceback.print_tb(e.__traceback__)
+            raise VMRuntimeError
+
         # Check some invariants
         if self.frames:  # pragma: no cover
             raise VirtualMachineError("Frames left over!")

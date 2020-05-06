@@ -80,7 +80,7 @@ class VmTestCase(unittest.TestCase):
         vm_stdout = six.StringIO()
         if CAPTURE_STDOUT:              # pragma: no branch
             sys.stdout = vm_stdout
-        vm = VirtualMachine()
+        vm = VirtualMachine(vmtest_testing=True)
 
         vm_value = vm_exc = None
         try:

@@ -5,6 +5,7 @@ import logging
 import sys
 
 from xpython import execfile
+from xpython.pyvm2 import VMRuntimeError
 from xpython.version import VERSION
 from xdis import PYTHON_VERSION
 
@@ -54,9 +55,15 @@ def main(module, verbose, command_to_run, path, args):
 
     try:
         run_fn(path, args)
+    except VMRuntimeError:
+        # Tracebacks and error messages should been previously printed
+        sys.exit(10)
     except execfile.CannotCompile as e:
-        if verbose > 1:
-            raise
+        print(e)
+        sys.exit(1)
+        pass
+    except execfile.CannotCompile as e:
+        from trepan.api import debug; debug()
         print(e)
         sys.exit(1)
         pass

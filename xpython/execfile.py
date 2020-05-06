@@ -22,7 +22,17 @@ except:
         return open(fname, "rU")
 
 
-CannotCompile = WrongBytecode = NoSource = Exception
+class CannotCompile(Exception):
+    """For raising errors when we have a Compile eror."""
+    pass
+
+class WrongBytecode(Exception):
+    """For raising errors when we have the wrong bytecode."""
+    pass
+
+class NoSource(Exception):
+    """For raising errors when we can't find source code."""
+    pass
 
 
 def exec_code_object(code, env, python_version=PYTHON_VERSION):
