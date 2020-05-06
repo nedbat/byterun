@@ -7,6 +7,7 @@ import types
 
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop35 import ByteOp35
+from xpython.pyobj import Function
 
 # Gone in 3.6
 del ByteOp25.MAKE_CLOSURE
@@ -135,18 +136,23 @@ class ByteOp36(ByteOp35):
         # our own kind of xpython.pyobj.Function object.
         #
 
-        fn = types.FunctionType(
+        fn_native = types.FunctionType(
             code,
             globals=globs,
             name=name,
             argdefs=slot["defaults"],
             closure=slot["closure"],
         )
-        fn.__kwdefaults__ = slot["kwdefaults"]
-        fn.__annonations__ = slot["annotations"]
+        fn_native.__kwdefaults__ = slot["kwdefaults"]
+        fn_native.__annonations__ = slot["annotations"]
 
-        fn.version = self.version  # This is our extra tagging.
-        self.vm.push(fn)
+        # FIXME remove this
+        fn_native.version = self.version  # This is our extra tagging.
+
+        fn_vm = Function(name, code, globs, slot["defaults"], None, self.vm)
+        self.vm.fn2native[fn_native] = fn_vm
+
+        self.vm.push(fn_native)
 
     # New in 3.6
 

@@ -117,7 +117,7 @@ class Function(object):
 
     def __call__(self, *args, **kwargs):
         version = self.version if hasattr(self, "version") else PYTHON_VERSION
-        if version < 3.0 and self.func_name in [
+        if self.func_name in [
             "<setcomp>",
             "<dictcomp>",
             "<genexpr>",

@@ -62,6 +62,11 @@ class VirtualMachine(object):
         # Like sys.exc_info() tuple
         self.last_exception = None
 
+        # Sometimes we need a native function (e.g. for method lookup), but
+        # most of the time we want a VM function defined in pyobj.
+        # This maps between the two.
+        self.fn2native = {}
+
         self.in_exception_processing = False
 
         # This is somewhat hoaky:
@@ -419,16 +424,7 @@ class VirtualMachine(object):
                         "instruction:\n\t%s" % instruction_info()
                     )
                 )
-            # Python 3.x can capture the VM-interpeter's
-            # traceback in the __traceback__ attribute of the
-            # exception while in Python 2.x this is not the case.
-            # However, the 3.x traceback includes VM interpreter
-            # information which should be eliminated in
-            # output using the "limit" option, on the various
-            # traceback methods
-            #
-            # Instead we'll use use information recorded strictly
-            # inside the interpreter.
+
             if not self.in_exception_processing:
                 self.last_traceback = traceback_from_frame(self.frame)
                 self.in_exception_processing = True

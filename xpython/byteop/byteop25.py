@@ -61,6 +61,10 @@ class ByteOp25:
                         return
                 pass
 
+        if isinstance(func, types.FunctionType):
+            if func in self.vm.fn2native:
+                func = self.vm.fn2native[func]
+
         retval = func(*posargs, **namedargs)
         self.vm.push(retval)
 
