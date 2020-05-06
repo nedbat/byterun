@@ -12,6 +12,7 @@ if ! source ./pyenv-versions ; then
     exit $?
 fi
 cd ..
+[[ -f test/.python-version ]] && rm -v test/.python-version
 for version in $PYVERSIONS; do
     echo --- $version ---
     if ! pyenv local $version ; then

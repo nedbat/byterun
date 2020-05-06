@@ -280,6 +280,18 @@ class VirtualMachine(object):
 
         return val
 
+    def instruction_info(self, byteName, arguments, opoffset):
+        frame = self.frame
+        code = frame.f_code
+        return "%d: %s %s\n\t%s in %s:%s" % (
+            opoffset,
+            byteName,
+            arguments,
+            code.co_name,
+            code.co_filename,
+            frame.f_lineno,
+        )
+
     def unwind_block(self, block):
         if block.type == "except-handler":
             offset = 3
@@ -380,18 +392,6 @@ class VirtualMachine(object):
         """ Dispatch by bytename to the corresponding methods.
         Exceptions are caught and set on the virtual machine."""
 
-        def instruction_info():
-            frame = self.frame
-            code = frame.f_code
-            return "%d: %s %s\n\t%s in %s:%s" % (
-                opoffset,
-                byteName,
-                arguments,
-                code.co_name,
-                code.co_filename,
-                frame.f_lineno,
-            )
-
         why = None
         self.in_exception_processing = False
         try:
@@ -410,21 +410,22 @@ class VirtualMachine(object):
                 if not bytecode_fn:  # pragma: no cover
                     raise VirtualMachineError(
                         "Unknown bytecode type: %s\n\t%s"
-                        % (instruction_info(), byteName)
+                        % (self.instruction_info(byteName, arguments, opoffset), byteName)
                     )
                 why = bytecode_fn(*arguments)
 
         except:
             # Deal with exceptions encountered while executing the op.
             self.last_exception = sys.exc_info()
+
+            # FIXME: dry code
             if self.last_exception[0] != SystemExit:
                 log.info(
                     (
                         "exception in the execution of "
-                        "instruction:\n\t%s" % instruction_info()
+                        "instruction:\n\t%s" % self.instruction_info(byteName, arguments, opoffset)
                     )
                 )
-
             if not self.in_exception_processing:
                 self.last_traceback = traceback_from_frame(self.frame)
                 self.in_exception_processing = True
@@ -514,7 +515,21 @@ class VirtualMachine(object):
             why = self.dispatch(byteName, arguments, opoffset)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
-                pass
+
+                # Deal with exceptions encountered while executing the op.
+                # FIXME: DRY code
+                if self.last_exception[0] != SystemExit:
+                    log.info(
+                        (
+                            "exception in the execution of "
+                            "instruction:\n\t%s" % self.instruction_info(byteName, arguments, opoffset)
+                        )
+                    )
+
+                if not self.in_exception_processing:
+                    self.last_traceback = traceback_from_frame(self.frame)
+                    self.in_exception_processing = True
+
 
             if why == "reraise":
                 why = "exception"

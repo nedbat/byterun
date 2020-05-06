@@ -11,8 +11,8 @@ PY2 = not PYTHON3
 
 class TestBasic(vmtest.VmTestCase):
 
-    if PYTHON_VERSION >= 3.6:
-        print("Test not gone over yet for >= 3.6")
+    if PYTHON_VERSION in (3.6, 3.7):
+        print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
 
         def test_inplace_operators(self):

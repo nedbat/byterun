@@ -149,7 +149,16 @@ class ByteOp36(ByteOp35):
         # FIXME remove this
         fn_native.version = self.version  # This is our extra tagging.
 
-        fn_vm = Function(name, code, globs, slot["defaults"], None, self.vm)
+        fn_vm = Function(
+            name,
+            code,
+            globs=globs,
+            argdefs=slot["defaults"],
+            closure=slot["closure"],
+            vm=self.vm,
+            kwdefaults=slot["kwdefaults"],
+            annotations=slot["annotations"],
+        )
         self.vm.fn2native[fn_native] = fn_vm
 
         self.vm.push(fn_native)
