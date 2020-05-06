@@ -7,7 +7,6 @@ import linecache
 import logging
 import operator
 import sys
-import traceback
 
 import six
 from six.moves import reprlib
@@ -16,7 +15,7 @@ from xdis import PYTHON3, PYTHON_VERSION, op_has_argument
 from xdis.util import code2num, CO_NEWLOCALS
 from xdis.op_imports import get_opcode_module
 
-from xpython.pyobj import Frame, Block
+from xpython.pyobj import Frame, Block, traceback_from_frame
 
 PY2 = not PYTHON3
 log = logging.getLogger(__name__)
@@ -53,6 +52,7 @@ class VirtualMachine(object):
         self.return_value = None
         self.last_exception = None
         self.last_traceback_limit = None
+        self.last_traceback = None
         self.version = python_version
 
         # FIXME: until we figure out how to fix up test/vmtest.el
@@ -62,14 +62,7 @@ class VirtualMachine(object):
         # Like sys.exc_info() tuple
         self.last_exception = None
 
-        # FIXME: Hack alert. this is used in Python 2.x where
-        # we can't capture in Python's traceback the traceback.
-        # it is used to determine if we are in the process of
-        # unwinding the frame stack. Figure out a more direct way
-        # to say we are in the process of unwinding the stack
-        # to where we need to get to.
-        self.last_frames = []
-        self.last_last_exception = (None, None, None)
+        self.in_exception_processing = False
 
         # This is somewhat hoaky:
         # Give byteop routines a way to raise an error, without having
@@ -236,7 +229,9 @@ class VirtualMachine(object):
             self.frame = None
 
     def print_frames(self):
-        """Print the call stack, for showing an exception and for debugging."""
+        """Print the call stack for debugging. Note that the
+        format exactly the same as in traceback.print_tb()
+        """
         for f in self.frames:
             filename = f.f_code.co_filename
             lineno = f.line_number()
@@ -263,13 +258,13 @@ class VirtualMachine(object):
         frame = self.make_frame(code, f_globals=f_globals, f_locals=f_locals)
         try:
             val = self.run_frame(frame)
-        except Exception as e:
+        except Exception:
+            # Until we get test/vmtest.py under control:
             if self.vmtest_testing:
                 raise
-            elif hasattr(e, "__traceback__"):
-                # FIXME: limit the traceback to those
-                # frames that aren't in the VM.
-                traceback.print_tb(e.__traceback__)
+            if self.last_traceback:
+                self.last_traceback.print_tb()
+                print("%s: %s" % (self.last_exception[0].__name__, '\n'.join(self.last_exception[1].args)))
             raise VMRuntimeError
 
         # Frame ran to normal completion... check some invariants
@@ -393,6 +388,7 @@ class VirtualMachine(object):
             )
 
         why = None
+        self.in_exception_processing = False
         try:
             if byteName.startswith("UNARY_"):
                 self.unaryOperator(byteName[6:])
@@ -416,31 +412,26 @@ class VirtualMachine(object):
         except:
             # Deal with exceptions encountered while executing the op.
             self.last_exception = sys.exc_info()
-            exception = self.last_exception[0]
-            if exception != SystemExit:
+            if self.last_exception[0] != SystemExit:
                 log.info(
                     (
-                        "Caught exception during execution of "
+                        "exception in the execution of "
                         "instruction:\n\t%s" % instruction_info()
                     )
                 )
-            # Python 3.x seems to capture the VM-interpeter's
+            # Python 3.x can capture the VM-interpeter's
             # traceback in the __traceback__ attribute of the
             # exception while in Python 2.x this is not the case.
-            # So for 2.x, we'll get it from our own records.
+            # However, the 3.x traceback includes VM interpreter
+            # information which should be eliminated in
+            # output using the "limit" option, on the various
+            # traceback methods
             #
-            # However until we fix up test/vmtest.py which does this
-            # fancy auto comparison of Python output
-            # we need to keep things the old ugly way.
-            if not self.vmtest_testing:
-                if not hasattr(exception, "__traceback__"):
-                    if (self.last_last_exception[0:2] != self.last_exception[0:2]
-                        or self.last_frames[:-1] != self.frames):
-                        self.last_last_exception = self.last_exception
-                        self.last_frames = list(self.frames)
-                        self.print_frames()
-                        print("%s: %s" % (exception.__name__, '\n'.join(self.last_exception[1].args)))
-                    self.last_frames = list(self.frames)
+            # Instead we'll use use information recorded strictly
+            # inside the interpreter.
+            if not self.in_exception_processing:
+                self.last_traceback = traceback_from_frame(self.frame)
+                self.in_exception_processing = True
 
             why = "exception"
 
@@ -527,7 +518,6 @@ class VirtualMachine(object):
             why = self.dispatch(byteName, arguments, opoffset)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
-                # FIXME: fakeup a traceback from where we are
                 pass
 
             if why == "reraise":
@@ -554,6 +544,7 @@ class VirtualMachine(object):
             # log.error("Haven't finished traceback handling, nulling traceback information for now")
             # six.reraise(self.last_exception[0], None)
 
+        self.in_exception_processing = False
         return self.return_value
 
     ## Operators

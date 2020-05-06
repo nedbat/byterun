@@ -4,7 +4,7 @@
 from __future__ import print_function, division
 
 
-from xpython.pyobj import Function
+from xpython.pyobj import Function, traceback_from_frame
 from xpython.byteop.byteop27 import ByteOp27
 from xpython.byteop.byteop25 import ByteOp25
 
@@ -61,6 +61,7 @@ class ByteOp32(ByteOp27):
             val.__cause__ = cause
 
         self.vm.last_exception = exc_type, val, val.__traceback__
+        self.last_traceback = traceback_from_frame(self.vm.frame)
         return "exception"
 
     # Changed from 2.7

@@ -1,8 +1,11 @@
 """Implementations of Python fundamental objects for xpython."""
+from __future__ import print_function
 
 import collections
 import inspect
+import linecache
 import types
+from sys import stderr
 from xdis.util import CO_GENERATOR
 from xdis import PYTHON3, PYTHON_VERSION
 
@@ -265,6 +268,40 @@ class Frame(object):
             line_num += line_incr
 
         return line_num
+
+
+class Traceback(object):
+    def __init__(self, frame):
+        self.tb_next = frame.f_back
+        self.tb_lasti = frame.f_lasti
+        self.tb_lineno = frame.f_lineno
+        self.tb_frame = frame
+
+    # Note: this can be removed when we have our own compatibility traceback.
+    def print_tb(self, limit=None, file=stderr):
+        """Like traceback.tb, but is a method."""
+        tb = self
+        while tb:
+            f = tb.tb_frame
+            filename = f.f_code.co_filename
+            lineno = f.line_number()
+            print('  File "%s", line %d, in %s' % (filename, lineno, f.f_code.co_name),
+                  file=file)
+            linecache.checkcache(filename)
+            line = linecache.getline(filename, lineno, f.f_globals)
+            if line:
+                print("    " + line.strip(), file=file)
+            tb = tb.tb_next
+
+def traceback_from_frame(frame):
+    tb = None
+
+    while frame:
+        next_tb = Traceback(frame)
+        next_tb.tb_next = tb
+        tb = next_tb
+        frame = frame.f_back
+    return tb
 
 
 class Generator(object):

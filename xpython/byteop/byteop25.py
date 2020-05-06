@@ -7,7 +7,7 @@ import operator
 import types
 import six
 import sys
-from xpython.pyobj import Function
+from xpython.pyobj import Function, traceback_from_frame
 
 
 class ByteOp25:
@@ -792,6 +792,7 @@ class ByteOp25:
             exctype = type(val)
 
         self.vm.last_exception = (exctype, val, tb)
+        self.last_traceback = traceback_from_frame(self.vm.frame)
 
         if tb:
             return "reraise"
