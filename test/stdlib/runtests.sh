@@ -148,7 +148,12 @@ done
 
 mkdir $TESTDIR || exit $?
 cp -r ${PYENV_ROOT}/versions/${PYVERSION}.${MINOR}/lib/python${PYVERSION}/test $TESTDIR
-cd $TESTDIR/test
+if [[ $PYVERSION == 3.2 ]] ; then
+    cp ${PYENV_ROOT}/versions/${PYVERSION}.${MINOR}/lib/python${PYVERSION}/test/* $TESTDIR
+    cd $TESTDIR
+else
+    cd $TESTDIR/test
+fi
 pyenv local $FULLVERSION
 export PYTHONPATH=$TESTDIR
 export PATH=${PYENV_ROOT}/shims:${PATH}
