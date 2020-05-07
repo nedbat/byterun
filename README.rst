@@ -96,6 +96,39 @@ Want the execution stack stack and block stack in addition? Add another `v`:
    INFO:xpython.pyvm2:            18: RETURN_VALUE
 
 
+The above showed straight-line code, so you see all of the instructions. But don't confuse this with a disassembler like `pydisasm` from `xdis`.
+The below example, with conditional branching example makes this more clear:
+
+::
+
+   $ xpython -vvc "x = 6 if __name__ != '__main__' else 10"
+   DEBUG:xpython.pyvm2:make_frame: code=<code object <module> at 0x7f2dd0d2f150, file "<string x = 6 if __name__ !=>", line 1>, callargs={}, f_globals=(<class 'dict'>, 139834753714688), f_locals=(<class 'NoneType'>, 94349724270016)
+   DEBUG:xpython.pyvm2:<Frame at 0x7f2dd039ded0: '<string x = 6 if __name__ !=>' @ 1>
+   DEBUG:xpython.pyvm2:  frame.stack: []
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:Line    1,   0: LOAD_NAME '__name__'
+   DEBUG:xpython.pyvm2:  frame.stack: ['__main__']
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             2: LOAD_CONST '__main__'
+   DEBUG:xpython.pyvm2:  frame.stack: ['__main__', '__main__']
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             4: COMPARE_OP 3
+   DEBUG:xpython.pyvm2:  frame.stack: [False]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             6: POP_JUMP_IF_FALSE 12
+   DEBUG:xpython.pyvm2:  frame.stack: []
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            12: LOAD_CONST 10
+   DEBUG:xpython.pyvm2:  frame.stack: [10]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            14: STORE_NAME 'x'
+   DEBUG:xpython.pyvm2:  frame.stack: []
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            16: LOAD_CONST None
+   DEBUG:xpython.pyvm2:  frame.stack: [None]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            18: RETURN_VALUE
+
 Status:
 +++++++
 
