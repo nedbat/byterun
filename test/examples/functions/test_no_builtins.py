@@ -1,3 +1,8 @@
+# Tests a bug where a function doesn't get
+# builtin-functions
+
+"""This program is self-checking!"""
+
 def replace_globals(f, new_globals):
     import sys
 

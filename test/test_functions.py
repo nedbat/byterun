@@ -11,6 +11,12 @@ from xdis import PYTHON_VERSION
 
 class TestFunctions(vmtest.VmTestCase):
 
+    def test_no_builtins(self):
+        self.self_checking()
+
+    def test_different_globals_may_have_different_builtins(self):
+        self.do_one()
+
     # test_pos_args has function syntax added in 3.3
     if PYTHON_VERSION >= 3.3:
         def test_pos_args(self):
@@ -122,11 +128,7 @@ class TestFunctions(vmtest.VmTestCase):
                 assert example() == 17
                 """)
 
-        def test_different_globals_may_have_different_builtins(self):
-            self.do_one()
 
-        def test_no_builtins(self):
-            self.do_one()
 
 
 if PYTHON_VERSION >= 3.6:
