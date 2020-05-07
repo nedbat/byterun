@@ -144,7 +144,7 @@ class ByteOp32(ByteOp27):
         state."""
         block = self.vm.pop_block()
         if block.type != "except-handler":
-            raise self.VirtualMachineError(
+            raise self.VMError(
                 "popped block is not an except handler; is %s" % block
             )
         self.vm.unwind_block(block)
@@ -198,7 +198,7 @@ class ByteOp32(ByteOp27):
             assert block.type == "except-handler"
             self.vm.push_block(block.type, block.handler, block.level - 1)
         else:  # pragma: no cover
-            raise self.VirtualMachineError("Confused WITH_CLEANUP")
+            raise self.VMError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
         err = (u is not None) and bool(exit_ret)
         if err:

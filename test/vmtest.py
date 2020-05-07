@@ -11,7 +11,7 @@ import unittest
 
 import six
 
-from xpython.pyvm2 import VirtualMachine, VirtualMachineError
+from xpython.pyvm2 import VirtualMachine, VMError
 
 from xdis import PYTHON_VERSION
 
@@ -85,7 +85,7 @@ class VmTestCase(unittest.TestCase):
         vm_value = vm_exc = None
         try:
             vm_value = vm.run_code(code)
-        except VirtualMachineError:         # pragma: no cover
+        except VMError:         # pragma: no cover
             # If the VM code raises an error, show it.
             raise
         except AssertionError:              # pragma: no cover
@@ -156,7 +156,7 @@ class VmTestCase(unittest.TestCase):
         vm_value = vm_exc = None
         try:
             vm_value = vm.run_code(code)
-        except VirtualMachineError:         # pragma: no cover
+        except VMError:         # pragma: no cover
             # If the VM code raises an error, show it.
             self.assertTrue(False)
             raise

@@ -162,8 +162,9 @@ class ByteOp36(ByteOp35):
 
         self.vm.push(fn_native)
 
-    # New in 3.6
+    # New in 3.6...
 
+    # .. and this one is gone in 3.8
     def STORE_ANNOTATION(self, name):
         """
         Stores TOS as locals()['__annotations__'][co_names[namei]] = TOS.
@@ -172,7 +173,7 @@ class ByteOp36(ByteOp35):
 
     def SETUP_ASYNC_WITH(self):
         """Creates a new frame object."""
-        raise self.vm.VirtualMachineError("SETUP_ASYNC_WITH not implemented yet")
+        raise self.vm.VMError("SETUP_ASYNC_WITH not implemented yet")
 
     def FORMAT_VALUE(self, flags):
         """Used for implementing formatted literal strings (f-strings). Pops
@@ -248,6 +249,6 @@ class ByteOp36(ByteOp35):
         call syntax. The stack item at position count + 1 should be the
         corresponding callable f.
         """
-        raise self.vm.VirtualMachineError(
+        raise self.vm.VMError(
             "BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet"
         )
