@@ -11,12 +11,13 @@ from xpython.byteop.byteop34 import ByteOp34
 del ByteOp25.STORE_MAP
 del ByteOp32.WITH_CLEANUP
 
+
 class ByteOp35(ByteOp34):
     def __init__(self, vm, version=3.5):
         self.vm = vm
         self.version = version
 
-    def build_container_flat(self, count, container_fn) :
+    def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)
         self.vm.push(container_fn(e for l in elts for e in l))
 
@@ -33,7 +34,7 @@ class ByteOp35(ByteOp34):
         hold count items.
         """
         kvs = self.vm.popn(count * 2)
-        self.vm.push(dict(kvs[i:i+2] for i in range(0, len(kvs), 2)))
+        self.vm.push(dict(kvs[i : i + 2] for i in range(0, len(kvs), 2)))
 
     # New in 3.5
 
@@ -80,11 +81,10 @@ class ByteOp35(ByteOp34):
         mappings, the relative position of the corresponding callable
         f is encoded in the second byte of oparg.
         """
-        from trepan.api import debug; debug()
         fn_pos, count = divmod(oparg, 256)
         elts = self.vm.popn(count)
         if elts:
-            kwargs = {k:v for m in elts for k, v in m.items()}
+            kwargs = {k: v for m in elts for k, v in m.items()}
         else:
             kwargs = None
         posargs = self.vm.pop()
@@ -141,8 +141,8 @@ class ByteOp35(ByteOp34):
     def WITH_CLEANUP_START(self):
         """Cleans up the stack when a with statement block exits.
 
-        TOS is the context manager’s __exit__() bound method. Below
-        TOS are 1–3 values indicating how/why the finally clause was
+        TOS is the context manager s __exit__() bound method. Below
+        TOS are 1 3 values indicating how/why the finally clause was
         entered:
 
         * SECOND = None
@@ -187,7 +187,7 @@ class ByteOp35(ByteOp34):
         """Pops exception type and result of "exit" function call from the stack.
 
         If the stack represents an exception, and the function call
-        returns a ‘true’ value, this information is "zapped" and
+        returns a  true  value, this information is "zapped" and
         replaced with a single WHY_SILENCED to prevent END_FINALLY
         from re-raising the exception. (But non-local gotos will still
         be resumed.)
