@@ -486,18 +486,13 @@ class ByteOp25(object):
         """
         mod = self.vm.top()
         if not hasattr(mod, name):
-            # FIXME: figure out how to fake a traceback object
-            # TODO: Create PyTraceBack_Here function.
-            self.vm.last_exception = (
-                ImportError,
-                name,
-                [
-                    self.vm.frame.f_code.co_filename,
-                    "bogus_function()",
-                    self.vm.frame.f_lineno,
-                ],
-            )
-            return "reexception"
+            value = ImportError(
+                "cannot import name '%s' from '%s' (%s)" %
+                (name, mod.__name__, mod.__file__))
+
+            self.vm.last_exception = (ImportError, value, None)
+            self.last_traceback = traceback_from_frame(self.vm.frame)
+            return "exception"
 
         self.vm.push(getattr(mod, name))
 

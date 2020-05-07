@@ -32,6 +32,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_slice(self):
         self.self_checking()
 
+    def test_slice_stmts(self):
+        self.self_checking()
+
     if PYTHON_VERSION in (3.6, 3.7):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
@@ -58,55 +61,6 @@ class TestBasic(vmtest.VmTestCase):
                     assert x == (8.0/3.0) and y == 3
                     assert isinstance(x, float)
                     """)
-
-        def test_slice_assignment(self):
-            self.assert_ok("""\
-                l = list(range(10))
-                l[3:8] = ["x"]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                l[:8] = ["x"]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                l[3:] = ["x"]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                l[:] = ["x"]
-                print(l)
-                """)
-
-        def test_slice_deletion(self):
-            self.assert_ok("""\
-                l = list(range(10))
-                del l[3:8]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                del l[:8]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                del l[3:]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                del l[:]
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                del l[::2]
-                print(l)
-                """)
 
         def test_building_stuff(self):
             self.assert_ok("""\
