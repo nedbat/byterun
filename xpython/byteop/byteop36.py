@@ -27,6 +27,14 @@ FSTRING_CONVERSION_MAP = {
     3: ascii,
 }
 
+# Code with these names have an implicit .0 in them
+COMPREHENSION_FN_NAMES = frozenset((
+    "<setcomp>",
+    "<dictcomp>",
+    "<genexpr>",
+    "<listcomp>",
+))
+
 
 class ByteOp36(ByteOp35):
     def __init__(self, vm, version=3.6):
@@ -142,6 +150,9 @@ class ByteOp36(ByteOp35):
             annotations=slot["annotations"],
         )
 
+        if argc == 0 and code.co_name in COMPREHENSION_FN_NAMES:
+            fn_vm.has_dot_zero = True
+
         # Python 3.4 __build_class__ is more strict about what can be a
         # function type whereas in earlier version we could get away with
         # our own kind of xpython.pyobj.Function object.
@@ -254,6 +265,4 @@ class ByteOp36(ByteOp35):
         call syntax. The stack item at position count + 1 should be the
         corresponding callable f.
         """
-        raise self.vm.VMError(
-            "BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet"
-        )
+        raise self.vm.VMError("BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet")

@@ -78,16 +78,6 @@ class VirtualMachine(object):
         # pulled out of this file
         self.VMError = VMError
 
-        self.comprehension_fns = set((
-            "<setcomp>",
-            "<dictcomp>",
-            "<genexpr>",
-            ))
-
-        if python_version >= 3.6:
-            self.comprehension_fns.add("<listcomp>")
-        self.comprehension_fns = frozenset(self.comprehension_fns)
-
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
         self.opc = get_opcode_module(version_info)

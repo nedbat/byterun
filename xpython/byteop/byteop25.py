@@ -14,6 +14,14 @@ from xpython.pyobj import Function, traceback_from_frame
 from xpython.buildclass import build_class
 
 
+# Code with these names have an implicit .0 in them
+COMPREHENSION_FN_NAMES = frozenset((
+    "<setcomp>",
+    "<dictcomp>",
+    "<genexpr>",
+))
+
+
 class ByteOp25(object):
     def __init__(self, vm):
         self.vm = vm
@@ -736,6 +744,9 @@ class ByteOp25(object):
             closure=None,
             vm=self.vm,
         )
+
+        if argc == 0 and code.co_name in COMPREHENSION_FN_NAMES:
+            fn.has_dot_zero = True
 
         self.vm.push(fn)
 

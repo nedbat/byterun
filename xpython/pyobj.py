@@ -114,6 +114,11 @@ class Function(object):
         self.__kwdefaults__ = kwdefaults
         self.__annotations = annotations
 
+        # In Python 3.x is varous generators and list comprehensions have a .0 arg
+        # but inspect doesn't show that. In the various MAKE_FUNCTION routines,
+        # we will detect this and store True in this field when appropriate.
+        self.has_dot_zero = False
+
         # Sometimes, we need a real Python function.  This is for that.
         kw = {
             "argdefs": self.func_defaults,
@@ -149,7 +154,7 @@ class Function(object):
             return self
 
     def __call__(self, *args, **kwargs):
-        if self.func_name in self._vm.comprehension_fns:
+        if self.has_dot_zero:
             # D'oh! http://bugs.python.org/issue19611 Py2 doesn't know how to
             # inspect set comprehensions, dict comprehensions, or generator
             # expressions properly.  They are always functions of one argument,

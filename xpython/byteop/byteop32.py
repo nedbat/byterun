@@ -24,6 +24,13 @@ del ByteOp25.RAISE_VARARGS
 # Gone since 3.2
 del ByteOp25.DUP_TOPX
 
+# Code with these names have an implicit .0 in them
+COMPREHENSION_FN_NAMES = frozenset((
+    "<setcomp>",
+    "<dictcomp>",
+    "<genexpr>",
+))
+
 
 class ByteOp32(ByteOp27):
     def __init__(self, vm, version=3.2):
@@ -121,6 +128,10 @@ class ByteOp32(ByteOp27):
             kwdefaults=kwdefaults,
             annotations=annotations,
         )
+
+        if argc == 0 and name in COMPREHENSION_FN_NAMES:
+            fn.has_dot_zero = True
+
         fn.version = self.version
         self.vm.push(fn)
 
