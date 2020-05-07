@@ -7,7 +7,7 @@ import linecache
 import types
 from sys import stderr
 from xdis.util import CO_GENERATOR
-from xdis import PYTHON3, PYTHON_VERSION
+from xdis import PYTHON3, PYTHON_VERSION, iscode
 
 import six
 
@@ -39,18 +39,19 @@ except:
 
 
 class Function(object):
-    """
-    function(name, code, globals, argdefs, closure, vm,  kwdefaults={}, annotations={})
+    """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={}, annotations={})
 
     Create a function object in vm from a code object and a dictionary.
-    The optional name string overrides the name from the code object.
+    The name string overrides the name from the code object.
     The optional argdefs tuple specifies the default argument values.
     The optional closure tuple supplies the bindings for free variables.
 
-    In contrast to `types.Function`, `name` appears first (and has to)
-    and there is an additional parameter `vm` which appears last.
+    In contrast to `types.Function`, parameters appear in the order
+    the CPython generates them; also there is an additional parameter
+    `vm` which appears last.
 
-    As a convenience we allow setting `kwdefaults` and `annotations.
+    As a convenience, in contrast to types.FunctionType we allow
+    setting `kwdefaults` and `annotations`.
     """
 
     __slots__ = [
@@ -73,25 +74,26 @@ class Function(object):
         "_func",
     ]
 
-    # NOTE! The order of the parameters is important.  This order
-    # matches the order that the compiler generates bytecode for
-    # calling Function.
-    #
-    # Note that this slightly differen than the order in Types.FunctionType()
-    #
-    # Therefore, in interpreter code, we have to do things the same way.
-    #
-    # The addition parameter `vm` that we need then has to appear
-    # after compiler-generated args.
-    #
-    # As a convenience we allow specifying `kwdefaults` and
-    # `annotations`.
     def __init__(
-        self, name, code, globs, argdefs, closure, vm, kwdefaults={}, annotations={}
+        self, name, code, globs, argdefs, closure=None, vm=None, kwdefaults={}, annotations={}
     ):
         self._vm = vm
-        assert vm is not None
         self.version = vm.version
+
+        if not name is None and not isinstance(name, str):
+            raise TypeError("Function() argument 1 (name) must None or string, not %s" % type(name))
+
+        if not iscode(code):
+            raise TypeError("Function() argument 2 (code) must be code, not %s" % type(code))
+
+        if not isinstance(globs, dict):
+            raise TypeError("Function() argument 3 (argdefs) must be dict, not %s" % type(globs))
+
+        if closure is not None and not isinstance(closure, tuple):
+            raise TypeError("Function() argument 5 (closure) must None or tuple, not %s" % type(closure))
+
+        if not vm:
+            raise TypeError("Function() argument 6 (vm) must be passed")
 
         # Function field names below change between Python 2.7 and 3.x.
         # We create attibutes for both names. Other code in this file assumes
@@ -132,7 +134,7 @@ class Function(object):
             self._func.__annotations__ = annotations
         else:
             # cross version interpreting... FIXME: fix this up
-            self._func = None
+            self._func = self
 
     def __repr__(self):  # pragma: no cover
         return "<Function %s at 0x%08x>" % (self.func_name, id(self))
@@ -172,6 +174,7 @@ class Function(object):
 
 
 class Method(object):
+    """Create a bound instance method object."""
     def __init__(self, obj, _class, func):
         self.im_self = obj
         self.im_class = _class
