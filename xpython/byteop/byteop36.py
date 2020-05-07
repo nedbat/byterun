@@ -131,23 +131,6 @@ class ByteOp36(ByteOp35):
         if not inspect.iscode(code) and hasattr(code, "to_native"):
             code = code.to_native()
 
-        # Python 3.4 __build_class__ is more strict about what can be a
-        # function type whereas in earlier version we could get away with
-        # our own kind of xpython.pyobj.Function object.
-        #
-
-        fn_native = types.FunctionType(
-            code,
-            globals=globs,
-            name=name,
-            argdefs=slot["defaults"],
-            closure=slot["closure"],
-        )
-        # types.FunctionType doesn't (yet) allow these 3.x function
-        # parameters, so we have to fill them in.
-        fn_native.__kwdefaults__ = slot["kwdefaults"]
-        fn_native.__annotations__ = slot["annotations"]
-
         fn_vm = Function(
             name=name,
             code=code,
@@ -158,6 +141,28 @@ class ByteOp36(ByteOp35):
             kwdefaults=slot["kwdefaults"],
             annotations=slot["annotations"],
         )
+
+        # Python 3.4 __build_class__ is more strict about what can be a
+        # function type whereas in earlier version we could get away with
+        # our own kind of xpython.pyobj.Function object.
+        #
+
+        try:
+            fn_native = types.FunctionType(
+                code,
+                globals=globs,
+                name=name,
+                argdefs=slot["defaults"],
+                closure=slot["closure"],
+            )
+        except:
+            fn_native = fn_vm
+        else:
+            # types.FunctionType doesn't (yet) allow these 3.x function
+            # parameters, so we have to fill them in.
+            fn_native.__kwdefaults__ = slot["kwdefaults"]
+            fn_native.__annotations__ = slot["annotations"]
+
         self.vm.fn2native[fn_native] = fn_vm
 
         self.vm.push(fn_native)
