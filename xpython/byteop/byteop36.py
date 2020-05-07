@@ -148,9 +148,6 @@ class ByteOp36(ByteOp35):
         fn_native.__kwdefaults__ = slot["kwdefaults"]
         fn_native.__annotations__ = slot["annotations"]
 
-        # FIXME remove this
-        fn_native.version = self.version  # This is our extra tagging.
-
         fn_vm = Function(
             name=name,
             code=code,

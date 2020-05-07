@@ -37,32 +37,25 @@ class ByteOp25:
                 )
             func = func.im_func
 
-        # FIXME: there has to be a better way to do this, like on
-        # initial loading of the code rather than every function call.
-        if not hasattr(func, "version"):
-            try:
-                func.version = self.version
-            except:
-                # FIXME: should we special casing in a function?
-                if isinstance(func, types.BuiltinFunctionType):
-                    if func == globals:
-                        # Use the frame's globals(), not the interpreter's
-                        self.vm.push(self.vm.frame.f_globals)
-                        return
-                    elif func == locals:
-                        # Use the frame's locals(), not the interpreter's
-                        self.vm.push(self.vm.frame.f_globals)
-                        return
-                    elif (
-                        self.version >= 3.7
-                        and hasattr(func, "__name__")
-                        and func.__name__ == "join"
-                    ):
-                        # In Python 3.7 it is an error to pass in **namedargs)
-                        retval = func(posargs)
-                        self.vm.push(retval)
-                        return
-                pass
+        # FIXME: should we special casing in a function?
+        if isinstance(func, types.BuiltinFunctionType):
+            if func == globals:
+                # Use the frame's globals(), not the interpreter's
+                self.vm.push(self.vm.frame.f_globals)
+                return
+            elif func == locals:
+                # Use the frame's locals(), not the interpreter's
+                self.vm.push(self.vm.frame.f_globals)
+                return
+            elif (
+                self.version >= 3.7
+                and hasattr(func, "__name__")
+                and func.__name__ == "join"
+            ):
+                # In Python 3.7 it is an error to pass in **namedargs)
+                retval = func(posargs)
+                self.vm.push(retval)
+                return
 
         if isinstance(func, types.FunctionType):
             if func in self.vm.fn2native:
@@ -740,8 +733,6 @@ class ByteOp25:
             vm=self.vm,
         )
 
-        # FIXME: remove this
-        fn.version = self.version
         self.vm.push(fn)
 
     def MAKE_CLOSURE(self, argc):

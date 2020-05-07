@@ -175,9 +175,8 @@ class ByteOp32(ByteOp27):
         from re-raising the exception. (But non-local gotos will still
         be resumed.)
         """
-        # FIXME rocky: the code is derived from byterun where it had to handle
-        # both 2.7 and 3.3. Given what's written above, I think the below
-        # is wrong, and might also be simplified
+        # Note: the code is derived from byterun where it had to handle
+        # both 2.7 and 3.3.
         v = w = None
         u = self.vm.top()
         if u is None:
