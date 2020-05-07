@@ -7,9 +7,13 @@
 # The problem was exhibited on Python 2.7.
 class Falsy(object):
     def __bool__(self):
-            return False
-    __nonzero__ = __bool__
-    def do_stuff(self):
-            pass
+        return False
 
-Falsy().do_stuff()
+    __nonzero__ = __bool__
+
+    def do_stuff(self):
+        # See the HitchHiker's guide
+        return 42
+
+
+assert Falsy().do_stuff() == 42

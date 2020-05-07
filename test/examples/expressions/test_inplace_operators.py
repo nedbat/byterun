@@ -1,3 +1,6 @@
+# Inplace operator tests
+"""This program is self-checking!"""
+
 x, y = 2, 3
 x **= y
 assert x == 8 and y == 3

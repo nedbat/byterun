@@ -11,15 +11,30 @@ PY2 = not PYTHON3
 
 class TestBasic(vmtest.VmTestCase):
 
+    def test_attribute_access(self):
+        self.self_checking()
+
+        self.assert_ok("""\
+            class Thing2(object):
+                z = 17
+                def __init__(self):
+                    self.x = 23
+            t = Thing2()
+            print(t.xyzzy)
+            """, raises=AttributeError)
+
+    def test_bound_method_on_falsy_objects(self):
+        self.self_checking()
+
+    def test_inplace_operators(self):
+        self.self_checking()
+
+    def test_slice(self):
+        self.self_checking()
+
     if PYTHON_VERSION in (3.6, 3.7):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
-
-        def test_inplace_operators(self):
-            self.do_one()
-
-        def test_bound_method_on_falsy_objects(self):
-            self.do_one()
 
         if PY2:
             def test_inplace_division(self):
@@ -43,9 +58,6 @@ class TestBasic(vmtest.VmTestCase):
                     assert x == (8.0/3.0) and y == 3
                     assert isinstance(x, float)
                     """)
-
-        def test_slice(self):
-            self.do_one()
 
         def test_slice_assignment(self):
             self.assert_ok("""\
@@ -296,18 +308,6 @@ class TestBasic(vmtest.VmTestCase):
                 Foo.baz = 3
                 assert b.baz == 3
                 """)
-
-        def test_attribute_access(self):
-            self.do_one()
-
-            self.assert_ok("""\
-                class Thing2(object):
-                    z = 17
-                    def __init__(self):
-                        self.x = 23
-                t = Thing2()
-                print(t.xyzzy)
-                """, raises=AttributeError)
 
         def test_staticmethods(self):
             self.assert_ok("""\
