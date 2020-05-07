@@ -20,7 +20,6 @@ class ByteOp25:
         self.vm.push(container_fn(elts))
 
     def call_function_with_args_resolved(self, func, posargs, namedargs):
-
         if hasattr(func, "im_func"):
             # Methods get self as an implicit first parameter.
             if func.im_self is not None:
@@ -54,7 +53,11 @@ class ByteOp25:
                         # Use the frame's locals(), not the interpreter's
                         self.vm.push(self.vm.frame.f_globals)
                         return
-                    elif self.version >= 3.7 and hasattr(func, "__name__") and func.__name__ == "join" :
+                    elif (
+                        self.version >= 3.7
+                        and hasattr(func, "__name__")
+                        and func.__name__ == "join"
+                    ):
                         # In Python 3.7 it is an error to pass in **namedargs)
                         retval = func(posargs)
                         self.vm.push(retval)
@@ -646,8 +649,8 @@ class ByteOp25:
 
     # End names
 
-
     if 0:
+
         def SET_LINENO(self, lineno):
             """
             This opcode is obsolete.
@@ -725,11 +728,19 @@ class ByteOp25:
         associated with the function. The function object is defined to have
         argc default parameters, which are found below TOS.
         """
-        name = None
         code = self.vm.pop()
         defaults = self.vm.popn(argc)
         globs = self.vm.frame.f_globals
-        fn = Function(name, code, globs, defaults, None, self.vm)
+        fn = Function(
+            name=None,
+            code=code,
+            globs=globs,
+            argdefs=defaults,
+            closure=None,
+            vm=self.vm,
+        )
+
+        # FIXME: remove this
         fn.version = self.version
         self.vm.push(fn)
 

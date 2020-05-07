@@ -269,7 +269,14 @@ class VirtualMachine(object):
                 raise
             if self.last_traceback:
                 self.last_traceback.print_tb()
-                print("%s: %s" % (self.last_exception[0].__name__, '\n'.join(self.last_exception[1].args)))
+                print("%s" % self.last_exception[0].__name__, end="")
+                exc_value = self.last_exception[1]
+                tail = (
+                    (": %s" % "\n".join(self.last_exception[1].args))
+                    if exc_value
+                    else ""
+                )
+                print(tail)
             raise VMRuntimeError
 
         # Frame ran to normal completion... check some invariants
@@ -410,7 +417,10 @@ class VirtualMachine(object):
                 if not bytecode_fn:  # pragma: no cover
                     raise VirtualMachineError(
                         "Unknown bytecode type: %s\n\t%s"
-                        % (self.instruction_info(byteName, arguments, opoffset), byteName)
+                        % (
+                            self.instruction_info(byteName, arguments, opoffset),
+                            byteName,
+                        )
                     )
                 why = bytecode_fn(*arguments)
 
@@ -423,7 +433,8 @@ class VirtualMachine(object):
                 log.info(
                     (
                         "exception in the execution of "
-                        "instruction:\n\t%s" % self.instruction_info(byteName, arguments, opoffset)
+                        "instruction:\n\t%s"
+                        % self.instruction_info(byteName, arguments, opoffset)
                     )
                 )
             if not self.in_exception_processing:
@@ -522,14 +533,14 @@ class VirtualMachine(object):
                     log.info(
                         (
                             "exception in the execution of "
-                            "instruction:\n\t%s" % self.instruction_info(byteName, arguments, opoffset)
+                            "instruction:\n\t%s"
+                            % self.instruction_info(byteName, arguments, opoffset)
                         )
                     )
 
                 if not self.in_exception_processing:
                     self.last_traceback = traceback_from_frame(self.frame)
                     self.in_exception_processing = True
-
 
             if why == "reraise":
                 why = "exception"

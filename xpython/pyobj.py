@@ -39,6 +39,20 @@ except:
 
 
 class Function(object):
+    """
+    function(name, code, globals, argdefs, closure, vm,  kwdefaults={}, annotations={})
+
+    Create a function object in vm from a code object and a dictionary.
+    The optional name string overrides the name from the code object.
+    The optional argdefs tuple specifies the default argument values.
+    The optional closure tuple supplies the bindings for free variables.
+
+    In contrast to `types.Function`, `name` appears first (and has to)
+    and there is an additional parameter `vm` which appears last.
+
+    As a convenience we allow setting `kwdefaults` and `annotations.
+    """
+
     __slots__ = [
         "func_code",  # Python 2.x
         "func_name",
@@ -49,19 +63,34 @@ class Function(object):
         "__defaults__",
         "__kwdefaults__",
         "__closure__",
+        # rest
         "func_globals",
         "func_locals",
         "func_dict",
         "__dict__",
-        "__doc__",
+        # "__doc__" is filled in by the doc comment above.
         "_vm",
         "_func",
     ]
 
+    # NOTE! The order of the parameters is important.  This order
+    # matches the order that the compiler generates bytecode for
+    # calling Function.
+    #
+    # Note that this slightly differen than the order in Types.FunctionType()
+    #
+    # Therefore, in interpreter code, we have to do things the same way.
+    #
+    # The addition parameter `vm` that we need then has to appear
+    # after compiler-generated args.
+    #
+    # As a convenience we allow specifying `kwdefaults` and
+    # `annotations`.
     def __init__(
         self, name, code, globs, argdefs, closure, vm, kwdefaults={}, annotations={}
     ):
         self._vm = vm
+        assert vm is not None
         self.version = vm.version
 
         # Function field names below change between Python 2.7 and 3.x.
@@ -81,7 +110,7 @@ class Function(object):
 
         # These are 3.x ish only
         self.__kwdefaults__ = kwdefaults
-        self.__annonations = annotations
+        self.__annotations = annotations
 
         # Sometimes, we need a real Python function.  This is for that.
         kw = {
@@ -97,8 +126,10 @@ class Function(object):
                 pass
         if isinstance(code, types.CodeType):
             self._func = types.FunctionType(code, globs, **kw)
+            # types.FunctionType doesn't (yet) allow these 3.x function
+            # parameters, so we have to fill them in.
             self._func.__kwdefaults__ = kwdefaults
-            self._func.__annonations__ = annotations
+            self._func.__annotations__ = annotations
         else:
             # cross version interpreting... FIXME: fix this up
             self._func = None
@@ -285,13 +316,16 @@ class Traceback(object):
             f = tb.tb_frame
             filename = f.f_code.co_filename
             lineno = f.line_number()
-            print('  File "%s", line %d, in %s' % (filename, lineno, f.f_code.co_name),
-                  file=file)
+            print(
+                '  File "%s", line %d, in %s' % (filename, lineno, f.f_code.co_name),
+                file=file,
+            )
             linecache.checkcache(filename)
             line = linecache.getline(filename, lineno, f.f_globals)
             if line:
                 print("    " + line.strip(), file=file)
             tb = tb.tb_next
+
 
 def traceback_from_frame(frame):
     tb = None

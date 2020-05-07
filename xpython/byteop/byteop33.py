@@ -6,6 +6,7 @@ from __future__ import print_function, division
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.pyobj import Generator
 
+
 class ByteOp33(ByteOp32):
     def __init__(self, vm, version=3.3):
         self.vm = vm
@@ -37,6 +38,7 @@ class ByteOp33(ByteOp32):
             # Returning "yield" prevents the block stack cleanup code
             # from executing, suspending the frame in its current state.
             return "yield"
+
 
 if __name__ == "__main__":
     x = ByteOp33(None)

@@ -143,15 +143,17 @@ class ByteOp36(ByteOp35):
             argdefs=slot["defaults"],
             closure=slot["closure"],
         )
+        # types.FunctionType doesn't (yet) allow these 3.x function
+        # parameters, so we have to fill them in.
         fn_native.__kwdefaults__ = slot["kwdefaults"]
-        fn_native.__annonations__ = slot["annotations"]
+        fn_native.__annotations__ = slot["annotations"]
 
         # FIXME remove this
         fn_native.version = self.version  # This is our extra tagging.
 
         fn_vm = Function(
-            name,
-            code,
+            name=name,
+            code=code,
             globs=globs,
             argdefs=slot["defaults"],
             closure=slot["closure"],
