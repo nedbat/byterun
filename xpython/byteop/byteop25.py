@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Bytecode Interpreter operations for Python 2.5
+
+Note: this is subclassed so later versions may use operations from here.
 """
 from __future__ import print_function, division
 
@@ -7,7 +9,9 @@ import operator
 import types
 import six
 import sys
+from xdis import PYTHON_VERSION
 from xpython.pyobj import Function, traceback_from_frame
+from xpython.buildclass import build_class
 
 
 class ByteOp25:
@@ -47,17 +51,15 @@ class ByteOp25:
                 # Use the frame's locals(), not the interpreter's
                 self.vm.push(self.vm.frame.f_globals)
                 return
-            elif (
-                self.version >= 3.7
-                and hasattr(func, "__name__")
-                and func.__name__ == "join"
-            ):
-                # In Python 3.7 it is an error to pass in **namedargs)
-                retval = func(posargs)
+            elif self.version != PYTHON_VERSION and PYTHON_VERSION >= 3.4 and func == __build_class__:
+                # later __build_class__() works only bytecode that matches the CPython interpeter,
+                # so use Darius' version instead.
+                retval = build_class(*posargs, **namedargs)
                 self.vm.push(retval)
                 return
 
         if isinstance(func, types.FunctionType):
+            # Try to convert to the Interpreter's Function type.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
 

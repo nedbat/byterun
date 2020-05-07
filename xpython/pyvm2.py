@@ -203,7 +203,8 @@ class VirtualMachine(object):
                 f_locals = f_globals
         elif self.frames:
             f_globals = self.frame.f_globals
-            f_locals = {}
+            if f_locals is None:
+                f_locals = {}
         else:
             # TODO(ampere): __name__, __doc__, __package__ below are not correct
             f_globals = f_locals = {
@@ -215,7 +216,7 @@ class VirtualMachine(object):
 
         # Implement NEWLOCALS flag. See Objects/frameobject.c in CPython.
         if code.co_flags & CO_NEWLOCALS:
-            f_locals = {}
+            f_locals = {"__locals__": {}}
 
         f_locals.update(callargs)
         frame = Frame(code, f_globals, f_locals, self.frame)
@@ -429,15 +430,15 @@ class VirtualMachine(object):
             self.last_exception = sys.exc_info()
 
             # FIXME: dry code
-            if self.last_exception[0] != SystemExit:
-                log.info(
-                    (
-                        "exception in the execution of "
-                        "instruction:\n\t%s"
-                        % self.instruction_info(byteName, arguments, opoffset)
-                    )
-                )
             if not self.in_exception_processing:
+                if self.last_exception[0] != SystemExit:
+                    log.info(
+                        (
+                            "exception in the execution of "
+                            "instruction:\n\t%s"
+                            % self.instruction_info(byteName, arguments, opoffset)
+                        )
+                    )
                 self.last_traceback = traceback_from_frame(self.frame)
                 self.in_exception_processing = True
 
@@ -528,17 +529,16 @@ class VirtualMachine(object):
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
 
                 # Deal with exceptions encountered while executing the op.
-                # FIXME: DRY code
-                if self.last_exception[0] != SystemExit:
-                    log.info(
-                        (
-                            "exception in the execution of "
-                            "instruction:\n\t%s"
-                            % self.instruction_info(byteName, arguments, opoffset)
-                        )
-                    )
-
                 if not self.in_exception_processing:
+                    # FIXME: DRY code
+                    if self.last_exception[0] != SystemExit:
+                        log.info(
+                            (
+                                "exception in the execution of "
+                                "instruction:\n\t%s"
+                                % self.instruction_info(byteName, arguments, opoffset)
+                            )
+                        )
                     self.last_traceback = traceback_from_frame(self.frame)
                     self.in_exception_processing = True
 
