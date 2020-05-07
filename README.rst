@@ -39,19 +39,19 @@ Examples:
 What to know instructions get run when you write some simple code?
 Try this:
 
-```
-$ xpython -vc "x, y = 2, 3; x **= y"
-INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
-INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
-INFO:xpython.pyvm2:             4: STORE_NAME 'x'
-INFO:xpython.pyvm2:             6: STORE_NAME 'y'
-INFO:xpython.pyvm2:             8: LOAD_NAME 'x'
-INFO:xpython.pyvm2:            10: LOAD_NAME 'y'
-INFO:xpython.pyvm2:            12: INPLACE_POWER
-INFO:xpython.pyvm2:            14: STORE_NAME 'x'
-INFO:xpython.pyvm2:            16: LOAD_CONST None
-INFO:xpython.pyvm2:            18: RETURN_VALUE
-```
+::
+
+   $ xpython -vc "x, y = 2, 3; x **= y"
+   INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
+   INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
+   INFO:xpython.pyvm2:             4: STORE_NAME 'x'
+   INFO:xpython.pyvm2:             6: STORE_NAME 'y'
+   INFO:xpython.pyvm2:             8: LOAD_NAME 'x'
+   INFO:xpython.pyvm2:            10: LOAD_NAME 'y'
+   INFO:xpython.pyvm2:            12: INPLACE_POWER
+   INFO:xpython.pyvm2:            14: STORE_NAME 'x'
+   INFO:xpython.pyvm2:            16: LOAD_CONST None
+   INFO:xpython.pyvm2:            18: RETURN_VALUE
 
 Option `-c` is the same as Python's flag (program passed in as string)
 and `-v` is also analogus Python's flag. Here, it shows the bytecode
@@ -59,42 +59,41 @@ instructions run.
 
 Want the execution stack stack and block stack in addition? Add another `v`:
 
-```
-xpython -vvc "x, y = 2, 3; x **= y"
-DEBUG:xpython.pyvm2:make_frame: code=<code object <module> at 0x7f33d1cf01e0, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 139860540041568), f_locals=(<class 'NoneType'>, 94796399066560)
-DEBUG:xpython.pyvm2:<Frame at 0x7f33d135ef50: '<string x, y = 2, 3; x **= y>' @ 1>
-DEBUG:xpython.pyvm2:  frame.stack: []
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
-DEBUG:xpython.pyvm2:  frame.stack: [(2, 3)]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
-DEBUG:xpython.pyvm2:  frame.stack: [3, 2]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:             4: STORE_NAME 'x'
-DEBUG:xpython.pyvm2:  frame.stack: [3]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:             6: STORE_NAME 'y'
-DEBUG:xpython.pyvm2:  frame.stack: []
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:             8: LOAD_NAME 'x'
-DEBUG:xpython.pyvm2:  frame.stack: [2]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:            10: LOAD_NAME 'y'
-DEBUG:xpython.pyvm2:  frame.stack: [2, 3]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:            12: INPLACE_POWER
-DEBUG:xpython.pyvm2:  frame.stack: [8]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:            14: STORE_NAME 'x'
-DEBUG:xpython.pyvm2:  frame.stack: []
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:            16: LOAD_CONST None
-DEBUG:xpython.pyvm2:  frame.stack: [None]
-DEBUG:xpython.pyvm2:  blocks     : []
-INFO:xpython.pyvm2:            18: RETURN_VALUE
-```
+::
 
+   $ xpython -vvc "x, y = 2, 3; x **= y"
+   DEBUG:xpython.pyvm2:make_frame: code=<code object <module> at 0x7f33d1cf01e0, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 139860540041568), f_locals=(<class 'NoneType'>, 94796399066560)
+   DEBUG:xpython.pyvm2:<Frame at 0x7f33d135ef50: '<string x, y = 2, 3; x **= y>' @ 1>
+   DEBUG:xpython.pyvm2:  frame.stack: []
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
+   DEBUG:xpython.pyvm2:  frame.stack: [(2, 3)]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
+   DEBUG:xpython.pyvm2:  frame.stack: [3, 2]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             4: STORE_NAME 'x'
+   DEBUG:xpython.pyvm2:  frame.stack: [3]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             6: STORE_NAME 'y'
+   DEBUG:xpython.pyvm2:  frame.stack: []
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:             8: LOAD_NAME 'x'
+   DEBUG:xpython.pyvm2:  frame.stack: [2]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            10: LOAD_NAME 'y'
+   DEBUG:xpython.pyvm2:  frame.stack: [2, 3]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            12: INPLACE_POWER
+   DEBUG:xpython.pyvm2:  frame.stack: [8]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            14: STORE_NAME 'x'
+   DEBUG:xpython.pyvm2:  frame.stack: []
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            16: LOAD_CONST None
+   DEBUG:xpython.pyvm2:  frame.stack: [None]
+   DEBUG:xpython.pyvm2:  blocks     : []
+   INFO:xpython.pyvm2:            18: RETURN_VALUE
 
 
 Status:
