@@ -5,14 +5,14 @@ if [[ $# == 0 ]]; then
 fi
 mydir=$(dirname ${BASH_SOURCE[0]})
 
-PYENV_VERSIONS=${PYENV_VERSIONS:-"3.6.10 3.7.7 3.3.7 3.4.10 2.7.18 2.6.9 2.5.6 3.2.6 3.5.9"}
+PYENV_VERSIONS=${PYENV_VERSIONS:-"3.6.10 3.7.7 3.3.7 3.4.10 2.7.18 3.2.6 3.5.9 2.6.9 2.5.6"}
 for file in $*; do
     for version in $PYENV_VERSIONS; do
 	pyenv local $version
 	python ${mydir}/compile-file.py "$file"
     done
+    git add -f ${mydir}./bytecode-*/${short}*
     rm -v .pyenv_version *~ || /bin/true
     short=$(basename $file .py)
-    git add -f ${mydir}./bytecode-*/${short}*
 done
 rm .python-version

@@ -26,6 +26,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_bound_method_on_falsy_objects(self):
         self.self_checking()
 
+    def test_comprehensions(self):
+        self.self_checking()
+
     def test_inplace_operators(self):
         self.self_checking()
 
@@ -91,24 +94,6 @@ class TestBasic(vmtest.VmTestCase):
 
         def test_generator_expression(self):
             self.do_one()
-
-        def test_list_comprehension(self):
-            self.assert_ok("""\
-                x = [z*z for z in range(5)]
-                assert x == [0, 1, 4, 9, 16]
-                """)
-
-        def test_dict_comprehension(self):
-            self.assert_ok("""\
-                x = {z:z*z for z in range(5)}
-                assert x == {0:0, 1:1, 2:4, 3:9, 4:16}
-                """)
-
-        def test_set_comprehension(self):
-            self.assert_ok("""\
-                x = {z*z for z in range(5)}
-                assert x == {0, 1, 4, 9, 16}
-                """)
 
         def test_strange_sequence_ops(self):
             # from stdlib: test/test_augassign.py
