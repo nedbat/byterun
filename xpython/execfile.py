@@ -5,7 +5,7 @@ import os
 import sys
 import tokenize
 import mimetypes
-from xdis import load_module, PYTHON_VERSION
+from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
 SUPPORTED_PYTHON_VERSIONS = (2.5, 2.6, 2.7, 3.3, 3.2, 3.4, 3.5, 3.6, 3.7)
 
@@ -35,8 +35,8 @@ class NoSource(Exception):
     pass
 
 
-def exec_code_object(code, env, python_version=PYTHON_VERSION):
-    vm = VirtualMachine(python_version)
+def exec_code_object(code, env, python_version=PYTHON_VERSION, is_pypy=IS_PYPY):
+    vm = VirtualMachine(python_version, is_pypy)
     vm.run_code(code, f_globals=env)
 
 
@@ -133,6 +133,7 @@ def run_python_file(filename, args, package=None):
     else:
         sys.path[0] = os.path.abspath(os.path.dirname(filename))
 
+    is_pypy = IS_PYPY
     try:
         # Open the source or bytecode file.
         try:
@@ -143,13 +144,13 @@ def run_python_file(filename, args, package=None):
                     timestamp,
                     magic_int,
                     code,
-                    pypy,
+                    is_pypy,
                     source_size,
                     sip_hash,
                 ) = load_module(filename)
                 if python_version not in SUPPORTED_PYTHON_VERSIONS:
                     raise WrongBytecode(
-                        "We only support bytecode 2.5 - 2.7 and 3.2 - 3.6: %r is %2.1f bytecode"
+                        "We only support bytecode 2.5 - 2.7 and 3.2 - 3.7: %r is %2.1f bytecode"
                         % (filename, python_version)
                     )
                 pass
@@ -177,7 +178,7 @@ def run_python_file(filename, args, package=None):
             raise NoSource("No file to run: %r" % filename)
 
         # Execute the source file.
-        exec_code_object(code, main_mod.__dict__, python_version)
+        exec_code_object(code, main_mod.__dict__, python_version, is_pypy)
 
     finally:
         # Restore the old __main__
@@ -219,7 +220,7 @@ def run_python_string(source, package=None):
         python_version = PYTHON_VERSION
 
         # Execute the source file.
-        exec_code_object(code, main_mod.__dict__, python_version)
+        exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY)
 
     finally:
         # Restore the old __main__

@@ -9,15 +9,17 @@ import operator
 import types
 import six
 import sys
-from xdis import PYTHON_VERSION
+from xdis import PYTHON_VERSION, IS_PYPY
 from xpython.pyobj import Function, traceback_from_frame
 from xpython.buildclass import build_class
 
 
-class ByteOp25:
-    def __init__(self, vm, version=2.5):
+class ByteOp25(object):
+    def __init__(self, vm):
         self.vm = vm
-        self.version = version
+        # Convenience variables
+        self.version = vm.version
+        self.is_pypy = vm.is_pypy
 
     def build_container(self, count, container_fn):
         elts = self.vm.popn(count)

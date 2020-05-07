@@ -11,7 +11,7 @@ import sys
 import six
 from six.moves import reprlib
 
-from xdis import PYTHON3, PYTHON_VERSION, op_has_argument
+from xdis import PYTHON3, PYTHON_VERSION, IS_PYPY, op_has_argument
 from xdis.util import code2num, CO_NEWLOCALS
 from xdis.op_imports import get_opcode_module
 
@@ -44,7 +44,8 @@ class VMRuntimeError(Exception):
 
 
 class VirtualMachine(object):
-    def __init__(self, python_version=PYTHON_VERSION, vmtest_testing=False):
+    def __init__(self, python_version=PYTHON_VERSION, vmtest_testing=False,
+                 is_pypy=IS_PYPY):
         # The call stack of frames.
         self.frames = []
         # The current frame.
@@ -54,6 +55,7 @@ class VirtualMachine(object):
         self.last_traceback_limit = None
         self.last_traceback = None
         self.version = python_version
+        self.is_pypy = is_pypy
 
         # FIXME: until we figure out how to fix up test/vmtest.el
         # This changes how we report a VMRuntime error.
@@ -91,9 +93,12 @@ class VirtualMachine(object):
         self.opc = get_opcode_module(version_info)
         if int_vers < 30:
             if int_vers == 27:
-                from xpython.byteop.byteop27 import ByteOp27
-
-                self.byteop = ByteOp27(self)
+                if is_pypy:
+                    from xpython.byteop.byteop27pypy import ByteOp27PyPy
+                    self.byteop = ByteOp27PyPy(self)
+                else:
+                    from xpython.byteop.byteop27 import ByteOp27
+                    self.byteop = ByteOp27(self)
             elif int_vers == 26:
                 from xpython.byteop.byteop26 import ByteOp26
 

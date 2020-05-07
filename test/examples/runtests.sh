@@ -35,7 +35,7 @@ XPYTHON=${XPYTHON:-xpython}
 if [[ -n $1 ]] ; then
     files=$1
 else
-    files=$(echo test_*.py)
+    files=$(echo test_*.py */test_*.py)
 fi
 
 

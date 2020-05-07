@@ -2,6 +2,7 @@
 """
 from __future__ import print_function, division
 
+from xdis import IS_PYPY
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop26 import ByteOp26
 
@@ -10,9 +11,8 @@ del ByteOp25.JUMP_IF_FALSE
 del ByteOp25.JUMP_IF_TRUE
 
 class ByteOp27(ByteOp26):
-    def __init__(self, vm, version=2.7):
-        self.vm = vm
-        self.version = version
+    def __init__(self, vm):
+        super(ByteOp27, self).__init__(vm)
 
 
     # New in 2.7
