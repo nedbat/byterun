@@ -39,7 +39,7 @@ Examples:
 What to know instructions get run when you write some simple code?
 Try this:
 
-```console
+```
 $ xpython -vc "x, y = 2, 3; x **= y"
 INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
 INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
@@ -59,7 +59,7 @@ instructions run.
 
 Want the execution stack stack and block stack in addition? Add another `v`:
 
-```console
+```
 xpython -vvc "x, y = 2, 3; x **= y"
 DEBUG:xpython.pyvm2:make_frame: code=<code object <module> at 0x7f33d1cf01e0, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 139860540041568), f_locals=(<class 'NoneType'>, 94796399066560)
 DEBUG:xpython.pyvm2:<Frame at 0x7f33d135ef50: '<string x, y = 2, 3; x **= y>' @ 1>
