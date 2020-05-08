@@ -38,6 +38,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_slice_stmts(self):
         self.self_checking()
 
+    def test_generator_expression(self):
+        self.do_one()
+
     if PYTHON_VERSION in (3.6, 3.7):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
@@ -91,9 +94,6 @@ class TestBasic(vmtest.VmTestCase):
                 del l[5]
                 print(l)
                 """)
-
-        def test_generator_expression(self):
-            self.do_one()
 
         def test_strange_sequence_ops(self):
             # from stdlib: test/test_augassign.py

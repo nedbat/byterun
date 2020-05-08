@@ -13,9 +13,8 @@ del ByteOp32.WITH_CLEANUP
 
 
 class ByteOp35(ByteOp34):
-    def __init__(self, vm, version=3.5):
-        self.vm = vm
-        self.version = version
+    def __init__(self, vm):
+        super(ByteOp35, self).__init__(vm)
 
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)

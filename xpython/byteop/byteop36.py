@@ -27,7 +27,7 @@ FSTRING_CONVERSION_MAP = {
     3: ascii,
 }
 
-# Code with these names have an implicit .0 in them
+# Code with these co_names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset((
     "<setcomp>",
     "<dictcomp>",
@@ -37,9 +37,8 @@ COMPREHENSION_FN_NAMES = frozenset((
 
 
 class ByteOp36(ByteOp35):
-    def __init__(self, vm, version=3.6):
-        self.vm = vm
-        self.version = version
+    def __init__(self, vm):
+        super(ByteOp36, self).__init__(vm)
 
     def call_function_kw(self, argc):
         namedargs = {}

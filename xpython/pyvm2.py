@@ -279,7 +279,7 @@ class VirtualMachine(object):
                 exc_value = self.last_exception[1]
                 tail = (
                     (": %s" % "\n".join(self.last_exception[1].args))
-                    if exc_value
+                    if self.last_exception[1].args
                     else ""
                 )
                 print(tail)

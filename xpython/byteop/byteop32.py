@@ -33,9 +33,8 @@ COMPREHENSION_FN_NAMES = frozenset((
 
 
 class ByteOp32(ByteOp27):
-    def __init__(self, vm, version=3.2):
-        self.vm = vm
-        self.version = version
+    def __init__(self, vm):
+        super(ByteOp32, self).__init__(vm)
 
     def do_raise(self, exc, cause):
         if exc is None:  # reraise
