@@ -41,14 +41,12 @@ SKIP_TESTS=(
 
     [test_pkgimport.py]=1 # long
     [test_poll.py]=1 # Too long to run: 11 seconds
-    [test_pydoc.py]=1 # test assertion failures
 
     [test_runpy.py]=1 # Too long:
 
     [test_select.py]=1 # Too long: 11 seconds
     [test_selectors.py]=1  # Too long: 11 seconds
     [test_signal.py]=1 # Too long: 22 seconds
-    [test_sndhdr.py]=1
     [test_socket.py]=1 # long 25 seconds
     [test_socketserver.py]=1 # long 25 seconds
     [test_subprocess.py]=1 # Too long

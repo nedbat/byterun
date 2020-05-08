@@ -1,13 +1,11 @@
 SKIP_TESTS=(
-    [test_buffer.py]=1  # FIXME: Works on c90ff51
-
-    [test_aifc.py]=1  #
     [test_asdl_parser.py]=1 # it fails on its own
     [test_atexit.py]=1  # The atexit test looks for specific comments in error lines
-
-    [test_cmath]=1
     [test_cmd_line.py]=1 #
-    [test_codecs.py]=1 # test assertion failure
+
+    # File "test_collections.py", line 345, in test_pickle
+    # q = loads(dumps(p, protocol))
+    # _pickle.PicklingError: Can't pickle <class 'xpython.byteop.byteop25.TestNT'>: attribute lookup TestNT on xpython.byteop.byteop25 failed
     [test_collections.py]=1
     [test_concurrent_futures.py]=1 # Takes long to run
     [test_curses.py]=1 #
@@ -19,23 +17,16 @@ SKIP_TESTS=(
     [test_enum.py]=1
 
     [test_faulthandler.py]=1 # takes too long to run: 20 seconds
-    [test_format.py]=1
-    [test_ftplib.py]=1 # Test assertion failures
 
     [test_gdb.py]=1 # it fails on its own
-    [test_glob.py]=1 #
-    [test_grammar.py]=1 # parse error
     [test_grp.py]=1  # Long test
 
     [test_imaplib.py]=1
-    [test_inspect.py]=1 # Syntax error Investigate
     [test_io.py]=1 # Long run time.
 
     [test_logging.py]=1 #
     [test_long.py]=1 # too long run time: 20 seconds
 
-    [test_marshal.py]=1 # test assertion errors
-    [test_math.py]=1 # test assertion errors TypeError: a float is required
     [test_modulefinder.py]=1  # test assertion error
     [test_msilib.py]=1 # it fails on its own
     [test_multiprocessing_fork.py]=1  # long
@@ -46,20 +37,11 @@ SKIP_TESTS=(
     [test_normalization.py]=1 # it fails on its own
 
     [test_pdb.py]=1 # probably relies on comments in code
-    [test_peepholer.py]=1 # parse error; Investigate
-    [test_pep352.py]=1 # test assertion error
-    [test_pep380.py]=1 # Investigate test assertion differ
-    [test_pickle.py]=1 # test assert errors
     [test_pkgimport.py]=1 # long
     [test_pkgutil.py]=1 # it fails on its own
-    [test_print.py]=1 # test assert errors
-    [test_pty.py]=1  # FIXME: Needs grammar loop isolation separation
+    [test_pty.py]=1  # fails on its own
     [test_pydoc.py]=1 # test assertion: help text difference
 
-    [test_queue.py]=1 # Possibly parameter differences - investigate
-
-    [test_raise.py]=1 # Test assert error
-    [test_regrtest.py]=1 # test assertion errors
     [test_robotparser.py]=1 # fails on its own
     [test_runpy.py]=1 # decompile takes too long?
 

@@ -1,21 +1,29 @@
 SKIP_TESTS=(
-    [test_minidom.py]=1 # test errors; works on 5bbb74f3 (HEAD~10)
-    [test_modulefinder.py]=1 # works on 5bbb74f3 (HEAD~10)
-    [test_struct.py]=1 # assert failure (1); works on 5bbb74f3 (HEAD~10)
-    [test_wsgiref.py]=1 # works on 5bbb74f3 (HEAD~10)
 
-    [test_builtin.py]=1 # works on 5bbb74f3 (HEAD~10)?
-    [test_format.py]=1 # works on 5bbb74f3 (HEAD~10)?
-    [test_dataclasses.py]=1 # works on 5bbb74f3 (HEAD~10)
+    # NameError: name 'TypeVar' is not defined
+    [test_typing.py]=1 #
 
-    [test_poplib.py]=1 # works on 5bbb74f3 (HEAD~10)
-    [test_codecs.py]=1 # test errors; works on 5bbb74f3 (HEAD~10)
-    [test_pyclbr.py]=1 # test errors; works on 5bbb74f3 (HEAD~10)
-    [test_threaded_import.py]=1 # works on 5bbb74f3 (HEAD~10)
-    [test_urllib2.py]=1 # test errors (1); works on 5bbb74f3 (HEAD~5)
+    # File "test_abc.py", line 16, in test_factory
+    # class TestLegacyAPI(unittest.TestCase):
+    # TypeError: __build_class__: func must be a function
+    [test_abc.py]=1
 
-    [test_httplib.py]=1 # test runs. kills after 15 seconds. works on f7e2064e
-    [test_grammar.py]=1 # assert failures
+    # File "test_keywordonlyarg.py", line 16, in <module>
+    # def mixedargs_sum(a, b=0, *arg, k1, k2=0):
+    # TypeError: __kwdefaults__ must be set to a dict object
+    [test_keywordonlyarg.py]=1
+
+    # FileNotFoundErrorTraceback (most recent call last):
+    # FileNotFoundError: [Errno 2] No such file or directory: '/src/.../xpython/byteop/ieee754.txt'
+    # (should be /tmp/test3.7
+    [test_math.py]=1
+
+    # "BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet"
+    [test_urllib2net.py]=1
+
+    [test_bdb.py]=1 # test assert errors
+    [test_calendar.py]=1 # test assert errors
+    [test_collections.py]=1 # test assert errors
 
     [test___all__.py]=1 # it fails on its own
     [test_argparse.py]=1 # it fails on its own
@@ -30,12 +38,14 @@ SKIP_TESTS=(
     [test_compileall.py]=1 # fails on its own
     [test_compile.py]=1  # Code introspects on co_consts in a non-decompilable way
     [test_concurrent_futures.py]=1 # Takes too long *before* decompiling
-    [test_coroutines.py]=1 # Parse error
     [test_ctypes.py]=1 # it fails on its own
     [test_curses.py]=1 # probably byte string not handled properly
     [test_datetime.py]=1   # Takes too long *before* decompiling
     [test_dbm_ndbm.py]=1 # it fails on its own
-    [test_decimal.py]=1   # test assertion failures
+
+    # Does something with sys.args?
+    [test_decimal.py]=1
+
     [test_descr.py]=1   # test assertion failures
     [test_devpoll.py]=1 # it fails on its own
     [test_dis.py]=1   # Introspects on line numbers; line numbers don't match in disassembly - duh!
@@ -45,25 +55,13 @@ SKIP_TESTS=(
 
     [test_faulthandler.py]=1   # test takes too long before decompiling
     [test_fileinput.py]=1 # too long to run - control flow?
-    [test_frame.py]=1 # Introspects line number
-    [test_fstring.py]=1 # need to disambiguate leading fstrings from docstrings
 
-    [test_generators.py]=1  # Works if you run via Python. So possibly some test-framework problem
+    [test_frame.py]=1 # Introspects frame object. VM uses Frame, not frame)
     [test_gdb.py]=1 # it fails on its own
-    [test_glob.py]=1  # test errors (1), TypeError: join() argument must be str or bytes, not 'tuple'
-    [test_grp.py]=1 # Running test doesn't terminate (killed)
-
-    [test_imaplib.py]=1 # test errors; control-flow?
     [test_io.py]=1 # test takes too long to run before decompilation: 37 seconds
-    [test_inspect.py]=1 # parse error
-
     [test_kqueue.py]=1 # it fails on its own
-
     [test_lib2to3.py]=1 # it fails on its own
-    [test_long.py]=1 # test assert failure (1)
-    [test_logging.py]=1 # test errors; (takes a long time to run)
-
-    [test_mailbox.py]=1 # probably control flow
+    [test_logging.py]=1 # takes too long to run)
     [test_msilib.py]=1 # it fails on its own
     [test_multiprocessing_fork.py]=1 # test takes too long to run before decompile: 62 seconds
     [test_multiprocessing_forkserver.py]=1 # test takes too long to run before decompile: 62 seconds
@@ -75,11 +73,7 @@ SKIP_TESTS=(
     [test_optparse.py]=1 # test takes more than 15 seconds to run
 
     [test_pdb.py]=1 # Probably relies on comments
-    [test_peepholer.py]=1 # test assert error (2)
-    [test_pkg.py]=1 # Investigate: lists differ
-    [test_pkgutil.py]=1 # Investigate:
     [test_poll.py]=1 # Takes too long to run before decompiling 11 seconds
-    [test_pwd.py]=1 # killing - doesn't terminate
     [test_pydoc.py]=1 # it fails on its own
 
     [test_regrtest.py]=1 # takes too long to run before decompiling
@@ -92,30 +86,19 @@ SKIP_TESTS=(
     [test_smtplib.py]=1 # test errors
     [test_socket.py]=1 # Takes too long to run before decompiling
     [test_ssl.py]=1 # Takes too long to run more than 15 seconds. Probably control flow; unintialized variable
-    [test_statistics.py]=1 # test failure (1)
     [test_startfile.py]=1 # it fails on its own
-    [test_strptime.py]=1 # test check failure (1)
-    [test_strtod.py]=1 # test assertions failed
     [test_subprocess.py]=1 # Takes too long to run before decompile: 25 seconds
-    [test_sys_settrace.py]=1 # running the tests loops forever. Control flow?
 
     [test_tarfile.py]=1 # test takes too long to run before decompiling
     [test_telnetlib.py]=1 # test run takes more than 15 seconds
-    [test_threading.py]=1 # test assertion failures (2+)
     [test_tk.py]=1  # test takes too long to run: 13 seconds
     [test_tokenize.py]=1 # test takes too long to run before decompilation: 43 seconds
     [test_trace.py]=1  # it fails on its own
     [test_traceback.py]=1 # Probably uses comment for testing
     [test_tracemalloc.py]=1 # test assert failures
     [test_ttk_guionly.py]=1  # implementation specfic and test takes too long to run: 19 seconds
-    [test_types.py]=1 # test failure (1)
-    [test_typing.py]=1 # run errors
-
-    [test_unicode.py]=1 # unicode thing
-    [test_urllibnet.py]=1 # test errors
 
     [test_weakref.py]=1 # takes too long to run
-    [test_with.py]=1 # test errors.
 
     [test_winconsoleio.py]=1 # it fails on its own
     [test_winreg.py]=1 # it fails on its own
@@ -124,8 +107,7 @@ SKIP_TESTS=(
     [test_zipfile.py]=1 # it fails on its own
     [test_zipfile64.py]=1 # Too long to run
 )
-# 282 unit-test files in about 15 minutes
-# 277 for unpyc37
+# 297 unit-test files in about 8 1/2  minutes
 
 if (( BATCH )) ; then
     SKIP_TESTS[test_bdb.py]=1 # fails on POWER
