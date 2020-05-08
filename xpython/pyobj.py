@@ -251,7 +251,7 @@ class Frame(object):
         self.f_lineno = f_code.co_firstlineno
 
         # Python 2.2.3 initializes this to 0. But by 2.4.6 it is initialized to -1.
-        # Note that this has to be coordinated with parse_byte_and_args() of pyvm2.py
+        # Note that this has to be coordinated with parse_byte_and_args() of pyvm.py
         # and other places which is why we don't set it to the more correct -1.
         self.f_lasti = 0
 

@@ -11,13 +11,13 @@ import unittest
 
 import six
 
-from xpython.pyvm2 import VirtualMachine, VMError
+from xpython.pyvm import VirtualMachine, VMError
 
 from xdis import PYTHON_VERSION
 
 # Make this false if you need to run the debugger inside a test.
 CAPTURE_STDOUT = ('-s' not in sys.argv)
-# Make this false to see the traceback from a failure inside pyvm2.
+# Make this false to see the traceback from a failure inside pyvm.
 CAPTURE_EXCEPTION = 1
 
 

@@ -1,7 +1,7 @@
 1.1.0 2020-05-08 Lewis-10
 =========================
 
-Here we support up to 3.6 and 3.7 now -- we're the first on the block support Python 3.7! PyPy versions 2.7, 3.2, 3.5, and 3.6 are also supported.
+Here we support up to 3.6 and 3.7 now -- we're the first on the block to support Python 3.7! PyPy versions 2.7, 3.2, 3.5, and 3.6 are also supported.
 
 A number of bug have been squashed but others still run rampant. Some the lesser-used 3.6-3.7 and PyPy opcodes haven't been implemented. However about 300 of the tests that Python's uses to test itself pass; the same is true for other versions.
 

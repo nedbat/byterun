@@ -5,7 +5,7 @@ import logging
 import sys
 
 from xpython import execfile
-from xpython.pyvm2 import VMRuntimeError
+from xpython.pyvm import VMRuntimeError
 from xpython.version import VERSION
 from xdis import PYTHON_VERSION, IS_PYPY
 

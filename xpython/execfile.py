@@ -6,7 +6,7 @@ import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
-from xpython.pyvm2 import VirtualMachine
+from xpython.pyvm import VirtualMachine
 from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
 # To silence the "import imp" DeprecationWarning below
