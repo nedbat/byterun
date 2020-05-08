@@ -46,7 +46,7 @@
 # Make packages and tag
 
     $ ./admin-tools/make-dist.sh
-	$ twine check dist/x-python-$VERSION*
+	$ twine check dist/x[-_]python-$VERSION*
 
 Goto https://github.com/rocky/x-python/releases/new
 
@@ -60,7 +60,7 @@ Check on https://pypi.org/project/x-python/
 
 # Upload rest of versions
 
-    $ twine upload dist/xdis-${VERSION}*
+    $ twine upload dist/x-python[-_]${VERSION}*
 
 # Push tags:
 

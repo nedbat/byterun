@@ -1,3 +1,439 @@
+2020-05-08  rocky <rocky@dusytfeet.com>
+
+	* LICENSE, __pkginfo__.py, requirements.txt,
+	test/examples/exceptions/raise1.py,
+	test/examples/exceptions/raise2.py,
+	test/examples/exceptions/raise3.py,
+	test/examples/exceptions/raise4.py, xpython/byteop/__init__.py,
+	xpython/byteop/byteop26pypy.py, xpython/byteop/byteop27pypy.py,
+	xpython/byteop/byteop32pypy.py, xpython/byteop/byteop35pypy.py,
+	xpython/byteop/byteop36pypy.py, xpython/byteop/byteoppypy.py,
+	xpython/execfile.py, xpython/pyvm2.py, xpython/version.py: Add 3.2,
+	3.5, 3.6 PyPy + administrivia
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.4-exclude.sh, test/stdlib/3.5-exclude.sh,
+	test/stdlib/3.7-exclude.sh: Go over some stdlib exclusion tests
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/examples/expressions/test_comprehensions.py,
+	test/stdlib/3.6-exclude.sh, test/stdlib/3.7-exclude.sh,
+	test/test_basic.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/byteop/byteop35.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop37.py, xpython/pyvm2.py: Misc cleanups. Start
+	to extend stdlib tests ...  for 3.6 and 3.7
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/add-test.sh, test/test_basic.py: Convert another test
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/examples/stmts/test_slice_stmts.py, test/test_basic.py,
+	xpython/byteop/byteop25.py: raise ImportError exception properly ..  in IMPORT_FROM; move/convert slice statement tests.
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop36.py, xpython/pyobj.py, xpython/pyvm2.py: 
+	Revise comprehension handling...
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Add branching example to README.rst
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/examples/runtests.sh, xpython/__main__.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop27pypy.py,
+	xpython/execfile.py, xpython/pyvm2.py: Start PyPy 2.7 tolerance...  Doesn't work well though.
+
+2020-05-07  R. Bernstein <rocky@users.noreply.github.com>
+
+	* README.rst: RsT formatting of code blocks
+
+2020-05-07  rocky <rb@dustyfeet.com>
+
+	* README.rst: README.rst formatting
+
+2020-05-07  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop35.py: Remove debug stmt
+
+2020-05-07  rocky <rb@dustyfeet.com>
+
+	* test/add-test.sh,
+	test/examples/functions/test_different_globals_may_have_different_b
+	uiltins.py, test/examples/{ => functions}/test_no_builtins.py,
+	test/test_functions.py, xpython/pyobj.py, xpython/pyvm2.py: Fix list
+	comprehensions for 3.6+; add tests
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/byteop/byteop36.py: Add exmaple in README.rst
+	and ..  tolerate built-in function creation failures
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/examples/basic/test_attribute_access.py,
+	xpython/buildclass.py, xpython/byteop/byteop25.py,
+	xpython/pyobj.py, xpython/pyvm2.py: Increase cross-version
+	interpreter ...  By using Darius' build_class() as a substitute for the built-in
+	__build_class__(), when it is needed.
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py: Type checking on Function creation...  Add docstrings for Function and Method.
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/examples/{ => basic}/test_bound_method_on_falsy_objects.py,
+	test/examples/{ => expressions}/test_inplace_operators.py,
+	test/examples/expressions/test_slice.py,
+	test/examples/test_attribute_access.py,
+	test/examples/test_slice.py, test/test_basic.py: Convert more tests
+	to new style
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* test/vmtest.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py, xpython/byteop/byteop37.py,
+	xpython/pyvm2.py: VirtualMachineError -> VMError
+
+2020-05-07  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop36.py: Remove "version" attribute in
+	functions...  We needed that to figure out in byteops if we were cross-version
+	interpreting before we all byteops converted/moved to the byteops
+	class.  Now all converion is done, we can get the interpreted version from
+	the object or from self.vm.version
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop36.py, xpython/pyobj.py, xpython/pyvm2.py: 
+	Cleanup; print no-arg excpetions better
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* test/examples/{ =>
+	functions}/test_different_globals_may_have_different_builtins.py,
+	test/test_functions.py: Move another function into a bytecode file
+
+2020-05-06  rocky <rb@dustyfeet.com>
+
+	* admin-tools/check-versions.sh, test/test_basic.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop36.py,
+	xpython/pyobj.py, xpython/pyvm2.py: Fix Function and
+	exception-handling bugs
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* test/test_exceptions.py, test/test_with.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop36.py,
+	xpython/pyobj.py, xpython/pyvm2.py: More honest 3.6+ function calls
+	but ...  This means a regression in the test cases.  In some cases output isn't matching up.  In other cases I now need
+	to handle exceptions from iterators and generators.
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/byteop/byteop32.py,
+	xpython/pyobj.py, xpython/pyvm2.py: Add Traceback object ...  and another pass over Exception handling.  Things are better but still could be improved in Python 3 where we
+	seem to not to be recording the most recent frames.
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyvm2.py: Fix up Python 2.x Runtime tracebacks...  use local stack info to do this.
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/pyvm2.py: Move the last of the
+	byteops out of VM...  these happen to go in byteop25.  However if we go back further probably the bulk of these ops would
+	also go back further.  If we get to 2.2, the SET_LINENO will be of use.
+
+2020-05-06  rocky <rocky@dusytfeet.com>
+
+	* test/vmtest.py, xpython/__main__.py, xpython/execfile.py,
+	xpython/pyvm2.py: Start to make sense of VMRuntime errors...  these are RuntimeErrors in the program and they should be separated
+	errors and bugs in the VM, or in the setup of the VM.  However we have this monkey on our shoulder: test/vmtest.py It has some great features, and some not-so-great features.  For now
+	we, have a flag in VirtualMachine just to coddle to test/vmtest.py.  Todo: fix up Python 2.x RuntimeError tracebacks and limit 3.x
+	RuntimeEror tracebacks to eliminate the VM portion.
+
+2020-05-05  rocky <rocky@dusytfeet.com>
+
+	* README.rst, test/stdlib/.gitignore, test/stdlib/3.2-exclude.sh,
+	test/stdlib/3.3-exclude.sh, test/stdlib/3.4-exclude.sh,
+	test/stdlib/3.5-exclude.sh, test/stdlib/runtests.sh: Go over
+	runtests.sh excludes
+
+2020-05-05  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/runtests.sh: Tweak runtests.sh for 3.2
+
+2020-05-05  rocky <rb@dustyfeet.com>
+
+	* README.rst: Tweak doc
+
+2020-05-05  rocky <rb@dustyfeet.com>
+
+	* .travis.yml, README.rst, admin-tools/pyenv-versions,
+	test/add-test.sh, test/examples/data/test_attributes.py,
+	test/examples/data/test_fstring.py,
+	test/examples/data/test_map_unpack.py,
+	test/examples/data/test_var_annotate.py,
+	test/examples/functions/test_pos_args.py,
+	test/examples/stmts/test_for_loop.py,
+	test/examples/stmts/test_global.py,
+	test/examples/stmts/test_while.py, test/examples/test_for.py,
+	test/examples/test_for_loop.py, test/examples/test_globals.py,
+	test/test_basic.py, test/test_data.py, test/test_functions.py,
+	test/test_stmts.py, test/test_with.py, test/vmtest.py: Start 3.6 &
+	3.7 testing; go over tests...  There is still a *lot* to do here to * revamp the tests, and * get coverage fixed form Python 3.6 and 3.7
+
+2020-05-05  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/call_ex_kw.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop37.py: First cut at
+	adding LOAD_METHOD/CALL_METHOD code.
+
+2020-05-05  rocky <rocky@dusytfeet.com>
+
+	* test/test_functions.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop37.py: Fix MAKE_FUNCTION for 3.6+; fill out 3.7
+	docs
+
+2020-05-05  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml, Makefile, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/pyvm2.py: Move RAISE_VARARGS,
+	test_compat...  RAISE_VARARGS move out of pyvm2 and into the corresponding byteops'
+	Add test_compat on CircleCI in a way that works around whatever bug
+	we have. Ditto for running via the Makefile: add check-compat
+
+2020-05-05  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml, .travis.yml, Makefile, test/add-test.sh,
+	test/examples/data/test_attributes.py,
+	test/examples/data/test_constant.py,
+	test/examples/data/test_map_unpack.py,
+	test/examples/test_attributes.py, test/test_basic.py,
+	test/test_compat.py, test/test_data.py, test/vmtest.py,
+	xpython/byteop/byteop35.py, xpython/byteop/byteop37.py,
+	xpython/execfile.py, xpython/pyvm2.py: Add first 3.7 support, fix
+	bugs...  in BUILD_MAP_UNPACK, and in cross-version compatibility testing.
+	However there are more bugs in cross-version testing. So for now put
+	testing under a environment-variable flag.  We're the first on block to support Python 3.7! (As well as all supporting all of the the other versions)
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* test/stdlib/3.4-exclude.sh: Partially go over 3.4 stdlib
+	exclusions...  that I have patience for.
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop25.py: Fix evaluating built-in globals() and
+	locals()..  We need to make sure we pick up the frame's globals and locals, not
+	ours (the interpreter's).
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* test/stdlib/.python-version, test/stdlib/3.3-exclude.sh,
+	xpython/__main__.py, xpython/pyvm2.py: Raising SystemExit is not
+	considered an error
+
+2020-05-04  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py, xpython/pyvm2.py: Add f_trace. blacken some
+	files.
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* test/examples/functions/call_ex_kw.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py: Make a stab at BUILD_TUPLE_UNPACK ..  and CALL_FUNCTION_EX.  This is not totally correct.  In the process DRY call_function code.
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop35.py, xpython/byteop/byteop36.py: A stab at
+	GET_AWAITABLE and GET_AITER...  FORMAT_VALUE needs to push a string.
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* test/examples/{ => data}/test_constant.py,
+	test/examples/functions/test_call_ex_kw.py,
+	test/examples/functions/test_partial_with_kwargs.py,
+	test/test_functions.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop36.py: Add 3.6 CALL_FUNCTION_KW ...  and split off from 2.5 CALL_FUNCTION_KW
+
+2020-05-04  rocky <rb@dustyfeet.com>
+
+	* test/examples/data/test_var_annotate.py, test/examples/{ =>
+	functions}/test_pos_args.py, test/test_args.py, test/test_data.py,
+	test/test_functions.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop35.py, xpython/byteop/byteop36.py,
+	xpython/pyvm2.py: Move call_function() in preparing for 3.6 update..  .. to CALL_FUNCTION_KW.  Reorg test yetagain.
+
+2020-05-04  rocky <rocky@dusytfeet.com>
+
+	* test/examples/data/test_fstring.py, test/test_data.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop36.py,
+	xpython/pyvm2.py: Implement 3.6 FORMAT_VALUE
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/{examples => }/add-test.sh, test/{examples =>
+	}/compile-file.py, test/examples/{ => data}/test_map_unpack.py,
+	test/examples/functions/.gitignore,
+	test/examples/functions/test_closure_vars_from_static_parent.py,
+	test/examples/{ => with}/test_break_in_with.py, test/examples/{ =>
+	with}/test_continue_in_with.py, test/test_functions.py: Add darius'
+	test. Start to reorg test/examples...  So that it groups test examples like the tests runners do.
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/byteop/byteop35.py: Small
+	tweaks
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/examples/test_map_unpack.py, xpython/byteop/byteop36.py: 
+	Finish docstrings for new 3.6 opcodes
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/examples/test_map_unpack.py, test/test_data.py,
+	test/vmtest.py, xpython/byteop/byteop36.py: Add
+	BUILD_CONST_KEY_MAP..  add first 3.6 bytecode and move over a unpacking test from
+	uncompyle6
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* tox.ini: Abort trying CircleCI using tox
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* test/test_compat.py, test/vmtest.py, xpython/byteop/byteop36.py,
+	xpython/execfile.py, xpython/pyvm2.py: First cut at 3.6 support
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/pyvm2.py: Move CALL ops in
+	preparation for...  adding 3.6 support
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* test/stdlib/.python-version, test/stdlib/2.7-exclude.sh,
+	test/stdlib/3.3-exclude.sh, test/stdlib/runtests.sh,
+	xpython/byteop/byteop25.py, xpython/execfile.py, xpython/pyobj.py: 
+	Some bug fixes.
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* test/stdlib/.python-version, test/stdlib/2.5-exclude.sh,
+	test/stdlib/2.6-exclude.sh, test/stdlib/2.7-exclude.sh,
+	test/stdlib/3.2-exclude.sh, test/stdlib/3.3-exclude.sh,
+	test/stdlib/3.4-exclude.sh, test/stdlib/3.5-exclude.sh,
+	test/stdlib/compile-file.py, test/stdlib/runtests.sh: A couple of
+	bugs and start stdlib testing...  on 2.7 only and just test_* files.  bugs: set argv[0].  Not all functions have a .version - sigh.
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* xpython/execfile.py: Small bug in setting the type of sys.argv
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/byteop/byteop27.py,
+	xpython/pyvm2.py: Reorder as per dis/opcode section in 2.5 manual...  Move SET_ADD and MAP_ADD to 2.7-byteops.
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* README.rst, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/pyvm2.py: Move some more OPs
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* test/test_with.py, xpython/byteop/byteop35.py, xpython/pyvm2.py: 
+	Possibly fix some bugs in 3.5 WITH_CLEANUP* ...  and 3.5 END_FINALLY.  Investigate 3.5 END_FINALLY is different than before, right?
+
+2020-05-03  rocky <rb@dustyfeet.com>
+
+	* : Add some missing 3.2 bytecode test files
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/test_basic_compat.py, test/test_compat.py, test/vmtest.py: 
+	Start testing cross-version compatability
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/examples/test_yield_from_tuple.py, test/test_functions.py,
+	xpython/byteop/byteop33.py, xpython/pyvm2.py: Move YIELD_FROM to 3.3
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/test_with.py: Reinstate some 3.2 tests
+
+2020-05-03  rocky <rocky@dusytfeet.com>
+
+	* test/examples/test_break_in_with.py,
+	test/examples/test_raise_in_with.py,
+	test/examples/test_suppressed_raise_in_context_manager.py,
+	test/test_with.py, xpython/byteop/byteop35.py: Slightly better
+	WITH_CLEANUP_FINISH code from vrthra
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* test/examples/test_get_yield_from_iter.py,
+	xpython/byteop/byteop35.py: Add 3.5 GET_YIELD_FROM_ITER code derived from bjrnmath via vrthra
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/byteop/byteop25.py, xpython/pyvm2.py: Move
+	more byteops out the VM
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/__main__.py, xpython/execfile.py: Add -c;
+	switch to -v (and -vv) ..  to conform to Python better.
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* .gitignore, admin-tools/make-dist.sh,
+	test/examples/test_deep_closures.py, test/test_functions.py,
+	test/vmtest.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/pyvm2.py: remove disasm (again) Small changes
+
+2020-05-02  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop25.py: Small typo
+
+2020-05-02  rocky <rb@dustyfeet.com>
+
+	* test/examples/test_defining_functions_with_args_kwargs.py,
+	test/vmtest.py: Ensure a test output orderings stays the same.
+
+2020-05-02  rocky <rb@dustyfeet.com>
+
+	* test/examples/test_bound_method_on_falsy_objects.py,
+	test/test_basic.py, xpython/pyvm2.py: See
+	https://github.com/nedbat/byterun/pull/33 Because instances of Falsy are falsy, `func.im_self` in
+	call_function() of xpython/pyvm2.ptreated them as nonexistent and
+	did not add the self parameter to the argument list.  The problem was exhibited on Python 2.7.
+
+2020-05-02  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/__main__.py: Fix up version string message
+
 2020-05-02  rocky <rocky@dusytfeet.com>
 
 	* ChangeLog, MANIFEST.in, NEWS.md, __pkginfo__.py,
