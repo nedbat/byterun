@@ -1,16 +1,18 @@
 """Execute files of Python code."""
 
-import imp
 import os
 import sys
 import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
-SUPPORTED_PYTHON_VERSIONS = (2.5, 2.6, 2.7, 3.3, 3.2, 3.4, 3.5, 3.6, 3.7)
-
 from xpython.pyvm2 import VirtualMachine
+from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
+# To silence the "import imp" DeprecationWarning below
+import warnings
+warnings.filterwarnings("ignore")
+import imp
 
 # This code is ripped off from coverage.py.  Define things it expects.
 try:
@@ -24,20 +26,39 @@ except:
 
 class CannotCompile(Exception):
     """For raising errors when we have a Compile eror."""
+
     pass
+
 
 class WrongBytecode(Exception):
     """For raising errors when we have the wrong bytecode."""
+
     pass
+
 
 class NoSource(Exception):
     """For raising errors when we can't find source code."""
+
     pass
 
 
 def exec_code_object(code, env, python_version=PYTHON_VERSION, is_pypy=IS_PYPY):
     vm = VirtualMachine(python_version, is_pypy)
     vm.run_code(code, f_globals=env)
+
+
+def get_supported_versions(is_pypy, is_bytecode):
+    if is_bytecode:
+        supported_versions = (
+            SUPPORTED_PYPY_BYTECODE if IS_PYPY else SUPPORTED_BYTECODE
+        )
+        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.5 .. 2.7, 3.2 .. 3.7"
+    else:
+        supported_versions = (
+            SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
+        )
+        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.7"
+    return supported_versions, mess
 
 
 # from coverage.py:
@@ -148,10 +169,11 @@ def run_python_file(filename, args, package=None):
                     source_size,
                     sip_hash,
                 ) = load_module(filename)
-                if python_version not in SUPPORTED_PYTHON_VERSIONS:
+                supported_versions, mess = get_supported_versions(is_pypy, is_bytecode=True)
+                if python_version not in supported_versions:
                     raise WrongBytecode(
-                        "We only support bytecode 2.5 - 2.7 and 3.2 - 3.7: %r is %2.1f bytecode"
-                        % (filename, python_version)
+                        "We only support byte code for %s: %r is %2.1f bytecode"
+                        % (mess, filename, python_version)
                     )
                 pass
             else:
@@ -161,10 +183,11 @@ def run_python_file(filename, args, package=None):
                 finally:
                     source_file.close()
 
-                if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
+                supported_versions, mess = get_supported_versions(IS_PYPY, is_bytecode=False)
+                if PYTHON_VERSION not in supported_versions:
                     raise CannotCompile(
-                        "We need Python 2.5 - 2.7 or 3.2 - 3.7 to compile source code; you are running Python %s"
-                        % PYTHON_VERSION
+                        "We need %s to compile source code; you are running Python %s"
+                        % (mess, PYTHON_VERSION)
                     )
 
                 # We have the source.  `compile` still needs the last line to be clean,
@@ -206,10 +229,11 @@ def run_python_string(source, package=None):
     sys.argv = [fake_path]
 
     try:
-        if PYTHON_VERSION not in SUPPORTED_PYTHON_VERSIONS:
+        supported_versions, mess = get_supported_versions(is_pypy, is_bytecode=False)
+        if PYTHON_VERSION not in supported_versions:
             raise CannotCompile(
-                "We need Python 2.5 - 2.7 or 3.2 - 3.7 to compile source code; you are running Python %s"
-                % PYTHON_VERSION
+                "We need %s to compile source code; you are running %s"
+                % (mess, PYTHON_VERSION)
             )
 
         # `compile` still needs the last line to be clean,
@@ -229,8 +253,9 @@ def run_python_string(source, package=None):
         # Restore the old argv and path
         sys.path[0] = old_path0
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("usage: execfile.py <filename> args")
-        os.exit(1)
+        sys.exit(1)
     run_python_file(sys.argv[1], sys.argv[2:])

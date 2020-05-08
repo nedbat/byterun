@@ -1,14 +1,14 @@
-"""Bytecode Interpreter operations for PyPy Python 2.7
+"""Bytecode Interpreter operations for PYPY Python 2.6
 """
 from __future__ import print_function, division
 
-from xpython.byteop.byteop27 import ByteOp27
+from xpython.byteop.byteop26 import ByteOp26
 from xpython.byteop.byteoppypy import ByteOpPyPy
 
 # Gone from 2.7
 # del ByteOp25.JUMP_IF_FALSE
 # del ByteOp25.JUMP_IF_TRUE
 
-class ByteOp27PyPy(ByteOp27, ByteOpPyPy):
+class ByteOp26PyPy(ByteOp26, ByteOpPyPy):
     def __init__(self, vm):
-        super(ByteOp27PyPy, self).__init__(vm)
+        super(ByteOp26PyPy, self).__init__(vm)
