@@ -18,7 +18,7 @@ all: check
 
 # Run all tests, exluding those that need pyenv
 check:
-	cd test && SKIP_COMPAT=1 nosetests
+	cd test && SKIP_COMPAT=1 nosetests --stop
 
 #: Check across all Python versions
 check-full:
@@ -28,7 +28,7 @@ check-full:
 # when run with the other tests.
 #: Check across all Python versions
 check-compat:
-	pyenv local 2.7.18 && nosetests test/test_compat.py
+	pyenv local 2.7.18 && nosetests --stop test/test_compat.py
 
 #: Clean up temporary files and .pyc files
 clean: clean_pyc

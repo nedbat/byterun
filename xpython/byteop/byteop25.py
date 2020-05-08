@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """Bytecode Interpreter operations for Python 2.5
 
-Note: this is subclassed so later versions may use operations from here.
+Note: this is subclassed. Later versions use operations from here.
 """
 from __future__ import print_function, division
 
 import operator
+import logging
 import types
 import six
 import sys
@@ -13,6 +14,7 @@ from xdis import PYTHON_VERSION, IS_PYPY
 from xpython.pyobj import Function, traceback_from_frame
 from xpython.buildclass import build_class
 
+log = logging.getLogger(__name__)
 
 # Code with these names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset((
@@ -53,6 +55,7 @@ class ByteOp25(object):
 
         # FIXME: should we special casing in a function?
         if isinstance(func, types.BuiltinFunctionType):
+            log.debug("calling built-in function %s" % func.__name__)
             if func == globals:
                 # Use the frame's globals(), not the interpreter's
                 self.vm.push(self.vm.frame.f_globals)
@@ -127,6 +130,9 @@ class ByteOp25(object):
                         slots["annotations"],
                     )
                     self.vm.fn2native[native_func] = func
+
+        if isinstance(func, types.FunctionType):
+            log.debug("calling native function %s" % func.__name__)
 
         retval = func(*posargs, **namedargs)
         self.vm.push(retval)
