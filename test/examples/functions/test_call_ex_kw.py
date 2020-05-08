@@ -68,3 +68,9 @@ def f(a, b: 1, c: 2, d, e: 3=4, f=5, *g: 6, h: 7, i=8, j: 9=10,
 
 assert f.__annotations__ == {'b': 1, 'c': 2, 'e': 3, 'g': 6, 'h': 7, 'j': 9,
                              'k': 11, 'return': 12}
+
+# From 3.6.9 test_keywordonly.py
+def mixedargs_sum(a, b=0, *arg, k1, k2=0):
+    return a + b + k1 + k2 + sum(arg)
+
+assert 1+2 ==  mixedargs_sum(1, k1=2)

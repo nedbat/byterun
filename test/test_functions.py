@@ -131,69 +131,68 @@ class TestFunctions(vmtest.VmTestCase):
 
 
 
-if PYTHON_VERSION >= 3.6:
-    print("Test not gone over yet for >= 3.6")
-else:
     class TestClosures(vmtest.VmTestCase):
-        if PYTHON_VERSION > 3.3:
-            # Investigate for < 3.3
-            def test_closure_vars_from_static_parent(self):
-                self.self_checking()
-
-        if PYTHON_VERSION > 3.5:
-            # Investigate for < 3.5
-            def test_call_ex_kw(self):
-                self.self_checking()
-
         def test_closures(self):
-            self.assert_ok("""\
-                def make_adder(x):
-                    def add(y):
-                        return x+y
-                    return add
-                a = make_adder(10)
-                print(a(7))
-                assert a(7) == 17
-                """)
+            self.self_checking()
+        if PYTHON_VERSION >= 3.6:
+            print("Test not gone over yet for >= 3.6")
+        else:
+            if PYTHON_VERSION > 3.3:
+                # Investigate for < 3.3
+                def test_closure_vars_from_static_parent(self):
+                    self.self_checking()
 
-        def test_closures_store_deref(self):
-            self.assert_ok("""\
-                def make_adder(x):
-                    z = x+1
-                    def add(y):
-                        return x+y+z
-                    return add
-                a = make_adder(10)
-                print(a(7))
-                assert a(7) == 28
-                """)
+            if PYTHON_VERSION > 3.5:
+                # Investigate for < 3.5
+                def test_call_ex_kw(self):
+                    self.self_checking()
 
-        def test_closures_in_loop(self):
-            self.assert_ok("""\
-                def make_fns(x):
-                    fns = []
-                    for i in range(x):
-                        fns.append(lambda i=i: i)
-                    return fns
-                fns = make_fns(3)
-                for f in fns:
-                    print(f())
-                assert (fns[0](), fns[1](), fns[2]()) == (0, 1, 2)
-                """)
+            def test_a_closure(self):
+                self.assert_ok("""\
+                    def make_adder(x):
+                        def add(y):
+                            return x+y
+                        return add
+                    a = make_adder(10)
+                    print(a(7))
+                    assert a(7) == 17
+                    """)
 
-        def test_closures_with_defaults(self):
-            self.assert_ok("""\
-                def make_adder(x, y=13, z=43):
-                    def add(q, r=11):
-                        return x+y+z+q+r
-                    return add
-                a = make_adder(10, 17)
-                print(a(7))
-                assert a(7) == 88
-                """)
+            def test_closures_store_deref(self):
+                self.assert_ok("""\
+                    def make_adder(x):
+                        z = x+1
+                        def add(y):
+                            return x+y+z
+                        return add
+                    a = make_adder(10)
+                    print(a(7))
+                    assert a(7) == 28
+                    """)
 
-        def test_deep_closures(self):
-            self.do_one()
+            def test_closures_in_loop(self):
+                self.assert_ok("""\
+                    def make_fns(x):
+                        fns = []
+                        for i in range(x):
+                            fns.append(lambda i=i: i)
+                        return fns
+                    fns = make_fns(3)
+                    for f in fns:
+                        print(f())
+                    assert (fns[0](), fns[1](), fns[2]()) == (0, 1, 2)
+                    """)
+
+            def test_closures_with_defaults(self):
+                self.assert_ok("""\
+                    def make_adder(x, y=13, z=43):
+                        def add(q, r=11):
+                            return x+y+z+q+r
+                        return add
+                    a = make_adder(10, 17)
+                    print(a(7))
+                    assert a(7) == 88
+                    """)
 
     class TestGenerators(vmtest.VmTestCase):
         def test_first(self):

@@ -135,13 +135,13 @@ class ByteOp35(ByteOp34):
         if isinstance(TOS, types.GeneratorType) or isinstance(TOS, types.CoroutineType):
             return
         TOS = self.vm.pop()
-        self.push(iter(TOS))
+        self.vm.push(iter(TOS))
 
     def WITH_CLEANUP_START(self):
         """Cleans up the stack when a with statement block exits.
 
         TOS is the context manager s __exit__() bound method. Below
-        TOS are 1 3 values indicating how/why the finally clause was
+        TOS are 1 - 3 values indicating how/why the finally clause was
         entered:
 
         * SECOND = None

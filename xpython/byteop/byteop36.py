@@ -7,7 +7,7 @@ import types
 
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop35 import ByteOp35
-from xpython.pyobj import Function
+from xpython.pyobj import Cell, Function, make_cell
 
 # Gone in 3.6
 del ByteOp25.MAKE_CLOSURE
@@ -156,14 +156,18 @@ class ByteOp36(ByteOp35):
         # function type whereas in earlier version we could get away with
         # our own kind of xpython.pyobj.Function object.
         #
-
+        # Therefore we'll try to create a native function.
+        #
+        # First though, we have to convert our Cells into native cells.
+        # FIXME: Cells might not be equivalent to native cells. Investigate and fix if needed.
+        closure = tuple([make_cell(cell.get()) if isinstance(cell, Cell) else cell for cell in slot["closure"]])
         try:
             fn_native = types.FunctionType(
                 code,
                 globals=globs,
                 name=name,
                 argdefs=slot["defaults"],
-                closure=slot["closure"],
+                closure=closure
             )
         except:
             fn_native = fn_vm

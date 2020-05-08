@@ -62,6 +62,7 @@ SKIP_TESTS=(
     [test_enum.py]=1  #
     [test_exceptions.py]=1   # parse error
 
+    [test_faulthandler.py]=1 # test takes too long to run: 24 seconds
     [test_filecmp.py]=1   # parse error
     [test_file_eintr.py]=1   # parse error
     [test_fileinput.py]=1 # doesn't terminate
