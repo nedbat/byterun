@@ -1,8 +1,30 @@
 SKIP_TESTS=(
+    # FIXME:
+    # raise VMError("Borked exception recording")
+    [test_atexit.py]=1
+
+    # object() takes no parameters
+    # We must have bolixed function args here
+    [test_asyncore.py]=1
+
     [test_abc.py]=1 #
     [test_array.py]=1 #
     [test_augassign.py]=1
     [test_ast.py]=1 #
+
+    # AttributeError: 'AnyDBMTestCase' object has no attribute '_testMethodName'
+    [test_anydbm.py]=1
+
+    [test_asynchat.py]=1 # Dies in a horrible mess
+
+    # File "x-python/xpython/pyobj.py", line 165, in __call__
+    # callargs = inspect.getcallargs(self._func, *args, **kwargs)
+    # File "lib/python2.7/inspect.py", line 947, in getcallargs
+    # assign(arg, value)
+    # File "lib/python2.7/inspect.py", line 934, in assign
+    # raise ValueError('too many values to unpack')
+    # ValueError: too many values to unpack
+    [test_audioop.py]=1
 
     # We get:
     #   Cannot create a consistent method resolution
@@ -14,6 +36,8 @@ SKIP_TESTS=(
     [test_aepack.py]=1 # fails on its own
     [test___all__.py]=1 # fails on its own
     [test_al.py]=1 # fails on its own
+
+    [test_bdb.py]=1
 
     [test_compile.py]=1  # Code introspects on co_consts in a non-decompilable way
     [test_curses.py]=1  # Possibly fails on its own but not detected

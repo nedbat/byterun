@@ -69,15 +69,17 @@ class ByteOp25(object):
                 return
 
         if isinstance(func, types.FunctionType):
-            # Try to convert to the Interpreter's Function type.
+            # Try to convert to an interpreter function so we can interpret it.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
-            elif False:
-                # Not quite ready. See 3.7 test_asyncgen.py for
-                # an example of code that comes here. In that test_asyncgen.py, the interpreter import_module is getting
-                # run. If we create our own function, we get
-                # ** NameError: global name '_ignore_deprecated_imports' is not defined
-
+            elif False: # self.vm.version < 3.0:
+                # Not quite ready. See 3.7 test_asyncgen.py for an
+                # example of code that comes here. In that test, the
+                # LOAD_GLOBAL '_ignore_deprecated_imports' fails to
+                # find the global. '_ignore_deprecated_imports' is a method name
+                # in test.support module of test/support/__init__.py.
+                # In Python 2.X we work around a similar problem by
+                # not tying to handle functions with closures.
                 slots = {}
                 if self.vm.version >= 3.0:
                     slots["globs"] = self.vm.frame.f_globals
@@ -109,19 +111,22 @@ class ByteOp25(object):
                     if hasattr(func, attribute):
                         slots[argname] = getattr(func, attribute)
 
-                native_func = func
+                closure = getattr(func, arg2attr["closure"])
+                if not closure:
+                    # FIXME: we don't know how to convert functions with closures yet.
+                    native_func = func
 
-                func = Function(
-                    slots["name"],
-                    slots["code"],
-                    slots["globs"],
-                    slots["argdefs"],
-                    slots["closure"],
-                    self.vm,
-                    slots["kwdefaults"],
-                    slots["annotations"],
-                )
-                self.vm.fn2native[native_func] = func
+                    func = Function(
+                        slots["name"],
+                        slots["code"],
+                        slots["globs"],
+                        slots["argdefs"],
+                        slots["closure"],
+                        self.vm,
+                        slots["kwdefaults"],
+                        slots["annotations"],
+                    )
+                    self.vm.fn2native[native_func] = func
 
         retval = func(*posargs, **namedargs)
         self.vm.push(retval)

@@ -100,7 +100,7 @@ class Function(object):
         # 2.7ish names, while bytecode for 3.x will use 3.x names.
         self.func_code = self.__code__ = code
         self.func_name = self.__name__ = name or code.co_name
-        self.func_defaults = self.__defaults__ = tuple(argdefs)
+        self.func_defaults = self.__defaults__ = tuple(argdefs) if argdefs else tuple()
         self.func_closure = self.__closure__ = closure
 
         self.func_globals = globs

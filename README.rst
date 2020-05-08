@@ -10,7 +10,7 @@ You can use this to:
 * Learn about how the internals of CPython works since this models that
 * Use as a sandboxed environment for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
-  For a number of things you can Python 2.5 or 2.6 bytecode from inside Python 3.7;
+  For a number of things you can run Python 2.5 or 2.6 bytecode from inside Python 3.7;
   No need to install Python 2.5 or 2.6!
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
@@ -132,9 +132,10 @@ The below example, with conditional branching example makes this more clear:
 Status:
 +++++++
 
-Currently only Python 2.5 - 2.7, and 3.2 - 3.7 bytecode is supported.
-Until there is more interest or I get support or funding, I am not
-contemplating expanding to 3.8 and beyond for a while.
+Currently only bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.5
+are supported.  Until there is more interest or I get support or
+funding, I am not contemplating expanding to 3.8 and beyond for a
+while.
 
 A shout out to `xdis <https://pypi.python.org/pypi/xdis>`_ which has
 made cross version interpretation and expanding to other versions
