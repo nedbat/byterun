@@ -45,8 +45,9 @@ class VMRuntimeError(Exception):
 
 
 class VirtualMachine(object):
-    def __init__(self, python_version=PYTHON_VERSION, vmtest_testing=False,
-                 is_pypy=IS_PYPY):
+    def __init__(
+        self, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, vmtest_testing=False
+    ):
         # The call stack of frames.
         self.frames = []
         # The current frame.
