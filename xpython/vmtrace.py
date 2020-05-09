@@ -32,14 +32,14 @@ class PyVMTraced(PyVM):
 
         """
         self.push_frame(frame)
-        self.f_code = self.frame.f_code
+        code = self.f_code = self.frame.f_code
         self.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
-        self.callback("call", self)
+        self.callback("call", 0, 'CALL', None, self)
 
         opoffset = 0
         while True:
             byteName, arguments, opoffset, line_number = self.parse_byte_and_args()
-            self.callback("step-instruction", self)
+            self.callback("step-instruction", opoffset, byteName, arguments, self)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
@@ -64,7 +64,7 @@ class PyVMTraced(PyVM):
         # TODO: handle generator exception state
 
         event_type = "exception" if why == "exception" else "return"
-        self.callback(event_type, self)
+        self.callback(event_type, opoffset, byteName, arguments, self)
         self.pop_frame()
 
         if why == "exception":

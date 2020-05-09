@@ -7,7 +7,7 @@ import mimetypes
 from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
 from xpython.vm import PyVM
-from xpython.tracedvm import PyVMTraced
+from xpython.vmtrace import PyVMTraced
 from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
 # To silence the "import imp" DeprecationWarning below
