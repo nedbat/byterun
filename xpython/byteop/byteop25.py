@@ -392,7 +392,7 @@ class ByteOp25(object):
 
             why = "reraise"
         else:  # pragma: no cover
-            raise self.VMError("Confused END_FINALLY")
+            raise self.PyVMError("Confused END_FINALLY")
         return why
 
     def BUILD_CLASS(self):
@@ -775,7 +775,7 @@ class ByteOp25(object):
             exit_func = self.vm.pop()
             self.vm.push(w, v, u)
         else:  # pragma: no cover
-            raise self.VMError("Confused WITH_CLEANUP")
+            raise self.PyVMError("Confused WITH_CLEANUP")
         exit_ret = exit_func(u, v, w)
         err = (u is not None) and bool(exit_ret)
         if err:
@@ -839,7 +839,7 @@ class ByteOp25(object):
             x, y, z = self.vm.popn(3)
             self.vm.push(slice(x, y, z))
         else:  # pragma: no cover
-            raise self.VMError("Strange BUILD_SLICE count: %r" % count)
+            raise self.PyVMError("Strange BUILD_SLICE count: %r" % count)
 
     def RAISE_VARARGS(self, argc):
         """

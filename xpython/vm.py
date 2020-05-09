@@ -32,19 +32,19 @@ repr_obj.maxother = 120
 repper = repr_obj.repr
 
 
-class VMError(Exception):
+class PyVMError(Exception):
     """For raising errors in the operation of the VM."""
 
     pass
 
 
-class VMRuntimeError(Exception):
-    """RuntimeError in operation of the VM."""
+class PyVMRuntimeError(Exception):
+    """RuntimeError in operation of PyVM."""
 
     pass
 
 
-class VirtualMachine(object):
+class PyVM(object):
     def __init__(
         self, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, vmtest_testing=False
     ):
@@ -78,7 +78,7 @@ class VirtualMachine(object):
         # to import this file. We import from from byteops.
         # Alternatively, VMError could be
         # pulled out of this file
-        self.VMError = VMError
+        self.PyVMError = PyVMError
 
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
@@ -231,13 +231,13 @@ class VirtualMachine(object):
                     else ""
                 )
                 print(tail)
-            raise VMRuntimeError
+            raise PyVMRuntimeError
 
         # Frame ran to normal completion... check some invariants
         if self.frames:  # pragma: no cover
-            raise VMError("Frames left over!")
+            raise PyVMError("Frames left over!")
         if self.frame and self.frame.stack:  # pragma: no cover
-            raise VMError("Data left on stack! %r" % self.frame.stack)
+            raise PyVMError("Data left on stack! %r" % self.frame.stack)
 
         return val
 
@@ -369,7 +369,7 @@ class VirtualMachine(object):
                 if hasattr(self.byteop, byteName):
                     bytecode_fn = getattr(self.byteop, byteName, None)
                 if not bytecode_fn:  # pragma: no cover
-                    raise VMError(
+                    raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
                         % (
                             self.instruction_info(byteName, arguments, opoffset),
@@ -514,7 +514,7 @@ class VirtualMachine(object):
             if self.last_exception and self.last_exception[0]:
                 six.reraise(*self.last_exception)
             else:
-                raise VMError("Borked exception recording")
+                raise PyVMError("Borked exception recording")
             # if self.exception and .... ?
             # log.error("Haven't finished traceback handling, nulling traceback information for now")
             # six.reraise(self.last_exception[0], None)
@@ -590,7 +590,7 @@ class VirtualMachine(object):
         elif op == "MATRIX_MULTIPLY":
             operator.imatmul(x, y)
         else:  # pragma: no cover
-            raise VMError("Unknown in-place operator: %r" % op)
+            raise PyVMError("Unknown in-place operator: %r" % op)
         self.push(x)
 
     def sliceOperator(self, op):

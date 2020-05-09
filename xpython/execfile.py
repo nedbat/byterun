@@ -6,11 +6,13 @@ import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
-from xpython.pyvm import VirtualMachine
+from xpython.vm import PyVM
+from xpython.tracedvm import PyVMTraced
 from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
 # To silence the "import imp" DeprecationWarning below
 import warnings
+
 warnings.filterwarnings("ignore")
 import imp
 
@@ -42,21 +44,26 @@ class NoSource(Exception):
     pass
 
 
-def exec_code_object(code, env, python_version=PYTHON_VERSION, is_pypy=IS_PYPY):
-    vm = VirtualMachine(python_version, is_pypy)
+def exec_code_object(
+    code, env, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, callback=None
+) -> None:
+    if callback:
+        vm = PyVMTraced(callback, python_version, is_pypy)
+    else:
+        vm = PyVM(python_version, is_pypy)
     vm.run_code(code, f_globals=env)
 
 
-def get_supported_versions(is_pypy, is_bytecode):
+def get_supported_versions(is_pypy: bool, is_bytecode):
     if is_bytecode:
-        supported_versions = (
-            SUPPORTED_PYPY_BYTECODE if IS_PYPY else SUPPORTED_BYTECODE
+        supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_BYTECODE
+        mess = (
+            "PYPY 2.7, 3.2, 3.5 and 3.6"
+            if is_pypy
+            else "CPython 2.5 .. 2.7, 3.2 .. 3.7"
         )
-        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.5 .. 2.7, 3.2 .. 3.7"
     else:
-        supported_versions = (
-            SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
-        )
+        supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
         mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.7"
     return supported_versions, mess
 
@@ -124,7 +131,7 @@ def run_python_module(modulename, args):
     run_python_file(pathname, args, package=packagename)
 
 
-def run_python_file(filename, args, package=None):
+def run_python_file(filename, args, package=None, callback=None):
     """Run a python file as if it were the main program on the command line.
 
     `filename` is the path to the file to execute, it need not be a .py file.
@@ -132,6 +139,9 @@ def run_python_file(filename, args, package=None):
     element naming the file being executed.  `package` is the name of the
     enclosing package, if any.
 
+    If `callback` is not None, it is a function which is called back as the
+    execution progresses. This can be used for example in a debugger, or
+    for custom tracing or statistics gathering.
     """
     # Create a module to serve as __main__
     old_main_mod = sys.modules["__main__"]
@@ -169,7 +179,9 @@ def run_python_file(filename, args, package=None):
                     source_size,
                     sip_hash,
                 ) = load_module(filename)
-                supported_versions, mess = get_supported_versions(is_pypy, is_bytecode=True)
+                supported_versions, mess = get_supported_versions(
+                    is_pypy, is_bytecode=True
+                )
                 if python_version not in supported_versions:
                     raise WrongBytecode(
                         "We only support byte code for %s: %r is %2.1f bytecode"
@@ -183,7 +195,9 @@ def run_python_file(filename, args, package=None):
                 finally:
                     source_file.close()
 
-                supported_versions, mess = get_supported_versions(IS_PYPY, is_bytecode=False)
+                supported_versions, mess = get_supported_versions(
+                    IS_PYPY, is_bytecode=False
+                )
                 if PYTHON_VERSION not in supported_versions:
                     raise CannotCompile(
                         "We need %s to compile source code; you are running Python %s"
@@ -201,7 +215,7 @@ def run_python_file(filename, args, package=None):
             raise NoSource("No file to run: %r" % filename)
 
         # Execute the source file.
-        exec_code_object(code, main_mod.__dict__, python_version, is_pypy)
+        exec_code_object(code, main_mod.__dict__, python_version, is_pypy, callback)
 
     finally:
         # Restore the old __main__
@@ -229,7 +243,7 @@ def run_python_string(source, package=None):
     sys.argv = [fake_path]
 
     try:
-        supported_versions, mess = get_supported_versions(is_pypy, is_bytecode=False)
+        supported_versions, mess = get_supported_versions(IS_PYPY, is_bytecode=False)
         if PYTHON_VERSION not in supported_versions:
             raise CannotCompile(
                 "We need %s to compile source code; you are running %s"

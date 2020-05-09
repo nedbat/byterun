@@ -9,9 +9,9 @@ class ByteOpPyPy(object):
     def LOOKUP_METHOD(self, count):
         """
         """
-        raise self.vm.VMError("LOOKUP_METHOD not implemented yet")
+        raise self.vm.PyVMError("LOOKUP_METHOD not implemented yet")
 
     def CALL_METHOD(self, count):
         """
         """
-        raise self.vm.VMError("CALL_METHOD not implemented yet")
+        raise self.vm.PyVMError("CALL_METHOD not implemented yet")

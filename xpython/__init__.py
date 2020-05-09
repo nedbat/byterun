@@ -1,9 +1,13 @@
 __docformat__ = "restructuredtext"
 
-from xpython.pyvm import (
-    VirtualMachine,
-    VMError,
-    VMRuntimeError,
+from xpython.vm import (
+    PyVM,
+    PyVMError,
+    PyVMRuntimeError,
+    )
+
+from xpython.vmtrace import (
+    PyVMTraced,
     )
 
 from xpython.pyobj import (

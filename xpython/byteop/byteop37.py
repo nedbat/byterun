@@ -85,4 +85,4 @@ class ByteOp37(ByteOp36):
             self.call_function_with_args_resolved(func, posargs, {})
         else:
             # FIXME: do something else
-            raise self.vm.VMError("CALL_METHOD not implemented yet")
+            raise self.vm.PyVMError("CALL_METHOD not implemented yet")

@@ -192,7 +192,7 @@ class ByteOp36(ByteOp35):
 
     def SETUP_ASYNC_WITH(self):
         """Creates a new frame object."""
-        raise self.vm.VMError("SETUP_ASYNC_WITH not implemented yet")
+        raise self.vm.PyVMError("SETUP_ASYNC_WITH not implemented yet")
 
     def FORMAT_VALUE(self, flags):
         """Used for implementing formatted literal strings (f-strings). Pops
@@ -268,4 +268,4 @@ class ByteOp36(ByteOp35):
         call syntax. The stack item at position count + 1 should be the
         corresponding callable f.
         """
-        raise self.vm.VMError("BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet")
+        raise self.vm.PyVMError("BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet")

@@ -5,7 +5,7 @@ import logging
 import sys
 
 from xpython import execfile
-from xpython.pyvm import VMRuntimeError
+from xpython.vm import PyVMRuntimeError
 from xpython.version import VERSION
 from xdis import PYTHON_VERSION, IS_PYPY
 
@@ -56,7 +56,7 @@ def main(module, verbose, command_to_run, path, args):
 
     try:
         run_fn(path, args)
-    except VMRuntimeError:
+    except PyVMRuntimeError:
         # Tracebacks and error messages should been previously printed
         sys.exit(10)
     except execfile.CannotCompile as e:

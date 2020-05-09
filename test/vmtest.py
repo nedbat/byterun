@@ -11,7 +11,7 @@ import unittest
 
 import six
 
-from xpython.pyvm import VirtualMachine, VMError
+from xpython.vm import PyVM, PyVMError
 
 from xdis import PYTHON_VERSION
 
@@ -80,12 +80,12 @@ class VmTestCase(unittest.TestCase):
         vm_stdout = six.StringIO()
         if CAPTURE_STDOUT:              # pragma: no branch
             sys.stdout = vm_stdout
-        vm = VirtualMachine(vmtest_testing=True)
+        vm = PyVM(vmtest_testing=True)
 
         vm_value = vm_exc = None
         try:
             vm_value = vm.run_code(code)
-        except VMError:         # pragma: no cover
+        except PyVMError:         # pragma: no cover
             # If the VM code raises an error, show it.
             raise
         except AssertionError:              # pragma: no cover
@@ -151,12 +151,12 @@ class VmTestCase(unittest.TestCase):
         print("%s bytecode %s for %s %s "
               % (LINE_STR, self.version, code.co_filename, LINE_STR))
 
-        vm = VirtualMachine(python_version=self.version)
+        vm = PyVM(python_version=self.version)
 
         vm_value = vm_exc = None
         try:
             vm_value = vm.run_code(code)
-        except VMError:         # pragma: no cover
+        except PyVMError:         # pragma: no cover
             # If the VM code raises an error, show it.
             self.assertTrue(False)
             raise

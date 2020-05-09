@@ -30,7 +30,7 @@ def build_class(func, name, *bases, **kwds):
     # Execute the body of func. This is the step that would go wrong if
     # we tried to use the built-in __build_class__, because __build_class__
     # does not call func, it magically executes its body directly, as we
-    # do here (except we invoke our VirtualMachine instead of CPython's).
+    # do here (except we invoke our PyVM instead of CPython's).
     frame = func._vm.make_frame(
         code = func.func_code,
         f_globals = func.func_globals,
