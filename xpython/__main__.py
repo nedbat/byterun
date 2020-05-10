@@ -59,22 +59,17 @@ def main(module, verbose, command_to_run, path, args):
     except PyVMRuntimeError:
         # Tracebacks and error messages should been previously printed
         sys.exit(10)
-    except execfile.CannotCompile as e:
+    except execfile.CannotCompileError as e:
         print(e)
         sys.exit(1)
         pass
-    except execfile.CannotCompile as e:
-        from trepan.api import debug; debug()
-        print(e)
-        sys.exit(1)
-        pass
-    except execfile.NoSource as e:
+    except execfile.NoSourceError as e:
         if verbose > 1:
             raise
         print(e)
         sys.exit(2)
         pass
-    except execfile.WrongBytecode as e:
+    except execfile.WrongBytecodeError as e:
         if verbose > 1:
             raise
         print(e)

@@ -26,19 +26,19 @@ except:
         return open(fname, "rU")
 
 
-class CannotCompile(Exception):
+class CannotCompileError(Exception):
     """For raising errors when we have a Compile eror."""
 
     pass
 
 
-class WrongBytecode(Exception):
+class WrongBytecodeError(Exception):
     """For raising errors when we have the wrong bytecode."""
 
     pass
 
 
-class NoSource(Exception):
+class NoSourceError(FileNotFoundError):
     """For raising errors when we can't find source code."""
 
     pass
@@ -199,7 +199,7 @@ def run_python_file(filename, args, package=None, callback=None):
                     IS_PYPY, is_bytecode=False
                 )
                 if PYTHON_VERSION not in supported_versions:
-                    raise CannotCompile(
+                    raise CannotCompileError(
                         "We need %s to compile source code; you are running Python %s"
                         % (mess, PYTHON_VERSION)
                     )
@@ -211,8 +211,8 @@ def run_python_file(filename, args, package=None, callback=None):
                 code = compile(source, filename, "exec")
                 python_version = PYTHON_VERSION
 
-        except IOError:
-            raise NoSource("No file to run: %r" % filename)
+        except (IOError, FileNotFoundError):
+            raise NoSourceError("No file to run: %r" % filename)
 
         # Execute the source file.
         exec_code_object(code, main_mod.__dict__, python_version, is_pypy, callback)
@@ -245,7 +245,7 @@ def run_python_string(source, package=None):
     try:
         supported_versions, mess = get_supported_versions(IS_PYPY, is_bytecode=False)
         if PYTHON_VERSION not in supported_versions:
-            raise CannotCompile(
+            raise CannotCompileError(
                 "We need %s to compile source code; you are running %s"
                 % (mess, PYTHON_VERSION)
             )
