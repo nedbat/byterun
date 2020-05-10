@@ -13,12 +13,21 @@ from xpython.pyobj import traceback_from_frame
 import logging
 log = logging.getLogger(__name__)
 
+PyVMEVENT_INSTRUCTION = 1
+PyVMEVENT_LINE = 2
+PyVMEVENT_CALL = 4
+PyVMEVENT_RETURN = 8
+PyVMEVENT_EXCEPTION = 16
+
 class PyVMTraced(PyVM):
     def __init__(
             self, callback, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, vmtest_testing=False,
+            event_flags = 31
     ):
         super().__init__(python_version, is_pypy, vmtest_testing)
         self.callback = callback
+        self.event_flags = event_flags
+
         # TODO:
         # * add events of interest
         # * add offset breakpoints
@@ -31,15 +40,22 @@ class PyVMTraced(PyVM):
         Exceptions are raised, the return value is returned.
 
         """
+        last_i = frame.f_back if frame.f_back else -1
         self.push_frame(frame)
-        code = self.f_code = self.frame.f_code
-        self.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
-        self.callback("call", 0, 'CALL', None, self)
+        self.linestarts = dict(self.opc.findlinestarts(frame.f_code, dup_lines=True))
+
+        if self.event_flags & PyVMEVENT_CALL:
+            self.callback("call", last_i, 'CALL', None, self)
 
         opoffset = 0
         while True:
+
             byteName, arguments, opoffset, line_number = self.parse_byte_and_args()
-            self.callback("step-instruction", opoffset, byteName, arguments, self)
+
+            if line_number is not None and self.event_flags & ( PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION ):
+                self.callback("line", opoffset, byteName, arguments, self)
+            elif self.event_flags & PyVMEVENT_INSTRUCTION:
+                self.callback("instruction", opoffset, byteName, arguments, self)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
@@ -63,8 +79,12 @@ class PyVMTraced(PyVM):
 
         # TODO: handle generator exception state
 
-        event_type = "exception" if why == "exception" else "return"
-        self.callback(event_type, opoffset, byteName, arguments, self)
+        if why == "exception":
+            if self.event_flags & PyVMEVENT_EXCEPTION:
+                self.callback("exception", opoffset, byteName, arguments, self)
+            elif self.event_flags & PyVMEVENT_RETURN:
+                self.callback("return", opoffset, byteName, arguments, self)
+
         self.pop_frame()
 
         if why == "exception":
