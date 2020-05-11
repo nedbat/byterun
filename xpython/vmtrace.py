@@ -11,6 +11,7 @@ from xpython.vm import (
 from xpython.pyobj import traceback_from_frame
 
 import logging
+
 log = logging.getLogger(__name__)
 
 PyVMEVENT_INSTRUCTION = 1
@@ -18,11 +19,17 @@ PyVMEVENT_LINE = 2
 PyVMEVENT_CALL = 4
 PyVMEVENT_RETURN = 8
 PyVMEVENT_EXCEPTION = 16
+PyVMEVENT_YIELD = 32
+
 
 class PyVMTraced(PyVM):
     def __init__(
-            self, callback, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, vmtest_testing=False,
-            event_flags = 31
+        self,
+        callback,
+        python_version=PYTHON_VERSION,
+        is_pypy=IS_PYPY,
+        vmtest_testing=False,
+        event_flags=31,
     ):
         super().__init__(python_version, is_pypy, vmtest_testing)
         self.callback = callback
@@ -40,19 +47,42 @@ class PyVMTraced(PyVM):
         Exceptions are raised, the return value is returned.
 
         """
-        last_i = frame.f_back if frame.f_back else -1
-        self.push_frame(frame)
-        self.linestarts = dict(self.opc.findlinestarts(frame.f_code, dup_lines=True))
+        if frame.f_lasti == -1:
+            # We were started new, not yielded back from
+            frame.f_lasti = 0
+            frame.fallthrough = (
+                False  # Don't increment before fetching next instruction
+            )
+            byteCode = None
+            last_i = frame.f_back.f_lasti if frame.f_back else -1
+            self.push_frame(frame)
+            if self.event_flags & PyVMEVENT_CALL:
+                self.callback("call", last_i, "CALL", None, self)
+                pass
+        else:
+            byteCode = byteint(self.f_code.co_code[frame.f_lasti])
+            self.push_frame(frame)
+            if self.event_flags & PyVMEVENT_YIELD:
+                self.callback("yield", frame.f_lasti, "YIELD_VALUE", None, self)
+                pass
+            # byteCode == opcode["YIELD_VALUE"]?
 
-        if self.event_flags & PyVMEVENT_CALL:
-            self.callback("call", last_i, 'CALL', None, self)
+        self.linestarts = dict(self.opc.findlinestarts(frame.f_code, dup_lines=True))
 
         opoffset = 0
         while True:
 
-            byteName, arguments, opoffset, line_number = self.parse_byte_and_args()
+            (
+                byteName,
+                byteCode,
+                arguments,
+                opoffset,
+                line_number,
+            ) = self.parse_byte_and_args(byteCode)
 
-            if line_number is not None and self.event_flags & ( PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION ):
+            if line_number is not None and self.event_flags & (
+                PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
+            ):
                 self.callback("line", opoffset, byteName, arguments, self)
             elif self.event_flags & PyVMEVENT_INSTRUCTION:
                 self.callback("instruction", opoffset, byteName, arguments, self)
@@ -81,9 +111,11 @@ class PyVMTraced(PyVM):
 
         if why == "exception":
             if self.event_flags & PyVMEVENT_EXCEPTION:
-                self.callback("exception", opoffset, byteName, arguments, self)
+                self.callback(
+                    "exception", opoffset, byteName, self.last_exception, self
+                )
             elif self.event_flags & PyVMEVENT_RETURN:
-                self.callback("return", opoffset, byteName, arguments, self)
+                self.callback("return", opoffset, byteName, self.return_value, self)
 
         self.pop_frame()
 
@@ -97,4 +129,7 @@ class PyVMTraced(PyVM):
             # six.reraise(self.last_exception[0], None)
 
         self.in_exception_processing = False
+        if self.event_flags & PyVMEVENT_RETURN:
+            self.callback("return", opoffset, byteName, self.return_value, self)
+
         return self.return_value

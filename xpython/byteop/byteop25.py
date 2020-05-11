@@ -36,6 +36,7 @@ class ByteOp25(object):
         self.vm.push(container_fn(elts))
 
     def call_function_with_args_resolved(self, func, posargs, namedargs):
+        frame = self.vm.frame
         if hasattr(func, "im_func"):
             # Methods get self as an implicit first parameter.
             if func.im_self is not None:
@@ -58,11 +59,11 @@ class ByteOp25(object):
             log.debug("calling built-in function %s" % func.__name__)
             if func == globals:
                 # Use the frame's globals(), not the interpreter's
-                self.vm.push(self.vm.frame.f_globals)
+                self.vm.push(frame.f_globals)
                 return
             elif func == locals:
                 # Use the frame's locals(), not the interpreter's
-                self.vm.push(self.vm.frame.f_globals)
+                self.vm.push(frame.f_globals)
                 return
             elif self.version != PYTHON_VERSION and PYTHON_VERSION >= 3.4 and func == __build_class__:
                 # later __build_class__() works only bytecode that matches the CPython interpeter,
@@ -85,7 +86,7 @@ class ByteOp25(object):
                 # not tying to handle functions with closures.
                 slots = {}
                 if self.vm.version >= 3.0:
-                    slots["globs"] = self.vm.frame.f_globals
+                    slots["globs"] = frame.f_globals
                     arg2attr = {
                         "code": "__code__",
                         "name": "__name__",

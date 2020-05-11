@@ -11,7 +11,7 @@ import sys
 import six
 from six.moves import reprlib
 
-from xdis import PYTHON3, PYTHON_VERSION, IS_PYPY, op_has_argument
+from xdis import PYTHON3, PYTHON_VERSION, IS_PYPY, op_has_argument, next_offset
 from xdis.util import code2num, CO_NEWLOCALS
 from xdis.op_imports import get_opcode_module
 
@@ -137,8 +137,19 @@ class PyVM(object):
         return self.frame.block_stack[-1]
 
     def jump(self, jump):
-        """Move the bytecode pointer to `jump`, so it will execute next."""
+        """Move the bytecode pointer to `jump`, so it will execute next,
+        However we subtract one from the offset, because fetching the
+        next instruction adds one before fetching.
+        """
+        # The previous pyvm2.py code *always* had self.frame.f_lasti
+        # represent the *next* instruction rather than the *last* or
+        # current instruction currently under execution. While this
+        # was easier to code, consisitent and worked, IT DID NOT
+        # REPRESENT PYTHON's semantics. It became unbearable when I
+        # added a debugger for x-python that relies on
+        # self.frame.f_last_i being correct.
         self.frame.f_lasti = jump
+        self.frame.fallthrough = False
 
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         # The callargs default is safe because we never modify the dict.
@@ -172,7 +183,7 @@ class PyVM(object):
             f_locals = {"__locals__": {}}
 
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame)
+        frame = Frame(code, f_globals, f_locals, self.frame, version=self.version)
         log.debug("%r", frame)
         return frame
 
@@ -203,6 +214,18 @@ class PyVM(object):
     def resume_frame(self, frame):
         frame.f_back = self.frame
         log.debug("resume_frame: %r", frame)
+
+        # Make sure we advance to the next instruction after where we left off.
+        if frame.f_lasti == -1:
+            # We are just starting out. Set offset to the first
+            # instruction, and signal that we should not increment
+            # this before fetching next instruction.
+            frame.fallthrough = False
+            frame.f_lasti = 0
+        else:
+            frame.fallthrough = True
+
+        frame.fallthough = True
         val = self.run_frame(frame)
         frame.f_back = None
         return val
@@ -266,7 +289,8 @@ class PyVM(object):
             tb, value, exctype = self.popn(3)
             self.last_exception = exctype, value, tb
 
-    def parse_byte_and_args(self):
+    def parse_byte_and_args(self, byteCode):
+
         """ Parse 1 - 3 bytes of bytecode into
         an instruction and optionally arguments."""
 
@@ -276,18 +300,29 @@ class PyVM(object):
         extended_arg = 0
 
         while True:
+            if f.fallthrough:
+                f.f_lasti = next_offset(byteCode, self.opc, f.f_lasti)
+            else:
+                # Jump instructions must set this False.
+                f.fallthrough = True
             opoffset = f.f_lasti
             line_number = self.linestarts.get(opoffset, None)
+            if line_number is not None:
+                f.f_lineno = line_number
             byteCode = byteint(co_code[opoffset])
             byteName = self.opc.opname[byteCode]
-            f.f_lasti += 1
+            arg_offset = opoffset + 1
             arg = None
+
+            # FIXME: There is never more than one argument. This doesn't
+            # need to be a list.
             arguments = []
+
             if op_has_argument(byteCode, self.opc):
                 if PYTHON_VERSION >= 3.6:
-                    intArg = code2num(co_code, f.f_lasti) | extended_arg
+                    intArg = code2num(co_code, arg_offset) | extended_arg
                     # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
-                    f.f_lasti += 1
+                    arg_offset += 1
                     if byteCode == self.opc.EXTENDED_ARG:
                         extended_arg = intArg << 8
                         continue
@@ -295,11 +330,11 @@ class PyVM(object):
                         extended_arg = 0
                 else:
                     intArg = (
-                        code2num(co_code, f.f_lasti)
-                        + code2num(co_code, f.f_lasti + 1) * 256
+                        code2num(co_code, arg_offset)
+                        + code2num(co_code, arg_offset + 1) * 256
                         + extended_arg
                     )
-                    f.f_lasti += 2
+                    arg_offset += 2
                     if byteCode == self.opc.EXTENDED_ARG:
                         extended_arg = intArg * 65536
                         continue
@@ -317,19 +352,22 @@ class PyVM(object):
                 elif byteCode in self.opc.NAME_OPS:
                     arg = f_code.co_names[intArg]
                 elif byteCode in self.opc.JREL_OPS:
-                    arg = f.f_lasti + intArg
+                    # Many relative jumps are conditional,
+                    # so setting f.fallthrough is wrong.
+                    arg = arg_offset + intArg
                 elif byteCode in self.opc.JABS_OPS:
+                    # We probably could set fallthough, since many (all?)
+                    # of these are unconditional, but we'll make the jump do
+                    # the work of setting.
                     arg = intArg
                 elif byteCode in self.opc.LOCAL_OPS:
                     arg = f_code.co_varnames[intArg]
                 else:
                     arg = intArg
                 arguments = [arg]
-            elif PYTHON_VERSION >= 3.6:
-                f.f_lasti += 1
             break
 
-        return byteName, arguments, opoffset, line_number
+        return byteName, byteCode, arguments, opoffset, line_number
 
     def log(self, byteName, arguments, opoffset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
@@ -467,11 +505,30 @@ class PyVM(object):
         """
         self.push_frame(frame)
         self.f_code = self.frame.f_code
+        if frame.f_lasti == -1:
+            # We were started new, not yielded back from.
+            frame.f_lasti = 0
+            # Don't increment before fetching next instruction.
+            frame.fallthrough = False
+            byteCode = None
+        else:
+            byteCode = byteint(self.f_code.co_code[frame.f_lasti])
+            # byteCode == opcode["YIELD_VALUE"]?
+
+        # FIXME: we can use linestarts that is now located in the frame if this
+        # is a pyvmobj.Frame, and not a native frame.
         self.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
 
         opoffset = 0
         while True:
-            byteName, arguments, opoffset, line_number = self.parse_byte_and_args()
+
+            (
+                byteName,
+                byteCode,
+                arguments,
+                opoffset,
+                line_number,
+            ) = self.parse_byte_and_args(byteCode)
             if log.isEnabledFor(logging.INFO):
                 self.log(byteName, arguments, opoffset, line_number)
 
@@ -613,3 +670,25 @@ class PyVM(object):
             del l[start:end]
         else:
             self.push(l[start:end])
+
+
+if __name__ == "__main__":
+    import xdis
+
+    # Simplest of tests
+    def five():
+        return 5
+
+    # Test with a conditional in it
+    a, b = 10, 3
+
+    def mymax():
+        return a if a > b else b
+
+    logging.basicConfig(level=logging.DEBUG)
+    vm = PyVM()
+    vm.make_frame(five.__code__)
+    print(vm.run_code(five.__code__))
+    print(vm.run_code(mymax.__code__, f_globals=globals(), f_locals=locals()))
+    a, b = 7, 20
+    print(vm.run_code(mymax.__code__, f_globals=globals(), f_locals=locals()))

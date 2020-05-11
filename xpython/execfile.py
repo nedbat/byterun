@@ -38,7 +38,7 @@ class WrongBytecodeError(Exception):
     pass
 
 
-class NoSourceError(FileNotFoundError):
+class NoSourceError(Exception):
     """For raising errors when we can't find source code."""
 
     pass
@@ -46,7 +46,7 @@ class NoSourceError(FileNotFoundError):
 
 def exec_code_object(
     code, env, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, callback=None
-) -> None:
+):
     if callback:
         vm = PyVMTraced(callback, python_version, is_pypy)
     else:
@@ -54,7 +54,7 @@ def exec_code_object(
     vm.run_code(code, f_globals=env)
 
 
-def get_supported_versions(is_pypy: bool, is_bytecode):
+def get_supported_versions(is_pypy, is_bytecode):
     if is_bytecode:
         supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_BYTECODE
         mess = (
@@ -211,7 +211,7 @@ def run_python_file(filename, args, package=None, callback=None):
                 code = compile(source, filename, "exec")
                 python_version = PYTHON_VERSION
 
-        except (IOError, FileNotFoundError):
+        except (IOError):
             raise NoSourceError("No file to run: %r" % filename)
 
         # Execute the source file.

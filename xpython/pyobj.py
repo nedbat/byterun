@@ -75,22 +75,39 @@ class Function(object):
     ]
 
     def __init__(
-        self, name, code, globs, argdefs, closure=None, vm=None, kwdefaults={}, annotations={}
+        self,
+        name,
+        code,
+        globs,
+        argdefs,
+        closure=None,
+        vm=None,
+        kwdefaults={},
+        annotations={},
     ):
         self._vm = vm
         self.version = vm.version
 
         if not name is None and not isinstance(name, str):
-            raise TypeError("Function() argument 1 (name) must None or string, not %s" % type(name))
+            raise TypeError(
+                "Function() argument 1 (name) must None or string, not %s" % type(name)
+            )
 
         if not iscode(code):
-            raise TypeError("Function() argument 2 (code) must be code, not %s" % type(code))
+            raise TypeError(
+                "Function() argument 2 (code) must be code, not %s" % type(code)
+            )
 
         if not isinstance(globs, dict):
-            raise TypeError("Function() argument 3 (argdefs) must be dict, not %s" % type(globs))
+            raise TypeError(
+                "Function() argument 3 (argdefs) must be dict, not %s" % type(globs)
+            )
 
         if closure is not None and not isinstance(closure, tuple):
-            raise TypeError("Function() argument 5 (closure) must None or tuple, not %s" % type(closure))
+            raise TypeError(
+                "Function() argument 5 (closure) must None or tuple, not %s"
+                % type(closure)
+            )
 
         if not vm:
             raise TypeError("Function() argument 6 (vm) must be passed")
@@ -175,6 +192,7 @@ class Function(object):
 
 class Method(object):
     """Create a bound instance method object."""
+
     def __init__(self, obj, _class, func):
         self.im_self = obj
         self.im_class = _class
@@ -235,7 +253,7 @@ class Frame(object):
         self.f_back = f_back
         self.stack = []
         self.f_trace = None
-        self.version = PYTHON_VERSION
+
         if f_back and f_back.f_globals is f_globals:
             # If we share the globals, we share the builtins.
             self.f_builtins = f_back.f_builtins
@@ -253,7 +271,7 @@ class Frame(object):
         # Python 2.2.3 initializes this to 0. But by 2.4.6 it is initialized to -1.
         # Note that this has to be coordinated with parse_byte_and_args() of pyvm.py
         # and other places which is why we don't set it to the more correct -1.
-        self.f_lasti = 0
+        self.f_lasti = -1
 
         if f_code.co_cellvars:
             self.cells = {}
@@ -276,12 +294,21 @@ class Frame(object):
 
         self.block_stack = []
         self.generator = None
+        self.version = version
+
+        # These are sentinal or bogus values to start out.
+        # run_frame will adjust inst_index.
+        self.inst_index = -1
+        self.fallthrough = False
+        self.last_op = None
+        return
 
     def __repr__(self):  # pragma: no cover
-        return "<Frame at 0x%08x: %r @ %d>" % (
+        return "<Frame at 0x%08x: %r:%d @%d>" % (
             id(self),
             self.f_code.co_filename,
             self.f_lineno,
+            self.f_lasti,
         )
 
     def line_number(self):
@@ -368,3 +395,14 @@ class Generator(object):
         return val
 
     __next__ = next
+
+
+# if __name__ == "__main__":
+#     frame = Frame(
+#         traceback_from_frame.__code__,
+#         globals(),
+#         locals(),
+#         None,
+#         PYTHON_VERSION
+#     )
+#     print(frame)
