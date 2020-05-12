@@ -268,4 +268,6 @@ class ByteOp36(ByteOp35):
         call syntax. The stack item at position count + 1 should be the
         corresponding callable f.
         """
-        raise self.vm.PyVMError("BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet")
+        parameter_tuples = self.vm.popn(count)
+        parameters = [parameter for sublist in parameter_tuples for parameter in sublist]
+        self.vm.push(parameters)

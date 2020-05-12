@@ -19,7 +19,7 @@ SKIP_TESTS=(
     [test_math.py]=1
 
     # "BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet"
-    [test_urllib2net.py]=1
+    [test_ssl.py]=1
 
     [test_bdb.py]=1 # test assert errors
     [test_calendar.py]=1 # test assert errors
