@@ -87,7 +87,8 @@ class PyVM(object):
 
         int_vers = int(python_version * 10)
         version_info = (int_vers // 10, int_vers % 10)
-        self.opc = get_opcode_module(version_info)
+        variant = "pypy" if is_pypy else None
+        self.opc = get_opcode_module(version_info, variant)
         self.byteop = get_byteop(self, python_version, is_pypy)
 
     ##############################################

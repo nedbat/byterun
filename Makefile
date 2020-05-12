@@ -18,7 +18,8 @@ all: check
 
 # Run all tests, exluding those that need pyenv
 check:
-	cd test && SKIP_COMPAT=1 nosetests --stop
+	test -f test/.python-version && rm -v test/.python-version || true
+	cd test && pyenv local && SKIP_COMPAT=1 nosetests --stop
 
 #: Check across all Python versions
 check-full:

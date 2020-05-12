@@ -5,6 +5,7 @@ This can be used in a debugger or profiler.
 import six
 from xdis import PYTHON_VERSION, IS_PYPY
 from xpython.vm import (
+    byteint,
     PyVM,
     PyVMError,
 )
@@ -60,7 +61,7 @@ class PyVMTraced(PyVM):
                 self.callback("call", last_i, "CALL", None, self)
                 pass
         else:
-            byteCode = byteint(self.f_code.co_code[frame.f_lasti])
+            byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_YIELD:
                 self.callback("yield", frame.f_lasti, "YIELD_VALUE", None, self)

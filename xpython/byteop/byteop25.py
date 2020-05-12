@@ -886,7 +886,7 @@ class ByteOp25(object):
         object to call below that.
 
         Each keyword argument is represented with two values on the
-        stack: the argument s name, and its value, with the argument's
+        stack: the argument's name, and its value, with the argument's
         value above the name on the stack. The positional arguments
         are pushed in the order that they are passed in to the
         callable object, with the right-most positional argument on
