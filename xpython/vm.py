@@ -43,6 +43,11 @@ class PyVMRuntimeError(Exception):
 
     pass
 
+class PyVMUncaughtException(Exception):
+    """Uncaught RuntimeError in operation of PyVM."""
+
+    pass
+
 
 class PyVM(object):
     def __init__(
@@ -254,7 +259,7 @@ class PyVM(object):
                     else ""
                 )
                 print(tail)
-            raise PyVMRuntimeError
+            raise PyVMUncaughtException
 
         # Frame ran to normal completion... check some invariants
         if self.frames:  # pragma: no cover

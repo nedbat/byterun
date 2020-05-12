@@ -11,7 +11,7 @@ import types
 import six
 import sys
 from xdis import PYTHON_VERSION, IS_PYPY
-from xpython.pyobj import Function, traceback_from_frame
+from xpython.pyobj import Function
 from xpython.buildclass import build_class
 
 log = logging.getLogger(__name__)
@@ -553,7 +553,6 @@ class ByteOp25(object):
                 (name, mod.__name__, mod.__file__))
 
             self.vm.last_exception = (ImportError, value, None)
-            self.last_traceback = traceback_from_frame(self.vm.frame)
             return "exception"
 
         self.vm.push(getattr(mod, name))
@@ -870,7 +869,6 @@ class ByteOp25(object):
             exctype = type(val)
 
         self.vm.last_exception = (exctype, val, tb)
-        self.last_traceback = traceback_from_frame(self.vm.frame)
 
         if tb:
             return "reraise"

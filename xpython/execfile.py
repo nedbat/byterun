@@ -6,7 +6,7 @@ import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
-from xpython.vm import PyVM
+from xpython.vm import PyVM, PyVMUncaughtException
 from xpython.vmtrace import PyVMTraced
 from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
@@ -49,9 +49,14 @@ def exec_code_object(
 ):
     if callback:
         vm = PyVMTraced(callback, python_version, is_pypy)
+        try:
+            vm.run_code(code, f_globals=env)
+        except PyVMUncaughtException:
+            vm.last_exception = event_arg = (*vm.last_exception[:2], vm.last_traceback)
+            callback("fatal", 0, 0, event_arg, vm)
     else:
         vm = PyVM(python_version, is_pypy)
-    vm.run_code(code, f_globals=env)
+        vm.run_code(code, f_globals=env)
 
 
 def get_supported_versions(is_pypy, is_bytecode):

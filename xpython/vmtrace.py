@@ -80,6 +80,9 @@ class PyVMTraced(PyVM):
                 line_number,
             ) = self.parse_byte_and_args(byteCode)
 
+            if log.isEnabledFor(logging.INFO):
+                self.log(byteName, arguments, opoffset, line_number)
+
             if line_number is not None and self.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
@@ -116,6 +119,7 @@ class PyVMTraced(PyVM):
                 )
             elif self.event_flags & PyVMEVENT_RETURN:
                 self.callback("return", opoffset, byteName, self.return_value, self)
+            pass
 
         self.pop_frame()
 
