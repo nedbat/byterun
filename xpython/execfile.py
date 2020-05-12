@@ -56,8 +56,10 @@ def exec_code_object(
             callback("fatal", 0, 0, event_arg, vm)
     else:
         vm = PyVM(python_version, is_pypy)
-        vm.run_code(code, f_globals=env)
-
+        try:
+            vm.run_code(code, f_globals=env)
+        except PyVMUncaughtException:
+            pass
 
 def get_supported_versions(is_pypy, is_bytecode):
     if is_bytecode:
@@ -114,7 +116,7 @@ def run_python_module(modulename, args):
 
             # Complain if this is a magic non-file module.
             if openfile is None and pathname is None:
-                raise NoSource("module does not live in a file: %r" % modulename)
+                raise NoSourceError("module does not live in a file: %r" % modulename)
 
             # If `modulename` is actually a package, not a mere module, then we
             # pretend to be Python 2.7 and try running its __main__.py script.
@@ -126,7 +128,7 @@ def run_python_module(modulename, args):
                 openfile, pathname, _ = imp.find_module(name, searchpath)
         except ImportError:
             _, err, _ = sys.exc_info()
-            raise NoSource(str(err))
+            raise NoSourceError(str(err))
     finally:
         if openfile:
             openfile.close()
@@ -188,7 +190,7 @@ def run_python_file(filename, args, package=None, callback=None):
                     is_pypy, is_bytecode=True
                 )
                 if python_version not in supported_versions:
-                    raise WrongBytecode(
+                    raise WrongBytecodeError(
                         "We only support byte code for %s: %r is %2.1f bytecode"
                         % (mess, filename, python_version)
                     )

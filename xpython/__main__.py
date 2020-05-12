@@ -69,7 +69,7 @@ def main(module, verbose, command_to_run, path, args):
         print(e)
         sys.exit(2)
         pass
-    except execfile.WrongBytecode as e:
+    except execfile.WrongBytecodeError as e:
         if verbose > 1:
             raise
         print(e)

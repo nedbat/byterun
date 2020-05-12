@@ -319,8 +319,9 @@ class PyVM(object):
             arg_offset = opoffset + 1
             arg = None
 
-            # FIXME: There is never more than one argument. This doesn't
-            # need to be a list.
+            # Note: There is never more than one argument.
+            # The list size is used to indicate whether an argument
+            # existsor not.
             arguments = []
 
             if op_has_argument(byteCode, self.opc):
@@ -678,7 +679,6 @@ class PyVM(object):
 
 
 if __name__ == "__main__":
-    import xdis
 
     # Simplest of tests
     def five():
