@@ -123,12 +123,16 @@ class ByteOp36(ByteOp35):
             "closure": tuple(),
         }
         assert argc < 17
+        parameters = []
         for i in range(4):
             if argc & 1:
-                slot[slot_names[i]] = self.vm.pop()
+                parameters.insert(0, self.vm.pop())
             argc >>= 1
             if argc == 0:
                 break
+
+        for i in range(len(parameters)):
+            slot[slot_names[i]] = parameters[i]
 
         # FIXME: DRY with code in byteop3{2,4}.py
 

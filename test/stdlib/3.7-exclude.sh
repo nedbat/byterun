@@ -18,9 +18,6 @@ SKIP_TESTS=(
     # (should be /tmp/test3.7
     [test_math.py]=1
 
-    # "BUILD_TUPLE_UNPACK_WITH_CALL not implemented yet"
-    [test_ssl.py]=1
-
     [test_bdb.py]=1 # test assert errors
     [test_calendar.py]=1 # test assert errors
     [test_collections.py]=1 # test assert errors
@@ -51,10 +48,10 @@ SKIP_TESTS=(
     [test_dis.py]=1   # Introspects on line numbers; line numbers don't match in disassembly - duh!
     [test_doctest.py]=1   # fails on its own
 
-    [test_enum.py]=1   # test run errors (1); probably bad control flow
+    # Can't pickle <enum 'Answer'>: attribute lookup Answer on xpython.byteop.byteop25 failed
+    [test_enum.py]=1
 
     [test_faulthandler.py]=1   # test takes too long before decompiling
-    [test_fileinput.py]=1 # too long to run - control flow?
 
     [test_frame.py]=1 # Introspects frame object. VM uses Frame, not frame)
     [test_gdb.py]=1 # it fails on its own
@@ -83,7 +80,6 @@ SKIP_TESTS=(
     [test_selectors.py]=1 # Takes too long to run before decompling: 17 seconds
     [test_shutil.py]=1 # fails on its own
     [test_signal.py]=1 # Takes too long to run before decompiling: 22 seconds
-    [test_smtplib.py]=1 # test errors
     [test_socket.py]=1 # Takes too long to run before decompiling
     [test_ssl.py]=1 # Takes too long to run more than 15 seconds. Probably control flow; unintialized variable
     [test_startfile.py]=1 # it fails on its own
@@ -95,7 +91,6 @@ SKIP_TESTS=(
     [test_tokenize.py]=1 # test takes too long to run before decompilation: 43 seconds
     [test_trace.py]=1  # it fails on its own
     [test_traceback.py]=1 # Probably uses comment for testing
-    [test_tracemalloc.py]=1 # test assert failures
     [test_ttk_guionly.py]=1  # implementation specfic and test takes too long to run: 19 seconds
 
     [test_weakref.py]=1 # takes too long to run
