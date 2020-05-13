@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re, sys
 import os.path as osp
+from xdis import IS_PYPY
 
 # We do this crazy conversion from float to support Python 2.6 which
 # doesn't support version_major, and has a bug in
@@ -26,8 +27,10 @@ else:
 assert source.endswith('.py')
 basename = osp.basename(source[:-3])
 
+platform='pypy' if IS_PYPY else ''
+
 bytecode_path = osp.normpath(osp.join(get_srcdir(),
-                                      "bytecode-%s" % PY_VERSION,
+                                      "bytecode-%s%s" % (platform, PY_VERSION),
                                       "%s.pyc" % basename))
 
 import py_compile

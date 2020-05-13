@@ -5,6 +5,7 @@ Note: this is subclassed. Later versions use operations from here.
 """
 from __future__ import print_function, division
 
+import inspect
 import operator
 import logging
 import types
@@ -17,11 +18,7 @@ from xpython.buildclass import build_class
 log = logging.getLogger(__name__)
 
 # Code with these names have an implicit .0 in them
-COMPREHENSION_FN_NAMES = frozenset((
-    "<setcomp>",
-    "<dictcomp>",
-    "<genexpr>",
-))
+COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
 
 class ByteOp25(object):
@@ -55,7 +52,7 @@ class ByteOp25(object):
             func = func.im_func
 
         # FIXME: should we special casing in a function?
-        if isinstance(func, types.BuiltinFunctionType):
+        if inspect.isbuiltin(func):
             log.debug("calling built-in function %s" % func.__name__)
             if func == globals:
                 # Use the frame's globals(), not the interpreter's
@@ -65,14 +62,15 @@ class ByteOp25(object):
                 # Use the frame's locals(), not the interpreter's
                 self.vm.push(frame.f_globals)
                 return
-            elif self.version != PYTHON_VERSION and PYTHON_VERSION >= 3.4 and func == __build_class__:
-                # later __build_class__() works only bytecode that matches the CPython interpeter,
-                # so use Darius' version instead.
-                retval = build_class(*posargs, **namedargs)
-                self.vm.push(retval)
-                return
+            elif (self.is_pypy or self.version != PYTHON_VERSION) and PYTHON_VERSION >= 3.4:
+                if func == __build_class__:
+                    # later __build_class__() works only bytecode that matches the CPython interpeter,
+                    # so use Darius' version instead.
+                    retval = build_class(*posargs, **namedargs)
+                    self.vm.push(retval)
+                    return
 
-        if isinstance(func, types.FunctionType):
+        if inspect.isfunction(func):
             # Try to convert to an interpreter function so we can interpret it.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
@@ -132,7 +130,7 @@ class ByteOp25(object):
                     )
                     self.vm.fn2native[native_func] = func
 
-        if isinstance(func, types.FunctionType):
+        if inspect.isfunction(func):
             log.debug("calling native function %s" % func.__name__)
 
         retval = func(*posargs, **namedargs)

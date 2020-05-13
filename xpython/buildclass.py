@@ -32,9 +32,7 @@ def build_class(func, name, *bases, **kwds):
     # does not call func, it magically executes its body directly, as we
     # do here (except we invoke our PyVM instead of CPython's).
     frame = func._vm.make_frame(
-        code = func.func_code,
-        f_globals = func.func_globals,
-        f_locals = namespace
+        code=func.func_code, f_globals=func.func_globals, f_locals=namespace
     )
 
     cell = func._vm.run_frame(frame)

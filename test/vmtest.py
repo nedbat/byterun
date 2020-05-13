@@ -13,7 +13,7 @@ import six
 
 from xpython.vm import PyVM, PyVMError
 
-from xdis import PYTHON_VERSION
+from xdis import PYTHON_VERSION, IS_PYPY
 
 # Make this false if you need to run the debugger inside a test.
 CAPTURE_STDOUT = ('-s' not in sys.argv)
@@ -44,7 +44,8 @@ class VmTestCase(unittest.TestCase):
             assert PYTHON_VERSION == 2.7
             self.version = 2.7
 
-        path = osp.join(srcdir, "bytecode-%s" % self.version, parent_function_name() + ".pyc")
+        platform='pypy' if IS_PYPY else ''
+        path = osp.join(srcdir, "bytecode-%s%s" % (platform, self.version), parent_function_name() + ".pyc")
         self.assert_ok(path, arg_type="bytecode-file")
 
     def self_checking(self):
