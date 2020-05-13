@@ -34,6 +34,7 @@ class ByteOp33(ByteOp32):
             # YIELD_FROM decrements f_lasti, so that it will be called
             # repeatedly until a StopIteration is raised.
             self.vm.jump(self.vm.frame.f_lasti - 1)
+            # self.vm.jump(self.vm.frame.f_lasti - 1)
             # Returning "yield" prevents the block stack cleanup code
             # from executing, suspending the frame in its current state.
             return "yield"

@@ -235,7 +235,6 @@ class PyVM(object):
         else:
             frame.fallthrough = True
 
-        frame.fallthough = True
         val = self.run_frame(frame)
         frame.f_back = None
         return val

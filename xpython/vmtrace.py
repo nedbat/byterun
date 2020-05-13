@@ -58,13 +58,13 @@ class PyVMTraced(PyVM):
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_CALL:
-                self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, None, self)
+                self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, [], self)
                 pass
         else:
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_YIELD:
-                self.callback("yield", frame.f_lasti, byteCode, "YIELD_VALUE", frame.f_lineno, None, self)
+                self.callback("yield", opoffset, byteName, "YIELD_VALUE", frame.f_lineno, [], self)
                 pass
             # byteCode == opcode["YIELD_VALUE"]?
 
@@ -83,7 +83,7 @@ class PyVMTraced(PyVM):
             ) = self.parse_byte_and_args(byteCode)
 
             if log.isEnabledFor(logging.INFO):
-                self.log(self.instruction_info(byteName, intArg, arguments, opoffset, line_number))
+                self.log(byteName, intArg, arguments, opoffset, line_number)
 
             if line_number is not None and self.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
