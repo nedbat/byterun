@@ -275,7 +275,7 @@ class PyVM(object):
 
     def instruction_info(self, byteName, intArg, arguments, opoffset, line_number):
         frame = self.frame
-        code = frame.f_code
+        code = frame.f_code if frame else None
         if hasattr(self.opc, 'opcode_arg_fmt') and byteName in self.opc.opcode_arg_fmt:
             argrepr = self.opc.opcode_arg_fmt[byteName](intArg)
         elif intArg is None:
@@ -285,7 +285,7 @@ class PyVM(object):
 
         line_str = LINE_NUMBER_SPACES if line_number is None else LINE_NUMBER_WIDTH_FMT % line_number
         mess = "%s%3d: %s %s" % (line_str, opoffset, byteName, argrepr)
-        if log.isEnabledFor(logging.DEBUG):
+        if log.isEnabledFor(logging.DEBUG) and frame:
             mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
         return mess
 
