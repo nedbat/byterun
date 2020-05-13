@@ -8,6 +8,7 @@ This is a CPython bytecode interpreter written Python.
 You can use this to:
 
 * Learn about how the internals of CPython works since this models that
+* Experiment with additional opcodes, or ways to change the run-time environment
 * Use as a sandboxed environment for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
   For a number of things you can run Python 2.5 or 2.6 bytecode from inside Python 3.7;
@@ -26,6 +27,15 @@ Going the other way, I may at some point hook in `my debugger
 you'll have a conventional pdb/gdb like debugger also with the ability
 to step bytecode instructions.
 
+I may also experiment with faster ways to support trace callbacks such
+as those used in a debugger. In particular I may add a `BREAKPOINT`
+instruction to support fast breakpoints and breakpointing on a
+particular instruction that doesn't happen to be on a line boundary.
+
+Although this is far in the future, suppose you to add a race
+detector? It might be easier to prototype it in Python here. (This
+assumes the interpreter supports threading well, I suspect it doesn't)
+
 Another unexplored avenue implied above is mixing interpretation and
 direct CPython execution. In fact, there are bugs so this happens
 right now, but it will be turned into a feature. Some functions or
@@ -42,16 +52,16 @@ Try this:
 ::
 
    $ xpython -vc "x, y = 2, 3; x **= y"
-   INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
-   INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
-   INFO:xpython.pyvm2:             4: STORE_NAME 'x'
-   INFO:xpython.pyvm2:             6: STORE_NAME 'y'
-   INFO:xpython.pyvm2:             8: LOAD_NAME 'x'
-   INFO:xpython.pyvm2:            10: LOAD_NAME 'y'
-   INFO:xpython.pyvm2:            12: INPLACE_POWER
-   INFO:xpython.pyvm2:            14: STORE_NAME 'x'
-   INFO:xpython.pyvm2:            16: LOAD_CONST None
-   INFO:xpython.pyvm2:            18: RETURN_VALUE
+   INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3)
+   INFO:xpython.vm:       @  2: UNPACK_SEQUENCE 2
+   INFO:xpython.vm:       @  4: STORE_NAME x
+   INFO:xpython.vm:       @  6: STORE_NAME y
+   INFO:xpython.vm:L. 1   @  8: LOAD_NAME x
+   INFO:xpython.vm:       @ 10: LOAD_NAME y
+   INFO:xpython.vm:       @ 12: INPLACE_POWER
+   INFO:xpython.vm:       @ 14: STORE_NAME x
+   INFO:xpython.vm:       @ 16: LOAD_CONST None
+   INFO:xpython.vm:       @ 18: RETURN_VALUE
 
 Option `-c` is the same as Python's flag (program passed in as string)
 and `-v` is also analogus Python's flag. Here, it shows the bytecode
@@ -62,39 +72,39 @@ Want the execution stack stack and block stack in addition? Add another `v`:
 ::
 
    $ xpython -vvc "x, y = 2, 3; x **= y"
-   DEBUG:xpython.pyvm2:make_frame: code=<code object <module> at 0x7f33d1cf01e0, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 139860540041568), f_locals=(<class 'NoneType'>, 94796399066560)
-   DEBUG:xpython.pyvm2:<Frame at 0x7f33d135ef50: '<string x, y = 2, 3; x **= y>' @ 1>
-   DEBUG:xpython.pyvm2:  frame.stack: []
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:Line    1,   0: LOAD_CONST (2, 3)
-   DEBUG:xpython.pyvm2:  frame.stack: [(2, 3)]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             2: UNPACK_SEQUENCE 2
-   DEBUG:xpython.pyvm2:  frame.stack: [3, 2]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             4: STORE_NAME 'x'
-   DEBUG:xpython.pyvm2:  frame.stack: [3]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             6: STORE_NAME 'y'
-   DEBUG:xpython.pyvm2:  frame.stack: []
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             8: LOAD_NAME 'x'
-   DEBUG:xpython.pyvm2:  frame.stack: [2]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            10: LOAD_NAME 'y'
-   DEBUG:xpython.pyvm2:  frame.stack: [2, 3]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            12: INPLACE_POWER
-   DEBUG:xpython.pyvm2:  frame.stack: [8]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            14: STORE_NAME 'x'
-   DEBUG:xpython.pyvm2:  frame.stack: []
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            16: LOAD_CONST None
-   DEBUG:xpython.pyvm2:  frame.stack: [None]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            18: RETURN_VALUE
 
+   DEBUG:xpython.vm:make_frame: code=<code object <module> at 0x7f7acd353420, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 140165406216272), f_locals=(<class 'NoneType'>, 94599533407680)
+   DEBUG:xpython.vm:<Frame at 0x7f7acd322650: '<string x, y = 2, 3; x **= y>':1 @-1>
+   DEBUG:xpython.vm:  frame.stack: []
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3) <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [(2, 3)]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @  2: UNPACK_SEQUENCE 2 <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [3, 2]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @  4: STORE_NAME x <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [3]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @  6: STORE_NAME y <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: []
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:L. 1   @  8: LOAD_NAME x <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [2]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 10: LOAD_NAME y <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [2, 3]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 12: INPLACE_POWER  <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [8]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 14: STORE_NAME x <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: []
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 16: LOAD_CONST None <module> in <string x, y = 2, 3; x **= y>:1
+   DEBUG:xpython.vm:  frame.stack: [None]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 18: RETURN_VALUE  <module> in <string x, y = 2, 3; x **= y>:1
 
 The above showed straight-line code, so you see all of the instructions. But don't confuse this with a disassembler like `pydisasm` from `xdis`.
 The below example, with conditional branching example makes this more clear:
@@ -102,44 +112,44 @@ The below example, with conditional branching example makes this more clear:
 ::
 
    $ xpython -vvc "x = 6 if __name__ != '__main__' else 10"
-   DEBUG:xpython.pyvm2:make_frame: code=<code object <module> at 0x7f2dd0d2f150, file "<string x = 6 if __name__ !=>", line 1>, callargs={}, f_globals=(<class 'dict'>, 139834753714688), f_locals=(<class 'NoneType'>, 94349724270016)
-   DEBUG:xpython.pyvm2:<Frame at 0x7f2dd039ded0: '<string x = 6 if __name__ !=>' @ 1>
-   DEBUG:xpython.pyvm2:  frame.stack: []
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:Line    1,   0: LOAD_NAME '__name__'
-   DEBUG:xpython.pyvm2:  frame.stack: ['__main__']
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             2: LOAD_CONST '__main__'
-   DEBUG:xpython.pyvm2:  frame.stack: ['__main__', '__main__']
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             4: COMPARE_OP 3
-   DEBUG:xpython.pyvm2:  frame.stack: [False]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:             6: POP_JUMP_IF_FALSE 12
-   DEBUG:xpython.pyvm2:  frame.stack: []
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            12: LOAD_CONST 10
-   DEBUG:xpython.pyvm2:  frame.stack: [10]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            14: STORE_NAME 'x'
-   DEBUG:xpython.pyvm2:  frame.stack: []
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            16: LOAD_CONST None
-   DEBUG:xpython.pyvm2:  frame.stack: [None]
-   DEBUG:xpython.pyvm2:  blocks     : []
-   INFO:xpython.pyvm2:            18: RETURN_VALUE
+   DEBUG:xpython.vm:make_frame: code=<code object <module> at 0x7fd8061cd270, file "<string x = 6 if __name__ !=>", line 1>, callargs={}, f_globals=(<class 'dict'>, 140565793497328), f_locals=(<class 'NoneType'>, 94471841324480)
+   DEBUG:xpython.vm:<Frame at 0x7fd8061d1490: '<string x = 6 if __name__ !=>':1 @-1>
+   DEBUG:xpython.vm:  frame.stack: []
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:L. 1   @  0: LOAD_NAME __name__ <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: ['__main__']
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @  2: LOAD_CONST __main__ <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: ['__main__', '__main__']
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @  4: COMPARE_OP 3 <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: [False]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @  6: POP_JUMP_IF_FALSE 12 <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: []
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 12: LOAD_CONST 10 <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: [10]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 14: STORE_NAME x <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: []
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 16: LOAD_CONST None <module> in <string x = 6 if __name__ !=>:1
+   DEBUG:xpython.vm:  frame.stack: [None]
+   DEBUG:xpython.vm:  blocks     : []
+   INFO:xpython.vm:       @ 18: RETURN_VALUE  <module> in <string x = 6 if __name__ !=>:1
 
 Status:
 +++++++
 
-Currently only bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.5
-are supported.  Until there is more interest or I get support or
-funding, I am not contemplating expanding to 3.8 and beyond for a
-while.
+Currently bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.5 are
+supported.  We also support PyPy bytecode. Until there is more
+interest or I get help or funding, extending to 3.8 and beyond is on
+hold.
 
-A shout out to `xdis <https://pypi.python.org/pypi/xdis>`_ which has
-made cross version interpretation and expanding to other versions
-easier.
+`xdis <https://pypi.python.org/pypi/xdis>`_ eases the difficulty of
+cross-version interpretation, expanding to handle multiple Python
+versions, and printing instructions.
 
 Whereas *Byterun* was a bit loose in accepting bytecode opcodes that
 is invalid for particular Python but may be valid for another;

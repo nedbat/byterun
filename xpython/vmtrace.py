@@ -76,13 +76,14 @@ class PyVMTraced(PyVM):
             (
                 byteName,
                 byteCode,
+                intArg,
                 arguments,
                 opoffset,
                 line_number,
             ) = self.parse_byte_and_args(byteCode)
 
             if log.isEnabledFor(logging.INFO):
-                self.log(byteName, arguments, opoffset, line_number)
+                self.log(self.instruction_info(byteName, intArg, arguments, opoffset, line_number))
 
             if line_number is not None and self.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION

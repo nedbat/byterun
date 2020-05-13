@@ -26,6 +26,10 @@ if PYTHON3:
 else:
     byteint = ord
 
+LINE_NUMBER_WIDTH = 4
+LINE_NUMBER_WIDTH_FMT = "L. %%-%dd@" % LINE_NUMBER_WIDTH
+LINE_NUMBER_SPACES = " " * (LINE_NUMBER_WIDTH + len("L. ")) + "@"
+
 # Create a repr that won't overflow.
 repr_obj = reprlib.Repr()
 repr_obj.maxother = 120
@@ -253,7 +257,6 @@ class PyVM(object):
             if self.last_traceback:
                 self.last_traceback.print_tb()
                 print("%s" % self.last_exception[0].__name__, end="")
-                exc_value = self.last_exception[1]
                 tail = (
                     (": %s" % "\n".join(self.last_exception[1].args))
                     if self.last_exception[1].args
@@ -270,17 +273,22 @@ class PyVM(object):
 
         return val
 
-    def instruction_info(self, byteName, arguments, opoffset):
+    def instruction_info(self, byteName, intArg, arguments, opoffset, line_number):
         frame = self.frame
         code = frame.f_code
-        return "%d: %s %s\n\t%s in %s:%s" % (
-            opoffset,
-            byteName,
-            arguments,
-            code.co_name,
-            code.co_filename,
-            frame.f_lineno,
-        )
+        if hasattr(self.opc, 'opcode_arg_fmt') and byteName in self.opc.opcode_arg_fmt:
+            argrepr = self.opc.opcode_arg_fmt[byteName](intArg)
+        elif intArg is None:
+            argrepr = ""
+        else:
+            argrepr = arguments[0]
+
+        line_str = LINE_NUMBER_SPACES if line_number is None else LINE_NUMBER_WIDTH_FMT % line_number
+        mess = "%s%3d: %s %s" % (line_str, opoffset, byteName, argrepr)
+        if log.isEnabledFor(logging.DEBUG):
+            mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
+        return mess
+
 
     def unwind_block(self, block):
         if block.type == "except-handler":
@@ -305,6 +313,14 @@ class PyVM(object):
         co_code = f_code.co_code
         extended_arg = 0
 
+        # Note: There is never more than one argument.
+        # The list size is used to indicate whether an argument
+        # exists or not.
+        # FIMXE: remove and use intArg as a indicator of whether
+        # the argument exists.
+        arguments = []
+        intArg = None
+
         while True:
             if f.fallthrough:
                 f.f_lasti = next_offset(byteCode, self.opc, f.f_lasti)
@@ -319,11 +335,6 @@ class PyVM(object):
             byteName = self.opc.opname[byteCode]
             arg_offset = opoffset + 1
             arg = None
-
-            # Note: There is never more than one argument.
-            # The list size is used to indicate whether an argument
-            # existsor not.
-            arguments = []
 
             if op_has_argument(byteCode, self.opc):
                 if PYTHON_VERSION >= 3.6:
@@ -374,18 +385,11 @@ class PyVM(object):
                 arguments = [arg]
             break
 
-        return byteName, byteCode, arguments, opoffset, line_number
+        return byteName, byteCode, intArg, arguments, opoffset, line_number
 
-    def log(self, byteName, arguments, opoffset, line_number):
+    def log(self, byteName, intArg, arguments, opoffset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
-        if line_number is not None:
-            op = "Line %4d, " % line_number
-        else:
-            op = " " * 11
-
-        op += "%3d: %s" % (opoffset, byteName)
-        if arguments:
-            op += " %r" % (arguments[0],)
+        op = self.instruction_info(byteName, intArg, arguments, opoffset, line_number)
         indent = "    " * (len(self.frames) - 1)
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
@@ -394,7 +398,7 @@ class PyVM(object):
         log.debug("  %sblocks     : %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
-    def dispatch(self, byteName, arguments, opoffset):
+    def dispatch(self, byteName, intArg, arguments, opoffset, line_number):
         """ Dispatch by bytename to the corresponding methods.
         Exceptions are caught and set on the virtual machine."""
 
@@ -417,7 +421,7 @@ class PyVM(object):
                     raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
                         % (
-                            self.instruction_info(byteName, arguments, opoffset),
+                            self.instruction_info(byteName, intArg, arguments, opoffset, line_number),
                             byteName,
                         )
                     )
@@ -434,7 +438,7 @@ class PyVM(object):
                         (
                             "exception in the execution of "
                             "instruction:\n\t%s"
-                            % self.instruction_info(byteName, arguments, opoffset)
+                            % self.instruction_info(byteName, intArg, arguments, opoffset, line_number)
                         )
                     )
                 self.last_traceback = traceback_from_frame(self.frame)
@@ -532,16 +536,17 @@ class PyVM(object):
             (
                 byteName,
                 byteCode,
+                intArg,
                 arguments,
                 opoffset,
                 line_number,
             ) = self.parse_byte_and_args(byteCode)
             if log.isEnabledFor(logging.INFO):
-                self.log(byteName, arguments, opoffset, line_number)
+                self.log(byteName, intArg, arguments, opoffset, line_number)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
-            why = self.dispatch(byteName, arguments, opoffset)
+            why = self.dispatch(byteName, intArg, arguments, opoffset, line_number)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
 
@@ -553,7 +558,7 @@ class PyVM(object):
                             (
                                 "exception in the execution of "
                                 "instruction:\n\t%s"
-                                % self.instruction_info(byteName, arguments, opoffset)
+                                % self.instruction_info(byteName, intArg, arguments, opoffset, line_number)
                             )
                         )
                     self.last_traceback = traceback_from_frame(self.frame)

@@ -8,10 +8,9 @@ from __future__ import print_function, division
 import inspect
 import operator
 import logging
-import types
 import six
 import sys
-from xdis import PYTHON_VERSION, IS_PYPY
+from xdis import PYTHON_VERSION
 from xpython.pyobj import Function
 from xpython.buildclass import build_class
 
