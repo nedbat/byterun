@@ -10,7 +10,7 @@ import operator
 import logging
 import six
 import sys
-from xdis import PYTHON_VERSION
+from xdis import PYTHON_VERSION, IS_PYPY
 from xpython.pyobj import Function
 from xpython.buildclass import build_class
 
@@ -52,7 +52,7 @@ class ByteOp25(object):
 
         # FIXME: should we special casing in a function?
         if inspect.isbuiltin(func):
-            log.debug("calling built-in function %s" % func.__name__)
+            log.debug("handling built-in function %s" % func.__name__)
             if func == globals:
                 # Use the frame's globals(), not the interpreter's
                 self.vm.push(frame.f_globals)
@@ -65,7 +65,13 @@ class ByteOp25(object):
                 if func == __build_class__:
                     # later __build_class__() works only bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
-                    retval = build_class(*posargs, **namedargs)
+
+                    # Try to convert to an interpreter function which is needed by build_class
+                    if self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
+                        assert len(posargs) > 0
+                        posargs[0] = self.convert_native_to_Function(frame, posargs[0])
+
+                    retval = build_class(self.vm.opc, *posargs, **namedargs)
                     self.vm.push(retval)
                     return
 
@@ -81,53 +87,8 @@ class ByteOp25(object):
                 # in test.support module of test/support/__init__.py.
                 # In Python 2.X we work around a similar problem by
                 # not tying to handle functions with closures.
-                slots = {}
-                if self.vm.version >= 3.0:
-                    slots["globs"] = frame.f_globals
-                    arg2attr = {
-                        "code": "__code__",
-                        "name": "__name__",
-                        "argdefs": "__defaults__",
-                        "kwdefaults": "__kwdefaults__",
-                        "annotations": "__annotations__",
-                        "closure": "__closure__",
-                        # FIXME: add __qualname__, __doc__
-                        # and __module__
-                    }
-                else:
-                    slots["kwdefaults"] = {}
-                    slots["annotations"] = {}
-                    arg2attr = {
-                        "code": "func_code",
-                        "name": "__name__",
-                        "argdefs": "func_defaults",
-                        "globs": "func_globals",
-                        "annotations": "doesn't exist",
-                        "closure": "func_closure",
-                        # FIXME: add __qualname__, __doc__
-                        # and __module__
-                    }
-
-                for argname, attribute in arg2attr.items():
-                    if hasattr(func, attribute):
-                        slots[argname] = getattr(func, attribute)
-
-                closure = getattr(func, arg2attr["closure"])
-                if not closure:
-                    # FIXME: we don't know how to convert functions with closures yet.
-                    native_func = func
-
-                    func = Function(
-                        slots["name"],
-                        slots["code"],
-                        slots["globs"],
-                        slots["argdefs"],
-                        slots["closure"],
-                        self.vm,
-                        slots["kwdefaults"],
-                        slots["annotations"],
-                    )
-                    self.vm.fn2native[native_func] = func
+                assert len(posargs) > 0
+                posargs[0] = self.convert_native_to_Function(frame, posargs[0])
 
         if inspect.isfunction(func):
             log.debug("calling native function %s" % func.__name__)
@@ -147,6 +108,57 @@ class ByteOp25(object):
 
         func = self.vm.pop()
         self.call_function_with_args_resolved(func, posargs, namedargs)
+
+    def convert_native_to_Function(self, frame, func):
+        assert inspect.isfunction(func)
+        slots = {}
+        if self.vm.version >= 3.0:
+            slots["globs"] = frame.f_globals
+            arg2attr = {
+                "code": "__code__",
+                "name": "__name__",
+                "argdefs": "__defaults__",
+                "kwdefaults": "__kwdefaults__",
+                "annotations": "__annotations__",
+                "closure": "__closure__",
+                # FIXME: add __qualname__, __doc__
+                # and __module__
+            }
+        else:
+            slots["kwdefaults"] = {}
+            slots["annotations"] = {}
+            arg2attr = {
+                "code": "func_code",
+                "name": "__name__",
+                "argdefs": "func_defaults",
+                "globs": "func_globals",
+                "annotations": "doesn't exist",
+                "closure": "func_closure",
+                # FIXME: add __qualname__, __doc__
+                # and __module__
+            }
+
+        for argname, attribute in arg2attr.items():
+            if hasattr(func, attribute):
+                slots[argname] = getattr(func, attribute)
+
+        closure = getattr(func, arg2attr["closure"])
+        if not closure:
+            # FIXME: we don't know how to convert functions with closures yet.
+            native_func = func
+
+            func = Function(
+                slots["name"],
+                slots["code"],
+                slots["globs"],
+                slots["argdefs"],
+                slots["closure"],
+                self.vm,
+                slots["kwdefaults"],
+                slots["annotations"],
+            )
+            self.vm.fn2native[native_func] = func
+        return func
 
     def lookup_name(self, name):
         """Returns the value in the current frame associated for name"""
@@ -719,6 +731,8 @@ class ByteOp25(object):
 
     def SETUP_WITH(self, dest):
         ctxmgr = self.vm.pop()
+        # FIXME: __exit__ and __enter__() are native.
+        # convert to our Method so we can trace it.
         self.vm.push(ctxmgr.__exit__)
         ctxmgr_obj = ctxmgr.__enter__()
         if self.version < 3.0:
