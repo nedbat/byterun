@@ -12,14 +12,14 @@ from xdis import PYTHON_VERSION
 class TestWithStatement(vmtest.VmTestCase):
 
     def test_continue_in_with(self):
-        self.do_one()
+        self.self_checking()
+
+    def test_simple_context_manager(self):
+        self.self_checking()
 
     if PYTHON_VERSION >= 3.6:
         print("Test not gone over yet for >= 3.6")
     else:
-        def test_simple_context_manager(self):
-            self.do_one()
-
         def test_raise_in_context_manager(self):
             self.do_one()
 
@@ -67,7 +67,5 @@ class TestWithStatement(vmtest.VmTestCase):
                 self.do_one()
 
             # yield from is not in 3.2-
-            # Need to fix exception handling in 3.6+
-            if PYTHON_VERSION < 3.6:
-                def test_generator_with_context_manager(self):
-                    self.do_one()
+            def test_generator_with_context_manager(self):
+                self.do_one()

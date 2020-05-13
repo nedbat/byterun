@@ -22,5 +22,4 @@ for i in range(3):
 
 l.append('r')
 s = ''.join(l)
-print("Look: %r" % s)
 assert s == "iwzoeiwoiwzoer"

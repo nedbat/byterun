@@ -14,6 +14,13 @@ PY2 = not PYTHON3
 
 
 class TestExceptions(vmtest.VmTestCase):
+
+    def test_raise_exception(self):
+        self.assert_ok("raise Exception('oops')", raises=Exception)
+
+    def test_raise_exception_class(self):
+        self.assert_ok("raise ValueError", raises=ValueError)
+
     if PYTHON_VERSION >= 3.6:
         print("Test not gone over yet for >= 3.6")
     else:
@@ -43,12 +50,6 @@ class TestExceptions(vmtest.VmTestCase):
                 except:
                     print("caught it!")
                 """)
-
-        def test_raise_exception(self):
-            self.assert_ok("raise Exception('oops')", raises=Exception)
-
-        def test_raise_exception_class(self):
-            self.assert_ok("raise ValueError", raises=ValueError)
 
         if PY2:
             def test_raise_exception_2args(self):
