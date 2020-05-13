@@ -31,12 +31,12 @@ class ByteOp33(ByteOp32):
             self.vm.pop()
             self.vm.push(e.value)
         else:
-            # YIELD_FROM decrements f_lasti, so that it will be called
-            # repeatedly until a StopIteration is raised.
-            self.vm.jump(self.vm.frame.f_lasti - 1)
-            # self.vm.jump(self.vm.frame.f_lasti - 1)
-            # Returning "yield" prevents the block stack cleanup code
-            # from executing, suspending the frame in its current state.
+            # FIXME: The code has the effect of rerunning the last instruction.
+            # I'm not sure if or why it is correct.
+            if self.vm.version >= 3.6:
+                self.vm.jump(self.vm.frame.f_lasti - 2)
+            else:
+                self.vm.jump(self.vm.frame.f_lasti - 1)
             return "yield"
 
 
