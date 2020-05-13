@@ -233,7 +233,7 @@ def run_python_file(filename, args, package=None, callback=None):
         sys.path[0] = old_path0
 
 
-def run_python_string(source, package=None):
+def run_python_string(source, args, package=None, callback=None):
     """Run a python string as if it were the main program on the command line.
     """
     # Create a module to serve as __main__
@@ -247,7 +247,7 @@ def run_python_string(source, package=None):
 
     # Set sys.argv and the first path element properly.
     old_path0 = sys.path[0]
-    sys.argv = [fake_path]
+    sys.argv = [fake_path] + list(args)
 
     try:
         supported_versions, mess = get_supported_versions(IS_PYPY, is_bytecode=False)
@@ -265,7 +265,7 @@ def run_python_string(source, package=None):
         python_version = PYTHON_VERSION
 
         # Execute the source file.
-        exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY)
+        exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY, callback)
 
     finally:
         # Restore the old __main__
