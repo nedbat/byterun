@@ -58,13 +58,13 @@ class PyVMTraced(PyVM):
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_CALL:
-                self.callback("call", last_i, "CALL", None, self)
+                self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, None, self)
                 pass
         else:
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_YIELD:
-                self.callback("yield", frame.f_lasti, "YIELD_VALUE", None, self)
+                self.callback("yield", frame.f_lasti, byteCode, "YIELD_VALUE", frame.f_lineno, None, self)
                 pass
             # byteCode == opcode["YIELD_VALUE"]?
 
@@ -88,13 +88,13 @@ class PyVMTraced(PyVM):
             if line_number is not None and self.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
-                self.callback("line", opoffset, byteName, arguments, self)
+                self.callback("line", opoffset, byteName, byteCode, line_number, arguments, self)
             elif self.event_flags & PyVMEVENT_INSTRUCTION:
-                self.callback("instruction", opoffset, byteName, arguments, self)
+                self.callback("instruction", opoffset, byteName, byteCode, line_number, arguments, self)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
-            why = self.dispatch(byteName, arguments, opoffset)
+            why = self.dispatch(byteName, intArg, arguments, opoffset, line_number)
             if why == "exception":
                 # Deal with exceptions encountered while executing the op.
                 if not self.in_exception_processing:
@@ -117,10 +117,10 @@ class PyVMTraced(PyVM):
         if why == "exception":
             if self.event_flags & PyVMEVENT_EXCEPTION:
                 self.callback(
-                    "exception", opoffset, byteName, self.last_exception, self
+                    "exception", opoffset, byteName, byteCode, line_number, self.last_exception, self
                 )
             elif self.event_flags & PyVMEVENT_RETURN:
-                self.callback("return", opoffset, byteName, self.return_value, self)
+                self.callback("return", opoffset, byteName, byteCode, line_number, self.return_value, self)
             pass
 
         self.pop_frame()
@@ -136,6 +136,6 @@ class PyVMTraced(PyVM):
 
         self.in_exception_processing = False
         if self.event_flags & PyVMEVENT_RETURN:
-            self.callback("return", opoffset, byteName, self.return_value, self)
+            self.callback("return", opoffset, byteName, byteCode, line_number, self.return_value, self)
 
         return self.return_value

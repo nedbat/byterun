@@ -46,12 +46,12 @@ def main(module, verbose, command_to_run, path, args):
 
     if command_to_run:
         if path or args:
-            print("You should pass either a file name or a command string, not both.")
+            print("You must pass either a file name or a command string, not both.")
             sys.exit(4)
         path = command_to_run
         run_fn = execfile.run_python_string
     elif not path:
-        print("You should pass either a file name or a command string, neither found.")
+        print("You must pass either a file name or a command string, neither found.")
         sys.exit(4)
 
     try:

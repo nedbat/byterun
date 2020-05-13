@@ -53,7 +53,7 @@ def exec_code_object(
             vm.run_code(code, f_globals=env)
         except PyVMUncaughtException:
             vm.last_exception = event_arg = (*vm.last_exception[:2], vm.last_traceback)
-            callback("fatal", 0, 0, event_arg, vm)
+            callback("fatal", 0, "fatalOpcode", 0, -1, event_arg, vm)
     else:
         vm = PyVM(python_version, is_pypy)
         try:
@@ -264,7 +264,7 @@ def run_python_string(source, args, package=None, callback=None):
         code = compile(source, fake_path, "exec")
         python_version = PYTHON_VERSION
 
-        # Execute the source file.
+        # Execute the source string.
         exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY, callback)
 
     finally:
