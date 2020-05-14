@@ -217,7 +217,7 @@ class ByteOp32(ByteOp27):
 
     # Note: this is gone in 3.4
     def STORE_LOCALS(self):
-        """Pops TOS from the stack and stores it as the current frame s f_locals. This is used in class construction."""
+        """Pops TOS from the stack and stores it as the current frames f_locals. This is used in class construction."""
         self.vm.frame.f_locals = self.vm.pop()
 
     def RAISE_VARARGS(self, argc):
