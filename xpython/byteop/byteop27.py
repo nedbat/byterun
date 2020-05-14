@@ -2,7 +2,8 @@
 """
 from __future__ import print_function, division
 
-from xdis import IS_PYPY
+import inspect
+import types
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop26 import ByteOp26
 
@@ -14,6 +15,28 @@ class ByteOp27(ByteOp26):
     def __init__(self, vm):
         super(ByteOp27, self).__init__(vm)
 
+
+    def convert_method_native_func(self, frame, method):
+        """If a method's function is a native functions, converted it to the
+        corresponding PyVM Method so that we can interpret it.
+        """
+        if not self.method_func_access:
+            for func_attr in ("__func__", "im_func"):
+                if hasattr(method, func_attr):
+                    # Save attribute access name, so we don't
+                    # have to compute this again.
+                    self.method_func_access = func_attr
+                    break
+                pass
+            else:
+                raise self.PyVMError("Can't find method function attribute; tried '__func__' and '_im_func'")
+            pass
+
+        func = getattr(method, self.method_func_access)
+        if inspect.isfunction(func):
+            func = self.convert_native_to_Function(self.vm.frame, func)
+            method = types.MethodType(func, method.__self__)
+        return method
 
     # New in 2.7
 
@@ -38,6 +61,32 @@ class ByteOp27(ByteOp26):
         val, key = self.vm.popn(2)
         the_map = self.vm.peek(count)
         the_map[key] = val
+
+    # Note gone in 3.0 and 3.1, but appears again in 3.2
+    def SETUP_WITH(self, delta):
+        """
+        This opcode performs several operations before a with block
+        starts. First, it loads __exit__() from the context manager
+        and pushes it onto the stack for later use by
+        WITH_CLEANUP. Then, __enter__() is called, and a finally block
+        pointing to delta is pushed. Finally, the result of calling
+        the enter method is pushed onto the stack. The next opcode
+        will either ignore it (POP_TOP), or store it in (a)
+        variable(s) (STORE_FAST, STORE_NAME, or UNPACK_SEQUENCE).
+        """
+        context_manager = self.vm.pop()
+
+        # Make sure __enter__ and __exit__ functions in context_manager are
+        # converted to our Function type so we can interpret them.
+        exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
+        self.vm.push(exit_method)
+        self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
+        finally_block = context_manager.__enter__()
+        if self.version < 3.0:
+            self.vm.push_block("with", delta)
+        else:
+            self.vm.push_block("finally", delta)
+        self.vm.push(finally_block)
 
     def BUILD_SET(self, count):
         """Works as BUILD_TUPLE, but creates a set. New in version 2.7"""

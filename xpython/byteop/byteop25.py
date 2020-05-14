@@ -27,6 +27,9 @@ class ByteOp25(object):
         self.version = vm.version
         self.is_pypy = vm.is_pypy
 
+        # Set this lazily in "convert_method_native_func
+        self.method_func_access = None
+
     def build_container(self, count, container_fn):
         elts = self.vm.popn(count)
         self.vm.push(container_fn(elts))
@@ -121,7 +124,7 @@ class ByteOp25(object):
                 "kwdefaults": "__kwdefaults__",
                 "annotations": "__annotations__",
                 "closure": "__closure__",
-                # FIXME: add __qualname__,
+                # FIXME: add __qualname__, __doc__
                 # and __module__
             }
         else:
@@ -134,7 +137,7 @@ class ByteOp25(object):
                 "globs": "func_globals",
                 "annotations": "doesn't exist",
                 "closure": "func_closure",
-                # FIXME: add __qualname__,
+                # FIXME: add __qualname__, __doc__
                 # and __module__
             }
 
@@ -156,7 +159,6 @@ class ByteOp25(object):
                 self.vm,
                 slots["kwdefaults"],
                 slots["annotations"],
-                doc = native_func.__doc__
             )
             self.vm.fn2native[native_func] = func
         return func
@@ -178,7 +180,7 @@ class ByteOp25(object):
         if to is None:
             to = sys.stdout
 
-        # Python 2ish has file.sofspace whereas
+        # Python 2ish has file.softspace whereas
         # Python 3ish doesn't. Here is the doc on softspace:
 
         # Boolean that indicates whether a space character needs to be
@@ -729,18 +731,6 @@ class ByteOp25(object):
             It we last seen in Python 2.2.
             """
             self.vm.frame.f_lineno = lineno
-
-    def SETUP_WITH(self, dest):
-        ctxmgr = self.vm.pop()
-        # FIXME: __exit__ and __enter__() are native.
-        # convert to our Method so we can trace it.
-        self.vm.push(ctxmgr.__exit__)
-        ctxmgr_obj = ctxmgr.__enter__()
-        if self.version < 3.0:
-            self.vm.push_block("with", dest)
-        else:
-            self.vm.push_block("finally", dest)
-        self.vm.push(ctxmgr_obj)
 
     # This opcode changes in 3.3
     def WITH_CLEANUP(self):

@@ -191,7 +191,8 @@ class Function(object):
             retval = self._vm.run_frame(frame)
         return retval
 
-
+# FIXME: go over. Not sure how close This is supposed to be
+# like type.MethodType
 class Method(object):
     """Create a bound instance method object."""
     def __init__(self, obj, _class, func):
@@ -199,6 +200,8 @@ class Method(object):
         self.im_self = obj
         self.im_class = _class
         self.im_func = func
+        # This causes failure
+        # self.__name__ = obj.__name__
 
     def __repr__(self):  # pragma: no cover
         name = "%s.%s" % (self.im_class.__name__, self.im_func.func_name)
@@ -399,12 +402,24 @@ class Generator(object):
     __next__ = next
 
 
-# if __name__ == "__main__":
-#     frame = Frame(
-#         traceback_from_frame.__code__,
-#         globals(),
-#         locals(),
-#         None,
-#         PYTHON_VERSION
-#     )
-#     print(frame)
+if __name__ == "__main__":
+    # frame = Frame(
+    #     traceback_from_frame.__code__,
+    #     globals(),
+    #     locals(),
+    #     None,
+    #     PYTHON_VERSION
+    # )
+    # print(frame)
+
+    class Foo(object):
+        "Class Foo docstring"
+        def bar(self):
+            "This is a docstring"
+            return
+    foo = Foo()
+    myMfoo = Method(foo.bar, Foo, Foo.bar)
+    Mfoo = types.MethodType(foo.bar, Foo)
+    # Should __name__, __func__ and __self__ match?
+    for attr in "__doc__".split():
+        assert getattr(Mfoo, attr) == getattr(myMfoo, attr), attr

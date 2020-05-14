@@ -25,6 +25,10 @@ COMPATABILITY_MATRIX = {
     3.7: (),
 }
 
+# In addition, PyPy and CPython *should* be inter compatible,
+# since we should take pains to handle PyPy's LOOKUP_METHOD and
+# CALL_METHOD.
+
 # How to increase compatablity above.
 # 1. Write a replacement for builtin build_class
 # 2. The `inspect` module is used to grock function calls.
