@@ -39,7 +39,8 @@ except:
 
 
 class Function(object):
-    """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={}, annotations={}, doc=None)
+    """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={},
+                annotations={}, doc=None, qualname=None)
 
     Create a function object in vm from a code object and a dictionary.
     The name string overrides the name from the code object.
@@ -52,6 +53,9 @@ class Function(object):
 
     As a convenience, in contrast to types.FunctionType we allow
     setting `kwdefaults` and `annotations`.
+
+    Parameter vm should always be set. The caller should also set __qualname__
+    as appropriate.
     """
 
     __slots__ = [
@@ -84,7 +88,8 @@ class Function(object):
         vm=None,
         kwdefaults={},
         annotations={},
-        doc=None
+        doc=None,
+        qualname=None,
     ):
         self._vm = vm
         self.version = vm.version
@@ -117,21 +122,29 @@ class Function(object):
         # Function field names below change between Python 2.7 and 3.x.
         # We create attibutes for both names. Other code in this file assumes
         # 2.7ish names, while bytecode for 3.x will use 3.x names.
+        # TODO: be more stringent based on vm version.
         self.func_code = self.__code__ = code
         self.func_name = self.__name__ = name or code.co_name
         self.func_defaults = self.__defaults__ = tuple(argdefs) if argdefs else tuple()
         self.func_closure = self.__closure__ = closure
 
         self.func_globals = globs
-        self.func_locals = self._vm.frame.f_locals
+        self.func_locals = vm.frame.f_locals
         self.__dict__ = {}
         self.__doc__ = (
             code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
         )
 
-        # These are 3.x ish only
-        self.__kwdefaults__ = kwdefaults
-        self.__annotations = annotations
+        if vm.version >= 3.0:
+            self.__annotations = annotations
+            self.__kwdefaults__ = kwdefaults
+            if vm.version >= 3.4:
+                self.__qualname___ = qualname if qualname else self.__name__
+            else:
+                assert qualname is None
+        else:
+            assert annotations == {}
+            assert kwdefaults == {}
 
         # In Python 3.x is varous generators and list comprehensions have a .0 arg
         # but inspect doesn't show that. In the various MAKE_FUNCTION routines,
@@ -150,12 +163,15 @@ class Function(object):
                 code = code.to_native()
             except:
                 pass
+
         if isinstance(code, types.CodeType):
             self._func = types.FunctionType(code, globs, **kw)
-            # types.FunctionType doesn't (yet) allow these 3.x function
-            # parameters, so we have to fill them in.
-            self._func.__kwdefaults__ = kwdefaults
-            self._func.__annotations__ = annotations
+            if vm.version >= 3.0:
+                # Above, types.FunctionType() above doesn't allow passing
+                # in the following attributes, so we set them as
+                # assignments below.
+                self._func.__kwdefaults__ = kwdefaults
+                self._func.__annotations__ = annotations
         else:
             # cross version interpreting... FIXME: fix this up
             self._func = self
@@ -191,10 +207,12 @@ class Function(object):
             retval = self._vm.run_frame(frame)
         return retval
 
+
 # FIXME: go over. Not sure how close This is supposed to be
 # like type.MethodType
 class Method(object):
     """Create a bound instance method object."""
+
     def __init__(self, obj, _class, func):
         self.__doc__ = obj.__doc__
         self.im_self = obj
@@ -414,12 +432,18 @@ if __name__ == "__main__":
 
     class Foo(object):
         "Class Foo docstring"
+
         def bar(self):
             "This is a docstring"
             return
+
     foo = Foo()
     myMfoo = Method(foo.bar, Foo, Foo.bar)
     Mfoo = types.MethodType(foo.bar, Foo)
     # Should __name__, __func__ and __self__ match?
     for attr in "__doc__".split():
         assert getattr(Mfoo, attr) == getattr(myMfoo, attr), attr
+
+    for attr in "__name__ __doc__ __qualname__".split():
+        print(getattr(foo.bar, attr), attr)
+        assert getattr(foo.bar, attr) == getattr(myMfoo.im_func, attr), attr
