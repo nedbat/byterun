@@ -279,6 +279,8 @@ class PyVM(object):
             argrepr = self.opc.opcode_arg_fmt[byteName](intArg)
         elif intArg is None:
             argrepr = ""
+        elif self.opc.opmap[byteName] in self.opc.COMPARE_OPS:
+            argrepr = self.opc.cmp_op[intArg]
         else:
             argrepr = arguments[0]
 
