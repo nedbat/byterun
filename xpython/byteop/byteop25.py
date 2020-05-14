@@ -121,7 +121,7 @@ class ByteOp25(object):
                 "kwdefaults": "__kwdefaults__",
                 "annotations": "__annotations__",
                 "closure": "__closure__",
-                # FIXME: add __qualname__, __doc__
+                # FIXME: add __qualname__,
                 # and __module__
             }
         else:
@@ -134,7 +134,7 @@ class ByteOp25(object):
                 "globs": "func_globals",
                 "annotations": "doesn't exist",
                 "closure": "func_closure",
-                # FIXME: add __qualname__, __doc__
+                # FIXME: add __qualname__,
                 # and __module__
             }
 
@@ -156,6 +156,7 @@ class ByteOp25(object):
                 self.vm,
                 slots["kwdefaults"],
                 slots["annotations"],
+                doc = native_func.__doc__
             )
             self.vm.fn2native[native_func] = func
         return func

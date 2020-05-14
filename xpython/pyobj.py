@@ -39,7 +39,7 @@ except:
 
 
 class Function(object):
-    """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={}, annotations={})
+    """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={}, annotations={}, doc=None)
 
     Create a function object in vm from a code object and a dictionary.
     The name string overrides the name from the code object.
@@ -84,9 +84,11 @@ class Function(object):
         vm=None,
         kwdefaults={},
         annotations={},
+        doc=None
     ):
         self._vm = vm
         self.version = vm.version
+        self.__doc__ = doc
 
         if not name is None and not isinstance(name, str):
             raise TypeError(
@@ -190,13 +192,10 @@ class Function(object):
         return retval
 
 
-# FIXME: If we add a docstring something in Python's stdlib testing
-# is picking that up and causing it to print!
-# What's up?
 class Method(object):
-    # Create a bound instance method object.
+    """Create a bound instance method object."""
     def __init__(self, obj, _class, func):
-        # Set self.__doc__ ?
+        self.__doc__ = obj.__doc__
         self.im_self = obj
         self.im_class = _class
         self.im_func = func

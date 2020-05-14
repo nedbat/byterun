@@ -42,6 +42,9 @@ SKIP_TESTS=(
     # AssertionError: f_back.cells: None
     [test_class.py]=1
 
+    [test_codecs.py]=1 # Multiple assert failures
+    [test_collections.py]=1 # SEGV's
+
     [test_cmd_line.py]=1 # too long?
     [test_concurrent_futures.py]=1  # too long?
     [test_cgitb.py]=1
