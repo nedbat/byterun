@@ -52,7 +52,10 @@ def exec_code_object(
         try:
             vm.run_code(code, f_globals=env)
         except PyVMUncaughtException:
-            vm.last_exception = event_arg = (*vm.last_exception[:2], vm.last_traceback)
+            vm.last_exception = event_arg = (
+                vm.last_exception[0],
+                vm.last_exception[1],
+                vm.last_traceback)
             callback("fatal", 0, "fatalOpcode", 0, -1, event_arg, vm)
     else:
         vm = PyVM(python_version, is_pypy)

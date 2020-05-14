@@ -7,6 +7,7 @@ SKIP_TESTS=(
     # assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
     [test_array.py]=1
 
+    # Lots of Create a bound instance method object. ... ERROR
     [test_ast.py]=1
 
     # TypeError: argument to reversed() must be a sequence
@@ -27,7 +28,7 @@ SKIP_TESTS=(
     # RuntimeError: super(): __class__ cell not found
     [test_bytes.py]=1
 
-    # File "xpython/pyvm2.py", line 634, in byte_SETUP_WITH
+    # File "xpython/vm.py", line 634, in SETUP_WITH
     # self.push(ctxmgr.__exit__)
     # AttributeError: 'int' object has no attribute '__exit__'
     [test_bz2.py]=1
@@ -58,12 +59,11 @@ SKIP_TESTS=(
 
     [test_io.py]=1  # test takes too long to run: 34 seconds
 
-    [test_lib2to3.py]=1
+    [test_lib2to3.py]=1 # test assert failures
     [test_logging.py]=1 # test takes too long to run: 13 seconds
     [test_long.py]=1 # test assert failure AttributeError: 'Rat' object has no attribute 'd'
 
-    [test_math.py]=1
-    [test_modulefinder.py]=1
+    [test_math.py]=1 # is looking for file byteop/ieee754.txt in the wrong place
     [test_multiprocessing.py]=1
 
     [test_nntplib.py]=1
@@ -71,11 +71,9 @@ SKIP_TESTS=(
     [test_pep352.py]=1  # test failures
     [test_peepholer.py]=1
     [test_poll.py]=1  # test takes too long to run: 11 seconds
-    [test_pty.py]=1  # FIXME: Needs grammar loop isolation separation
 
     [test_queue.py]=1
 
-    [test_re.py]=1
     [test_resource.py]=1
     [test_runpy.py]=1
 

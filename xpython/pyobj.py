@@ -190,10 +190,13 @@ class Function(object):
         return retval
 
 
+# FIXME: If we add a docstring something in Python's stdlib testing
+# is picking that up and causing it to print!
+# What's up?
 class Method(object):
-    """Create a bound instance method object."""
-
+    # Create a bound instance method object.
     def __init__(self, obj, _class, func):
+        # Set self.__doc__ ?
         self.im_self = obj
         self.im_class = _class
         self.im_func = func
