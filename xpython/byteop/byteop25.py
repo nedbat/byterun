@@ -513,7 +513,7 @@ class ByteOp25(object):
         val = getattr(obj, name)
         self.vm.push(val)
 
-    # Commparisons
+    # Comparisons
 
     COMPARE_OPERATORS = [
         operator.lt,
