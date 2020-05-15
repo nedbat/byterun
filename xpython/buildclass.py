@@ -1,4 +1,8 @@
-# This code was written by Darius Bacon
+# This code was originally written by Darius Bacon,
+# but follows code from PEP 3115 listed below.
+# Rocky Bernstein did the xdis adaptions and
+# added a couple of bug fixes.
+
 from xpython.pyobj import Function, Cell
 from xdis import PYTHON_VERSION, IS_PYPY # , codeType2Portable
 from xdis.codetype import codeType2Portable  # until next xdis release
@@ -7,6 +11,9 @@ def build_class(opc, func, name, *bases, **kwds):
     """
     Like built-in __build_class__() in bltinmodule.c, but running in the
     byterun VM.
+
+    See also: PEP 3115: https://www.python.org/dev/peps/pep-3115/ and
+    https://mail.python.org/pipermail/python-3000/2007-March/006338.html
     """
 
     # Parameter checking...
@@ -32,19 +39,27 @@ def build_class(opc, func, name, *bases, **kwds):
 
     if not (opc.version == PYTHON_VERSION and python_implementation == opc.python_implementation):
         # convert code to xdis's portable code type.
-        func_code = codeType2Portable(func.func_code)
+        class_body_code = codeType2Portable(func.func_code)
     else:
-        func_code = func.func_code
+        class_body_code = func.func_code
 
     # Execute the body of func. This is the step that would go wrong if
     # we tried to use the built-in __build_class__, because __build_class__
     # does not call func, it magically executes its body directly, as we
     # do here (except we invoke our PyVM instead of CPython's).
+    #
+    # This behavior when interpreting bytecode that isn't the same as
+    # the bytecode using in the running Python can cause a SEGV, specifically
+    # between Python 3.5 running 3.4 or earlier.
     frame = func._vm.make_frame(
-        code=func_code, f_globals=func.func_globals, f_locals=namespace
+        code=class_body_code, f_globals=func.func_globals, f_locals=namespace
     )
 
     cell = func._vm.run_frame(frame)
+
+    # Add any class variables that may have been added in running class_body_code.
+    # See test_attribute_access.py for a simple example that needs the update below.
+    namespace.update(frame.f_locals)
 
     cls = metaclass(name, bases, namespace)
     if isinstance(cell, Cell):

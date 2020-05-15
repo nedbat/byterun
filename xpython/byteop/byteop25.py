@@ -70,7 +70,7 @@ class ByteOp25(object):
                     # so use Darius' version instead.
 
                     # Try to convert to an interpreter function which is needed by build_class
-                    if self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
+                    if True: # self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
                         assert len(posargs) > 0
                         posargs[0] = self.convert_native_to_Function(frame, posargs[0])
 
@@ -113,8 +113,11 @@ class ByteOp25(object):
         self.call_function_with_args_resolved(func, posargs, namedargs)
 
     def convert_native_to_Function(self, frame, func):
-        assert inspect.isfunction(func)
-        slots = {}
+        assert inspect.isfunction(func) or isinstance(func, Function)
+        slots = {
+            "kwdefaults" : {},
+            "annotations": {},
+        }
         if self.vm.version >= 3.0:
             slots["globs"] = frame.f_globals
             arg2attr = {
@@ -137,7 +140,7 @@ class ByteOp25(object):
                 "globs": "func_globals",
                 "annotations": "doesn't exist",
                 "closure": "func_closure",
-                # FIXME: add __qualname__, __doc__
+                # FIXME: add __doc__
                 # and __module__
             }
 
