@@ -55,6 +55,7 @@ def build_class(opc, func, name, *bases, **kwds):
         code=class_body_code, f_globals=func.func_globals, f_locals=namespace
     )
 
+    # rocky: cell is the return value of a function where?
     cell = func._vm.run_frame(frame)
 
     # Add any class variables that may have been added in running class_body_code.
