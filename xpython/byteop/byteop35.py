@@ -104,7 +104,7 @@ class ByteOp35(ByteOp34):
         with the CO_ITERABLE_COROUTINE flag, or resolves
         o.__await__.
         """
-        raise self.PyVMError("GET_AWAITABLE not implemented yet")
+        raise self.vm.PyVMError("GET_AWAITABLE not implemented yet")
 
     def GET_AITER(self):
         """
@@ -123,7 +123,7 @@ class ByteOp35(ByteOp34):
         self.vm.push(get_awaitable(TOS.__anext()))
 
     def BEFORE_ASYNC_WITH(self):
-        raise self.PyVMError("BEFORE_ASYNC_WITH not implemented yet")
+        raise self.vm.PyVMError("BEFORE_ASYNC_WITH not implemented yet")
         return
 
     def GET_YIELD_FROM_ITER(self):

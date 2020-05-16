@@ -115,7 +115,7 @@ class ByteOp36(ByteOp35):
         name = self.vm.pop()
         code = self.vm.pop()
 
-        slot_names = ("defaults", "kwdefaults", "annotations", "closure")
+        slot_names = ("closure", "annotations", "kwdefaults", "closure")
         slot = {
             "defaults": tuple(),
             "kwdefaults": {},

@@ -29,7 +29,7 @@ class ByteOp27(ByteOp26):
                     break
                 pass
             else:
-                raise self.PyVMError("Can't find method function attribute; tried '__func__' and '_im_func'")
+                raise self.vm.PyVMError("Can't find method function attribute; tried '__func__' and '_im_func'")
             pass
 
         func = getattr(method, self.method_func_access)
