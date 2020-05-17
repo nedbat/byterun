@@ -104,6 +104,17 @@ class ByteOp35(ByteOp34):
         with the CO_ITERABLE_COROUTINE flag, or resolves
         o.__await__.
         """
+        # # Adapted from PyPy 3.6 v. 7.3.1
+        # from xpython.interpreter.generator import get_awaitable_iter
+        # from xpython.interpreter.generator import Coroutine
+        # iterable = self.vm.pop()
+        # iter = get_awaitable_iter(self.space, iterable)
+        # if isinstance(iter, Coroutine):
+        #     if iter.get_delegate() is not None:
+        #         # 'w_iter' is a coroutine object that is being awaited,
+        #         # '.w_yielded_from' is the current awaitable being awaited on.
+        #         raise RuntimeError("coroutine is being awaited already")
+
         raise self.vm.PyVMError("GET_AWAITABLE not implemented yet")
 
     def GET_AITER(self):
@@ -111,16 +122,18 @@ class ByteOp35(ByteOp34):
         Implements TOS = get_awaitable(TOS.__aiter__()). See GET_AWAITABLE
         for details about get_awaitable
         """
-        TOS = self.vm.pop()
-        self.vm.push(get_awaitable(TOS.__aiter__()))
+        raise self.vm.PyVMError("GET_AITER not implemented yet")
+        # TOS = self.vm.pop()
+        # self.vm.push(get_awaitable(TOS.__aiter__()))
 
     def GET_ANEXT(self):
         """
         Implements PUSH(get_awaitable(TOS.__anext__())). See GET_AWAITABLE
         for details about get_awaitable
         """
-        TOS = self.vm.pop()
-        self.vm.push(get_awaitable(TOS.__anext()))
+        raise self.vm.PyVMError("GET_ANEXT not implemented yet")
+        # TOS = self.vm.pop()
+        # self.vm.push(get_awaitable(TOS.__anext()))
 
     def BEFORE_ASYNC_WITH(self):
         raise self.vm.PyVMError("BEFORE_ASYNC_WITH not implemented yet")
