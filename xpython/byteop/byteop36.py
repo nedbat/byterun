@@ -28,12 +28,9 @@ FSTRING_CONVERSION_MAP = {
 }
 
 # Code with these co_names have an implicit .0 in them
-COMPREHENSION_FN_NAMES = frozenset((
-    "<setcomp>",
-    "<dictcomp>",
-    "<genexpr>",
-    "<listcomp>",
-))
+COMPREHENSION_FN_NAMES = frozenset(
+    ("<setcomp>", "<dictcomp>", "<genexpr>", "<listcomp>",)
+)
 
 
 class ByteOp36(ByteOp35):
@@ -164,14 +161,19 @@ class ByteOp36(ByteOp35):
         #
         # First though, we have to convert our Cells into native cells.
         # FIXME: Cells might not be equivalent to native cells. Investigate and fix if needed.
-        closure = tuple([make_cell(cell.get()) if isinstance(cell, Cell) else cell for cell in slot["closure"]])
+        closure = tuple(
+            [
+                make_cell(cell.get()) if isinstance(cell, Cell) else cell
+                for cell in slot["closure"]
+            ]
+        )
         try:
             fn_native = types.FunctionType(
                 code,
                 globals=globs,
                 name=name,
                 argdefs=slot["defaults"],
-                closure=closure
+                closure=closure,
             )
         except:
             fn_native = fn_vm
@@ -273,5 +275,7 @@ class ByteOp36(ByteOp35):
         corresponding callable f.
         """
         parameter_tuples = self.vm.popn(count)
-        parameters = [parameter for sublist in parameter_tuples for parameter in sublist]
+        parameters = [
+            parameter for sublist in parameter_tuples for parameter in sublist
+        ]
         self.vm.push(parameters)
