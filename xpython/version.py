@@ -1,6 +1,10 @@
-# This file is suitable for sourcing inside as POSIX shell as
-# well as importing into Python
-VERSION='1.1.0'  # noqa
+# This file is needs to be multi-lingual in both Python and POSIX
+# shell which "exec()" or "source" it respectively.
+
+# This file should define a variable VERSION which we use as the
+# debugger version number.
+
+VERSION='1.2.0'  # noqa
 
 # The below has extra commas for POSIX shell's taste, but that's okay
 SUPPORTED_PYTHON=(2.7, 3.3, 3.2, 3.4, 3.5, 3.6, 3.7)  # noqa

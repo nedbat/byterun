@@ -1,3 +1,223 @@
+2020-05-19  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/version.py: Get ready for release 1.0.0
+
+2020-05-18  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/buildclass.py, xpython/pyobj.py,
+	xpython/vm.py: Simpilfy imports using xdis 4.6.0+
+
+2020-05-18  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop36.py: Slit off base class/functions from
+	bytecode ops...
+
+2020-05-17  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop35.py: Stuff that isn't implemented isn't
+	implemented
+
+2020-05-16  rocky <rocky@dusytfeet.com>
+
+	* test/examples/stmts/test_async.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop35.py, xpython/byteop/byteop36.py: Correct 3.7
+	MAKE_FUNCTION ...  Correct access in throwing PyVMError in opcodes.  add an async test
+	for later.
+
+2020-05-15  rocky <rocky@dusytfeet.com>
+
+	* : commit fe276292e08ca65cdfdbfaf93b6a01126a882e49 Author: rocky
+	<rocky@dusytfeet.com> Date:   Fri May 15 07:24:47 2020 -0400
+
+2020-05-14  rocky <rb@dustyfeet.com>
+
+	* xpython/buildclass.py, xpython/byteop/byteop25.py: Some small
+	typos can comments
+
+2020-05-14  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop32.py: Spelling typo
+
+2020-05-14  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py: Function object updates...  Set __qualname__ where appropriate Only set annotations and
+	kwdefaults if >= 3.0
+
+2020-05-14  rocky <rocky@dusytfeet.com>
+
+	* test/test_compat.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop27.py, xpython/pyobj.py: go over SETUP_WITH...  * It was introduced in 2.7 (not 2.5).  * Add opcode docstring * Convert native __enter__/__exit__ in context manager to Function TODO: Add unit tests for pyobj things
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* xpython/vm.py: Show comparisons as a relation not a number code
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.3-exclude.sh, xpython/byteop/byteop25.py,
+	xpython/pyobj.py: Set __doc__ in modules and fn's when possible...  Go over 3.3 excludes
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.3-exclude.sh, test/stdlib/3.4-exclude.sh,
+	test/stdlib/3.5-exclude.sh, xpython/execfile.py, xpython/pyobj.py: 
+	Go over tests...  For now don't use docstring in Module since that is getting picked
+	up in Python's stdlib unit tests
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* xpython/buildclass.py, xpython/byteop/byteop25.py: Towards greater
+	interoperability and tracing
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* test/test_with.py, xpython/byteop/byteop33.py: Hack around
+	generator/iterator problems
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* test/test_with.py, xpython/byteop/byteop33.py, xpython/vm.py,
+	xpython/vmtrace.py: Mostly vmtrace.py call signature bugs..  FIXME: something is weird with byteop33.py RAISE_VARARGS.py - it
+	shouldn't need a subtract one.  vm.py: was erroneously setting frame.fallthrough unconditionally
+	after carefully considering what value it should be - oops.
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* test/examples/with/test_continue_in_with.py, test/examples/{ =>
+	with}/test_simple_context_manager.py, test/test_exceptions.py,
+	test/test_with.py: More 3.6+ testing
+
+2020-05-13  rocky <rb@dustyfeet.com>
+
+	* xpython/vm.py: intruction_info tolerant of frame not existing
+
+2020-05-13  rocky <rb@dustyfeet.com>
+
+	* xpython/__main__.py, xpython/execfile.py, xpython/vmtrace.py: 
+	Revise trace callback API...  to take account into additional arguments needed by
+	instruction_info().
+
+2020-05-13  rocky <rb@dustyfeet.com>
+
+	* xpython/execfile.py: Generalize run_python_string...  To make the interface compatible with run_python_file
+
+2020-05-13  rocky <rb@dustyfeet.com>
+
+	* README.rst, xpython/byteop/byteop25.py, xpython/vm.py,
+	xpython/vmtrace.py: Better instruction formatting via xdis README.rst: update with new output byteop25.py: lint
+
+2020-05-13  rocky <rocky@dusytfeet.com>
+
+	* test/compile-file.py, test/test_with.py, test/vmtest.py,
+	xpython/buildclass.py, xpython/byteop/byteop25.py: More pypy
+	complient. Use inspect.isfunction()
+
+2020-05-12  rocky <rocky@dusytfeet.com>
+
+	* Makefile: Don't assume pyenv local
+
+2020-05-12  rocky <rocky@dusytfeet.com>
+
+	* Makefile, xpython/byteop/byteop25.py,
+	xpython/byteop/byteoppypy.py, xpython/vm.py, xpython/vmtrace.py: Add
+	PYPY ops and fix some bugs...  Implement provisional CALL_METHOD and LOOKUP_METHOD Makefile now
+	removes test/.python-version fix a VMTrace bug in resuming a frame.
+
+2020-05-12  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.7-exclude.sh, xpython/byteop/byteop36.py: Bug in
+	MAKEFUNCTION default/keyword-only positions
+
+2020-05-12  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.7-exclude.sh, xpython/byteop/byteop36.py: Implement
+	BUILD_TUPLE_UNPACK_WITH_CALL
+
+2020-05-12  rocky <rb@dustyfeet.com>
+
+	* xpython/__main__.py, xpython/execfile.py, xpython/vm.py: Exception
+	handling..  * Exception names have changed * Catch uncaught execptions at the end when no tracing * Lint-like fixes R# with '#' will be ignored, and an empty message aborts the commit.
+
+2020-05-12  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/execfile.py, xpython/vm.py,
+	xpython/vmtrace.py: Pass uncaught exceptions back to trace program
+
+2020-05-11  rocky <rocky@dusytfeet.com>
+
+	* test/examples/{ =>
+	functions}/test_generator_with_context_manager.py,
+	xpython/__main__.py, xpython/byteop/byteop25.py,
+	xpython/execfile.py, xpython/pyobj.py, xpython/vm.py,
+	xpython/vmtrace.py: accurate f_lasti and f_lineno * Added YIELD event type in vmtrace * "return" returns returned
+	value to trace program * *except" returns execption to trace
+	program.  * Have to back off later Python 3.x-isms like FileNotFoundError and   anotation signatures.
+
+2020-05-10  rocky <rb@dustyfeet.com>
+
+	* xpython/vmtrace.py: Add flags on trace callback functions...
+
+2020-05-10  rocky <rocky@dusytfeet.com>
+
+	* xpython/__main__.py, xpython/execfile.py: Misc cleanups
+
+2020-05-09  rocky <rocky@dusytfeet.com>
+
+	* xpython/execfile.py, xpython/vmtrace.py: Tweaks in trace callback
+	mechanism
+
+2020-05-09  rocky <rocky@dusytfeet.com>
+
+	* test/vmtest.py, xpython/__init__.py, xpython/__main__.py,
+	xpython/buildclass.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py, xpython/byteop/byteop37.py,
+	xpython/byteop/byteoppypy.py, xpython/execfile.py, xpython/{pyvm.py
+	=> vm.py}, xpython/vmtrace.py: Start adding traced interpreter.
+	Rename classes
+
+2020-05-08  rocky <rocky@dusytfeet.com>
+
+	* Makefile, xpython/byteop/byteop25.py: Smal tweaks to logging and
+	Makefile
+
+2020-05-08  rocky <rocky@dusytfeet.com>
+
+	* README.rst, test/stdlib/2.7-exclude.sh,
+	xpython/byteop/byteop25.py, xpython/pyobj.py: Small tweaks
+
+2020-05-08  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop25.py: WIP turning native fn into interpreter
+	fns.
+
+2020-05-08  rocky <rocky@dusytfeet.com>
+
+	* NEWS.md, test/vmtest.py, xpython/__init__.py,
+	xpython/__main__.py, xpython/execfile.py, xpython/pyobj.py,
+	xpython/{pyvm2.py => pyvm.py}: pyvm2.py -> pyvm.py; set up top-level
+	exports...  pyvm2 isn't Python2-ish and there is no pyvm3.
+
+2020-05-08  rocky <rb@dustyfeet.com>
+
+	* xpython/pyvm2.py: is_pypy param confused with vmtest param
+
+2020-05-08  rocky <rb@dustyfeet.com>
+
+	* test/examples/functions/test_call_ex_kw.py,
+	test/examples/functions/test_closures.py,
+	test/examples/test_deep_closures.py, test/stdlib/3.6-exclude.sh,
+	test/test_functions.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py: Wrong access in byteop35. convert
+	Cell->cell...  when needed.
+
+2020-05-08  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, NEWS.md, README.rst,
+	admin-tools/how-to-make-a-release.md: Get ready for release 1.1.0
+
 2020-05-08  rocky <rocky@dusytfeet.com>
 
 	* LICENSE, __pkginfo__.py, requirements.txt,

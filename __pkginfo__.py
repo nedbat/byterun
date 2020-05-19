@@ -60,5 +60,6 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
 ]
 
-# Get/set VERSION and long_description form files
+# Get/set VERSION and long_description from files
 long_description = read("README.rst") + "\n"
+exec(read("xpython/version.py"))

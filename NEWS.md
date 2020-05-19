@@ -1,3 +1,25 @@
+1.2.0 2020-04-19 Primidi 1st Prairial - Alfalfa - HF
+====================================================
+
+This version adds callback hooks for tracing or debugger that will be released soon.
+
+There is more complete (but not fully complete) Version 3.5-3.7 bytecode interpretation.
+(`BUILD_TUPLE_UNPACK_WITH_CALL` implemented 3.6 `MAKE_FUNCTION` corrected.)
+
+`build_class()` has been fixed so that it picks up class variables. This means we do better at as a cross version interpreter - that's where `build_class()` is currently used.
+
+Via `build_class()` we can tray into `__entry__()` and `__exit__()` functions of a context manager.
+
+`frame.f_lasti` had been pointing to the instruction that might be run next rather than the one that is about to be run. While this simplified interpreter implementation, it didn't follow CPython's meaning. And when this is used from a debugger this becomes unusable.
+
+Disassembly output has been fixed up courtesy of argument information from `xdis`. `xdis` imports have been simplified in version 4.6.0, so we require that.
+
+Additional PyPy bytecode ops (`LOOKUP_METHOD`, `CALL_METHOD`) are supported; so you can run this from PyPy now or do cross-interpretation from the corresponding CPython bytecode.
+
+Better conformance of Python's Frame type. Added: `__qualname__` and set `__annotation__` attributes.
+
+
+
 1.1.0 2020-05-08 Lewis-10
 =========================
 
