@@ -90,6 +90,8 @@ class PyVMTraced(PyVM):
                 result = self.callback("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
             elif self.event_flags & PyVMEVENT_INSTRUCTION:
                 result = self.callback("instruction", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
+            else:
+                result = True
 
             if result is None:
                 # As per https://docs.python.org/3/library/sys.html#sys.settrace
@@ -126,6 +128,8 @@ class PyVMTraced(PyVM):
 
             if why:
                 break
+
+            pass # while True
 
         # TODO: handle generator exception state
 
