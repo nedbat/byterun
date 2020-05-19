@@ -288,6 +288,10 @@ class PyVM(object):
         elif intArg is None:
             argrepr = ""
         elif self.opc.opmap[byteName] in self.opc.COMPARE_OPS:
+            try:
+                self.opc.cmp_op[intArg]
+            except:
+                from trepan.api import debug; debug()
             argrepr = self.opc.cmp_op[intArg]
         else:
             argrepr = arguments[0]

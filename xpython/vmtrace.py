@@ -58,13 +58,13 @@ class PyVMTraced(PyVM):
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_CALL:
-                self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, [], self)
+                self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
                 pass
         else:
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_YIELD:
-                self.callback("yield", opoffset, byteName, "YIELD_VALUE", frame.f_lineno, [], self)
+                self.callback("yield", opoffset, byteName, "YIELD_VALUE", frame.f_lineno, None, [], self)
                 pass
             # byteCode == opcode["YIELD_VALUE"]?
 
@@ -72,7 +72,6 @@ class PyVMTraced(PyVM):
 
         opoffset = 0
         while True:
-
             (
                 byteName,
                 byteCode,
@@ -88,13 +87,29 @@ class PyVMTraced(PyVM):
             if line_number is not None and self.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
-                self.callback("line", opoffset, byteName, byteCode, line_number, arguments, self)
+                result = self.callback("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
             elif self.event_flags & PyVMEVENT_INSTRUCTION:
-                self.callback("instruction", opoffset, byteName, byteCode, line_number, arguments, self)
+                result = self.callback("instruction", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
+
+            if result is None:
+                # As per https://docs.python.org/3/library/sys.html#sys.settrace
+                # None indicates turning off tracing in this scope.
+                # We could imagine a fancier code organization where we use
+                # run_frame() of PyVM instead of PyVMTrace, but save that for later.
+                self.event_flags = 0
+            elif callable(result):
+                pass
+            elif isinstance(result, str):
+                if result == "skip":
+                    continue
+                elif result == "return":
+                    why = result
+                    break
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
             why = self.dispatch(byteName, intArg, arguments, opoffset, line_number)
+
             if why == "exception":
                 # Deal with exceptions encountered while executing the op.
                 if not self.in_exception_processing:
@@ -117,10 +132,10 @@ class PyVMTraced(PyVM):
         if why == "exception":
             if self.event_flags & PyVMEVENT_EXCEPTION:
                 self.callback(
-                    "exception", opoffset, byteName, byteCode, line_number, self.last_exception, self
+                    "exception", opoffset, byteName, byteCode, line_number, None, self.last_exception, self
                 )
             elif self.event_flags & PyVMEVENT_RETURN:
-                self.callback("return", opoffset, byteName, byteCode, line_number, self.return_value, self)
+                self.callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
             pass
 
         self.pop_frame()
@@ -136,6 +151,6 @@ class PyVMTraced(PyVM):
 
         self.in_exception_processing = False
         if self.event_flags & PyVMEVENT_RETURN:
-            self.callback("return", opoffset, byteName, byteCode, line_number, self.return_value, self)
+            self.callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
 
         return self.return_value
