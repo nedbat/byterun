@@ -8,6 +8,8 @@ entry_points = {"console_scripts": ["xpython=xpython.__main__:main"]}
 # -----------------------------------------
 # 3.2            | click   | 4.0          |
 # 3.2            | pip     | 8.1.2        |
+# 3.3            | pip     | 10.0.1       |
+# 3.4            | pip     | 19.1.1       |
 
 import os.path as osp
 def get_srcdir():
@@ -39,7 +41,7 @@ else:
 
 install_requires=[
     "six",
-    "xdis",
+    "xdis >= 4.6.0, < 4.7.0",
     "click%s" % click_version
 ],
 

@@ -11,8 +11,15 @@ import sys
 import six
 from six.moves import reprlib
 
-from xdis import PYTHON3, PYTHON_VERSION, IS_PYPY, op_has_argument, next_offset
-from xdis.util import code2num, CO_NEWLOCALS
+from xdis import (
+    code2num,
+    CO_NEWLOCALS,
+    PYTHON3,
+    PYTHON_VERSION,
+    IS_PYPY,
+    op_has_argument,
+    next_offset,
+)
 from xdis.op_imports import get_opcode_module
 
 from xpython.pyobj import Frame, Block, traceback_from_frame
@@ -46,6 +53,7 @@ class PyVMRuntimeError(Exception):
     """RuntimeError in operation of PyVM."""
 
     pass
+
 
 class PyVMUncaughtException(Exception):
     """Uncaught RuntimeError in operation of PyVM."""
@@ -275,7 +283,7 @@ class PyVM(object):
     def instruction_info(self, byteName, intArg, arguments, opoffset, line_number):
         frame = self.frame
         code = frame.f_code if frame else None
-        if hasattr(self.opc, 'opcode_arg_fmt') and byteName in self.opc.opcode_arg_fmt:
+        if hasattr(self.opc, "opcode_arg_fmt") and byteName in self.opc.opcode_arg_fmt:
             argrepr = self.opc.opcode_arg_fmt[byteName](intArg)
         elif intArg is None:
             argrepr = ""
@@ -284,12 +292,15 @@ class PyVM(object):
         else:
             argrepr = arguments[0]
 
-        line_str = LINE_NUMBER_SPACES if line_number is None else LINE_NUMBER_WIDTH_FMT % line_number
+        line_str = (
+            LINE_NUMBER_SPACES
+            if line_number is None
+            else LINE_NUMBER_WIDTH_FMT % line_number
+        )
         mess = "%s%3d: %s %s" % (line_str, opoffset, byteName, argrepr)
         if log.isEnabledFor(logging.DEBUG) and frame:
             mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
         return mess
-
 
     def unwind_block(self, block):
         if block.type == "except-handler":
@@ -422,7 +433,9 @@ class PyVM(object):
                     raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
                         % (
-                            self.instruction_info(byteName, intArg, arguments, opoffset, line_number),
+                            self.instruction_info(
+                                byteName, intArg, arguments, opoffset, line_number
+                            ),
                             byteName,
                         )
                     )
@@ -439,7 +452,9 @@ class PyVM(object):
                         (
                             "exception in the execution of "
                             "instruction:\n\t%s"
-                            % self.instruction_info(byteName, intArg, arguments, opoffset, line_number)
+                            % self.instruction_info(
+                                byteName, intArg, arguments, opoffset, line_number
+                            )
                         )
                     )
                 self.last_traceback = traceback_from_frame(self.frame)
@@ -559,7 +574,9 @@ class PyVM(object):
                             (
                                 "exception in the execution of "
                                 "instruction:\n\t%s"
-                                % self.instruction_info(byteName, intArg, arguments, opoffset, line_number)
+                                % self.instruction_info(
+                                    byteName, intArg, arguments, opoffset, line_number
+                                )
                             )
                         )
                     self.last_traceback = traceback_from_frame(self.frame)

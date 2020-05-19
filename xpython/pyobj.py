@@ -6,8 +6,7 @@ import inspect
 import linecache
 import types
 from sys import stderr
-from xdis.util import CO_GENERATOR
-from xdis import PYTHON3, PYTHON_VERSION, iscode
+from xdis import CO_GENERATOR, iscode, PYTHON3, PYTHON_VERSION
 
 import six
 

@@ -4,8 +4,8 @@
 # added a couple of bug fixes.
 
 from xpython.pyobj import Function, Cell
-from xdis import PYTHON_VERSION, IS_PYPY # , codeType2Portable
-from xdis.codetype import codeType2Portable  # until next xdis release
+from xdis import codeType2Portable, PYTHON_VERSION, IS_PYPY
+
 
 def build_class(opc, func, name, *bases, **kwds):
     """
@@ -37,7 +37,10 @@ def build_class(opc, func, name, *bases, **kwds):
 
     python_implementation = "PyPy" if IS_PYPY else "CPython"
 
-    if not (opc.version == PYTHON_VERSION and python_implementation == opc.python_implementation):
+    if not (
+        opc.version == PYTHON_VERSION
+        and python_implementation == opc.python_implementation
+    ):
         # convert code to xdis's portable code type.
         class_body_code = codeType2Portable(func.func_code)
     else:
