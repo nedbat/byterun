@@ -210,4 +210,4 @@ bytecodes so he could fix branch coverage bugs in coverage.py.
 .. |TravisCI| image:: https://travis-ci.org/rocky/x-python.svg?branch=master
 		 :target: https://travis-ci.org/rocky/x-python
 
-.. |assign example| image:: trepan-xpy-assign.gif
+.. |assign example| image:: https://github.com/rocky/x-python/blob/master/screenshots/trepan-xpy-assign.gif
