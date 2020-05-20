@@ -61,9 +61,40 @@ class PyVMUncaughtException(Exception):
     pass
 
 
+def format_instruction(
+    frame, opc, byteName, intArg, arguments, opoffset, line_number, extra_debug
+):
+    code = frame.f_code if frame else None
+    byteCode = opc.opmap.get(byteName, 0)
+    if hasattr(opc, "opcode_arg_fmt") and byteName in opc.opcode_arg_fmt:
+        argrepr = opc.opcode_arg_fmt[byteName](intArg)
+    elif intArg is None:
+        argrepr = ""
+    elif byteCode in opc.COMPARE_OPS:
+        argrepr = opc.cmp_op[intArg]
+    elif isinstance(arguments, list) and arguments:
+        argrepr = arguments[0]
+    else:
+        argrepr = arguments
+
+    line_str = (
+        LINE_NUMBER_SPACES
+        if line_number is None
+        else LINE_NUMBER_WIDTH_FMT % line_number
+    )
+    mess = "%s%3d: %s %s" % (line_str, opoffset, byteName, argrepr)
+    if extra_debug and frame:
+        mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
+    return mess
+
+
 class PyVM(object):
     def __init__(
-        self, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, vmtest_testing=False
+        self,
+        python_version=PYTHON_VERSION,
+        is_pypy=IS_PYPY,
+        vmtest_testing=False,
+        format_instruction_func=format_instruction,
     ):
         # The call stack of frames.
         self.frames = []
@@ -75,6 +106,7 @@ class PyVM(object):
         self.last_traceback = None
         self.version = python_version
         self.is_pypy = is_pypy
+        self.format_instruction = format_instruction_func
 
         # FIXME: until we figure out how to fix up test/vmtest.el
         # This changes how we report a VMRuntime error.
@@ -280,32 +312,6 @@ class PyVM(object):
 
         return val
 
-    def instruction_info(self, byteName, intArg, arguments, opoffset, line_number):
-        frame = self.frame
-        code = frame.f_code if frame else None
-        if hasattr(self.opc, "opcode_arg_fmt") and byteName in self.opc.opcode_arg_fmt:
-            argrepr = self.opc.opcode_arg_fmt[byteName](intArg)
-        elif intArg is None:
-            argrepr = ""
-        elif self.opc.opmap[byteName] in self.opc.COMPARE_OPS:
-            try:
-                self.opc.cmp_op[intArg]
-            except:
-                from trepan.api import debug; debug()
-            argrepr = self.opc.cmp_op[intArg]
-        else:
-            argrepr = arguments[0]
-
-        line_str = (
-            LINE_NUMBER_SPACES
-            if line_number is None
-            else LINE_NUMBER_WIDTH_FMT % line_number
-        )
-        mess = "%s%3d: %s %s" % (line_str, opoffset, byteName, argrepr)
-        if log.isEnabledFor(logging.DEBUG) and frame:
-            mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
-        return mess
-
     def unwind_block(self, block):
         if block.type == "except-handler":
             offset = 3
@@ -405,7 +411,16 @@ class PyVM(object):
 
     def log(self, byteName, intArg, arguments, opoffset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
-        op = self.instruction_info(byteName, intArg, arguments, opoffset, line_number)
+        op = self.format_instruction(
+            self.frame,
+            self.opc,
+            byteName,
+            intArg,
+            arguments,
+            opoffset,
+            line_number,
+            log.isEnabledFor(logging.DEBUG),
+        )
         indent = "    " * (len(self.frames) - 1)
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)
@@ -437,8 +452,15 @@ class PyVM(object):
                     raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
                         % (
-                            self.instruction_info(
-                                byteName, intArg, arguments, opoffset, line_number
+                            self.format_instruction(
+                                self.frame,
+                                self.opc,
+                                byteName,
+                                intArg,
+                                arguments,
+                                opoffset,
+                                line_number,
+                                False,
                             ),
                             byteName,
                         )
@@ -456,8 +478,15 @@ class PyVM(object):
                         (
                             "exception in the execution of "
                             "instruction:\n\t%s"
-                            % self.instruction_info(
-                                byteName, intArg, arguments, opoffset, line_number
+                            % self.format_instruction(
+                                self.frame,
+                                self.opc,
+                                byteName,
+                                intArg,
+                                arguments,
+                                opoffset,
+                                line_number,
+                                False,
                             )
                         )
                     )
@@ -578,8 +607,15 @@ class PyVM(object):
                             (
                                 "exception in the execution of "
                                 "instruction:\n\t%s"
-                                % self.instruction_info(
-                                    byteName, intArg, arguments, opoffset, line_number
+                                % self.format_instruction(
+                                    frame,
+                                    self.opc,
+                                    byteName,
+                                    intArg,
+                                    arguments,
+                                    opoffset,
+                                line_number,
+                                False,
                                 )
                             )
                         )

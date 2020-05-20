@@ -6,7 +6,7 @@ import tokenize
 import mimetypes
 from xdis import load_module, PYTHON_VERSION, IS_PYPY
 
-from xpython.vm import PyVM, PyVMUncaughtException
+from xpython.vm import format_instruction, PyVM, PyVMUncaughtException
 from xpython.vmtrace import PyVMTraced
 from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
@@ -45,24 +45,32 @@ class NoSourceError(Exception):
 
 
 def exec_code_object(
-    code, env, python_version=PYTHON_VERSION, is_pypy=IS_PYPY, callback=None
+    code,
+    env,
+    python_version=PYTHON_VERSION,
+    is_pypy=IS_PYPY,
+    callback=None,
+    format_instruction=format_instruction,
 ):
     if callback:
-        vm = PyVMTraced(callback, python_version, is_pypy)
+        vm = PyVMTraced(callback, python_version, is_pypy,
+                        format_instruction_func=format_instruction)
         try:
             vm.run_code(code, f_globals=env)
         except PyVMUncaughtException:
             vm.last_exception = event_arg = (
                 vm.last_exception[0],
                 vm.last_exception[1],
-                vm.last_traceback)
-            callback("fatal", 0, "fatalOpcode", 0, -1, event_arg, vm)
+                vm.last_traceback,
+            )
+            callback("fatal", 0, "fatalOpcode", 0, -1, event_arg, [], vm)
     else:
-        vm = PyVM(python_version, is_pypy)
+        vm = PyVM(python_version, is_pypy, format_instruction_func=format_instruction)
         try:
             vm.run_code(code, f_globals=env)
         except PyVMUncaughtException:
             pass
+
 
 def get_supported_versions(is_pypy, is_bytecode):
     if is_bytecode:
@@ -141,7 +149,9 @@ def run_python_module(modulename, args):
     run_python_file(pathname, args, package=packagename)
 
 
-def run_python_file(filename, args, package=None, callback=None):
+def run_python_file(
+        filename, args, package=None, callback=None, format_instruction=format_instruction
+):
     """Run a python file as if it were the main program on the command line.
 
     `filename` is the path to the file to execute, it need not be a .py file.
@@ -225,7 +235,14 @@ def run_python_file(filename, args, package=None, callback=None):
             raise NoSourceError("No file to run: %r" % filename)
 
         # Execute the source file.
-        exec_code_object(code, main_mod.__dict__, python_version, is_pypy, callback)
+        exec_code_object(
+            code,
+            main_mod.__dict__,
+            python_version,
+            is_pypy,
+            callback,
+            format_instruction=format_instruction,
+        )
 
     finally:
         # Restore the old __main__
@@ -236,7 +253,9 @@ def run_python_file(filename, args, package=None, callback=None):
         sys.path[0] = old_path0
 
 
-def run_python_string(source, args, package=None, callback=None):
+def run_python_string(
+    source, args, package=None, callback=None, format_instruction=format_instruction
+):
     """Run a python string as if it were the main program on the command line.
     """
     # Create a module to serve as __main__
@@ -268,7 +287,9 @@ def run_python_string(source, args, package=None, callback=None):
         python_version = PYTHON_VERSION
 
         # Execute the source string.
-        exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY, callback)
+        exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY, callback,
+                         format_instruction=format_instruction,
+        )
 
     finally:
         # Restore the old __main__

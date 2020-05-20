@@ -6,6 +6,7 @@ import six
 from xdis import PYTHON_VERSION, IS_PYPY
 from xpython.vm import (
     byteint,
+    format_instruction,
     PyVM,
     PyVMError,
 )
@@ -31,8 +32,10 @@ class PyVMTraced(PyVM):
         is_pypy=IS_PYPY,
         vmtest_testing=False,
         event_flags=31,
+        format_instruction_func=format_instruction,
     ):
-        super().__init__(python_version, is_pypy, vmtest_testing)
+        super().__init__(python_version, is_pypy, vmtest_testing,
+                         format_instruction_func=format_instruction_func)
         self.callback = callback
         self.event_flags = event_flags
 
@@ -64,7 +67,7 @@ class PyVMTraced(PyVM):
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if self.event_flags & PyVMEVENT_YIELD:
-                self.callback("yield", opoffset, byteName, "YIELD_VALUE", frame.f_lineno, None, [], self)
+                self.callback("yield", frame.f_lasti, "YIELD_VALUE", self.opc.YIELD_VALUE, frame.f_lineno, None, [], self)
                 pass
             # byteCode == opcode["YIELD_VALUE"]?
 
