@@ -350,7 +350,7 @@ class PyVM(object):
                 # Jump instructions must set this False.
                 f.fallthrough = True
             opoffset = f.f_lasti
-            line_number = self.linestarts.get(opoffset, None)
+            line_number = self.frame.linestarts.get(opoffset, None)
             if line_number is not None:
                 f.f_lineno = line_number
             byteCode = byteint(co_code[opoffset])
@@ -577,7 +577,7 @@ class PyVM(object):
 
         # FIXME: we can use linestarts that is now located in the frame if this
         # is a pyvmobj.Frame, and not a native frame.
-        self.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
+        self.frame.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
 
         opoffset = 0
         while True:

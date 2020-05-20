@@ -45,12 +45,16 @@ class PyVMTraced(PyVM):
         # * add line number breakopints
         # * add function breakpoints
 
+    # FIXME: put callback in f_trace, and update it accordingly
     def run_frame(self, frame):
         """Run a frame until it returns (somehow).
 
         Exceptions are raised, the return value is returned.
 
         """
+        frame.f_trace = self.callback
+        frame.event_flags = self.event_flags
+
         if frame.f_lasti == -1:
             # We were started new, not yielded back from
             frame.f_lasti = 0
@@ -60,18 +64,18 @@ class PyVMTraced(PyVM):
             byteCode = None
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
-            if self.event_flags & PyVMEVENT_CALL:
+            if frame.f_trace and frame.event_flags & PyVMEVENT_CALL:
                 self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
                 pass
         else:
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
-            if self.event_flags & PyVMEVENT_YIELD:
+            if frame.f_trace and frame.event_flags & PyVMEVENT_YIELD:
                 self.callback("yield", frame.f_lasti, "YIELD_VALUE", self.opc.YIELD_VALUE, frame.f_lineno, None, [], self)
                 pass
             # byteCode == opcode["YIELD_VALUE"]?
 
-        self.linestarts = dict(self.opc.findlinestarts(frame.f_code, dup_lines=True))
+        self.frame.linestarts = dict(self.opc.findlinestarts(frame.f_code, dup_lines=True))
 
         opoffset = 0
         while True:
@@ -87,11 +91,11 @@ class PyVMTraced(PyVM):
             if log.isEnabledFor(logging.INFO):
                 self.log(byteName, intArg, arguments, opoffset, line_number)
 
-            if line_number is not None and self.event_flags & (
+            if frame.f_trace and line_number is not None and frame.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
                 result = self.callback("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
-            elif self.event_flags & PyVMEVENT_INSTRUCTION:
+            elif frame.f_trace and frame.event_flags & PyVMEVENT_INSTRUCTION:
                 result = self.callback("instruction", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
             else:
                 result = True
@@ -101,7 +105,7 @@ class PyVMTraced(PyVM):
                 # None indicates turning off tracing in this scope.
                 # We could imagine a fancier code organization where we use
                 # run_frame() of PyVM instead of PyVMTrace, but save that for later.
-                self.event_flags = 0
+                frame.event_flags = self.event_flags = 0
             elif callable(result):
                 pass
             elif isinstance(result, str):
