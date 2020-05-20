@@ -1,0 +1,2 @@
+export PS1='\[\e[33m\]\$ \[\e[0m\]'
+trepan-xpy -xc "x, y = 2, 3; x **= y"

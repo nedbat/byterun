@@ -11,8 +11,6 @@ You can use this to:
 * Experiment with additional opcodes, or ways to change the run-time environment
 * Use as a sandboxed environment for trying pieces of execution
 * Have one Python program that runs multiple versions of Python bytecode.
-  For a number of things you can run Python 2.5 or 2.6 bytecode from inside Python 3.7;
-  No need to install Python 2.5 or 2.6!
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
 The sandboxed environment in a debugger I find interesting. Since
@@ -22,10 +20,10 @@ effecting the real execution. On the other hand if a sequence of
 executions works out, it is possible to copy this (under certain
 circumstances) back into CPython's execution stack.
 
-Going the other way, I may at some point hook in `my debugger
-<https://pypi.python.org/pypi/trepan3k>`_ into this interpreter and then
-you'll have a conventional pdb/gdb like debugger also with the ability
-to step bytecode instructions.
+Going the other way, I have hooked in `trepan3k
+<https://pypi.python.org/pypi/trepan3k>`_ into this interpreter so you
+have a pdb/gdb like debugger also with the ability to step bytecode
+instructions.
 
 I may also experiment with faster ways to support trace callbacks such
 as those used in a debugger. In particular I may add a `BREAKPOINT`
@@ -106,59 +104,59 @@ Want the execution stack stack and block stack in addition? Add another `v`:
    DEBUG:xpython.vm:  blocks     : []
    INFO:xpython.vm:       @ 18: RETURN_VALUE  <module> in <string x, y = 2, 3; x **= y>:1
 
-The above showed straight-line code, so you see all of the instructions. But don't confuse this with a disassembler like `pydisasm` from `xdis`.
-The below example, with conditional branching example makes this more clear:
+
+Want to see this colorized in a terminal? Use this via `trepan-xpy`: |assign example|
+
+Suppose you have Python 2.5 bytecode (or some other bytecode) for
+this, but you are running Python 3.7?
 
 ::
 
-   $ xpython -vvc "x = 6 if __name__ != '__main__' else 10"
-   DEBUG:xpython.vm:make_frame: code=<code object <module> at 0x7fd8061cd270, file "<string x = 6 if __name__ !=>", line 1>, callargs={}, f_globals=(<class 'dict'>, 140565793497328), f_locals=(<class 'NoneType'>, 94471841324480)
-   DEBUG:xpython.vm:<Frame at 0x7fd8061d1490: '<string x = 6 if __name__ !=>':1 @-1>
-   DEBUG:xpython.vm:  frame.stack: []
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:L. 1   @  0: LOAD_NAME __name__ <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: ['__main__']
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @  2: LOAD_CONST __main__ <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: ['__main__', '__main__']
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @  4: COMPARE_OP 3 <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: [False]
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @  6: POP_JUMP_IF_FALSE 12 <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: []
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 12: LOAD_CONST 10 <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: [10]
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 14: STORE_NAME x <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: []
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 16: LOAD_CONST None <module> in <string x = 6 if __name__ !=>:1
-   DEBUG:xpython.vm:  frame.stack: [None]
-   DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 18: RETURN_VALUE  <module> in <string x = 6 if __name__ !=>:1
+   $ xpython -vc "x = 6 if __name__ != '__main__' else 10"
+   INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3)
+   INFO:xpython.vm:       @  3: UNPACK_SEQUENCE 2
+   INFO:xpython.vm:       @  6: STORE_NAME x
+   INFO:xpython.vm:       @  9: STORE_NAME y
+   INFO:xpython.vm:L. 2   @ 12: LOAD_NAME x
+   INFO:xpython.vm:       @ 15: LOAD_NAME y
+   INFO:xpython.vm:       @ 18: INPLACE_POWER
+   INFO:xpython.vm:       @ 19: STORE_NAME x
+   INFO:xpython.vm:       @ 22: LOAD_CONST None
+   INFO:xpython.vm:       @ 25: RETURN_VALUE
+
+Not much has changed here, other then the fact that that in after 3.6 instructions are two bytes instead of 1-3 bytes.
+
+The above examples show straight-line code, so you see all of the instructions. But don't confuse this with a disassembler like `pydisasm` from `xdis`.
+The below example, with conditional branching example makes this more clear:
+::
+
+    $ xpython -vc "x = 6 if __name__ != '__main__' else 10"
+    INFO:xpython.vm:L. 1   @  0: LOAD_NAME __name__
+    INFO:xpython.vm:       @  2: LOAD_CONST __main__
+    INFO:xpython.vm:       @  4: COMPARE_OP !=
+    INFO:xpython.vm:       @  6: POP_JUMP_IF_FALSE 12
+    INFO:xpython.vm:       @ 12: LOAD_CONST 10
+    INFO:xpython.vm:       @ 14: STORE_NAME x
+    INFO:xpython.vm:       @ 16: LOAD_CONST None
+    INFO:xpython.vm:       @ 18: RETURN_VALUE
+
+Want even more status and control? See `trepan-xpy <https://github.com/rocky/trepan-xpy>`_.
 
 Status:
 +++++++
 
 Currently bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.5 are
-supported.  We also support PyPy bytecode. Until there is more
-interest or I get help or funding, extending to 3.8 and beyond is on
-hold.
-
-`xdis <https://pypi.python.org/pypi/xdis>`_ eases the difficulty of
-cross-version interpretation, expanding to handle multiple Python
-versions, and printing instructions.
+supported. Extending to 3.8 and beyond is on hold until there is more
+interest, I get help, I need or there is or funding,
 
 Whereas *Byterun* was a bit loose in accepting bytecode opcodes that
 is invalid for particular Python but may be valid for another;
 *x-python* is more stringent. This has pros and cons. On the plus side
 *Byterun* might run certain Python 3.4 bytecode because the opcode
 sets are similar. However starting with Python 3.5 and beyond the
-likelihood gets much less because, while the underlying opcode names
-may be the same, the semantics of the operation may change
-subtely. See for example
+likelihood happening becomes vanishingly small. And while the
+underlying opcode names may be the same, the semantics of the
+operation may change subtely. See for example
 https://github.com/nedbat/byterun/issues/34.
 
 Internally Byterun needs the kind of overhaul we have here to be able
@@ -180,23 +178,23 @@ supported bytecode close enough, the interpreter can (and does) make use
 interpreter internals. For example, built-in functions like `range()`
 are supported this way.
 
-Currently running 2.7 bytecode on 3.x is often not feasible since the
-runtime and internal libraries used like `inspect` are too different.
+Running 2.7 bytecode on 3.x is sometimes not possible when the
+portions of the runtime and internal libraries are too different.
 
-Over time more of Python's internals may get added so we have better
-cross-version compatability, so that is a possibility. Harder is to
-run later byecode from earlier Python versions. The callenge here is
-that many new features like asynchronous I/O and concurrency
-primatives are not in the older versions and may not easily be
-simulated. However that too is a possibility if there is interest.
+Over time more of Python's internals need to be get added so we have
+better cross-version compatability. More difficult is running later
+byecode from earlier Python versions. The challenge here is that many
+new features like asynchronous I/O and concurrency primatives are not
+in the older versions and may not easily be simulated. However that
+too is a possibility if there is interest.
 
-You can run many of the tests that Python uses to test itself, and
-those work. Right now this program works best on Python up to 3.4 when
-life in Python was much simpler. It runs over 300 in Python's test
-suite for itself without problems.
+You can run many of the tests that Python uses to test itself, (and I
+do!) and those work. Right now this program works best on Python up to
+3.4 when life in Python was much simpler. It runs over 300 in Python's
+test suite for itself without problems.
 
 Moving back and forward from 3.4 things worse. Python 3.5 is pretty
-good. Python 3.6 and 3.7 is okay but needs work.
+good. Python 3.6 and 3.7 is okay but need work.
 
 
 History
@@ -211,3 +209,5 @@ bytecodes so he could fix branch coverage bugs in coverage.py.
     :target: https://circleci.com/gh/rocky/x-python
 .. |TravisCI| image:: https://travis-ci.org/rocky/x-python.svg?branch=master
 		 :target: https://travis-ci.org/rocky/x-python
+
+.. |assign example| image:: trepan-xpy-assign.gif
