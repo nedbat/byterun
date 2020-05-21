@@ -1,3 +1,15 @@
+1.2.1 2020-04-20 trepan-xpy
+===========================
+
+The main thrust of this release was to make it suitable to be used from a debugger.
+
+* There is better (but not exact) conformance of Python's `sys.settrace()` API:
+   - linestarts is a frame-oriented thing, not a VM thing.
+   - Store callback in `f_trace`.
+* Allow supplying a callback print function, so that the client can colorize the parts of the instruction
+* Add screencasts
+
+
 1.2.0 2020-04-19 Primidi 1st Prairial - Alfalfa - HF
 ====================================================
 
@@ -8,7 +20,7 @@ There is more complete (but not fully complete) Version 3.5-3.7 bytecode interpr
 
 `build_class()` has been fixed so that it picks up class variables. This means we do better at as a cross version interpreter - that's where `build_class()` is currently used.
 
-Via `build_class()` we can tray into `__entry__()` and `__exit__()` functions of a context manager.
+Via `build_class()` we can track into `__entry__()` and `__exit__()` functions of a context manager.
 
 `frame.f_lasti` had been pointing to the instruction that might be run next rather than the one that is about to be run. While this simplified interpreter implementation, it didn't follow CPython's meaning. And when this is used from a debugger this becomes unusable.
 
@@ -41,7 +53,7 @@ A One oh release - you know what that means.
 
 There have been numerous changes since byterun.
 
-Probably of most interest is probably support for newer Pythons - 3.4 and some 3.5.  3.5 is still a little weak. Using routines from [xdis](https://github.com/rocky/python-xdis) we added support for wordcode (when we get around to 3.6+) and `EXTENDED_ARGS` which is more prevelant when wordcodes are in use, since an operand size is only one byte without the "extended arg" prefix.
+Probably of most interest is probably support for newer Pythons - 3.4 and some 3.5.  3.5 is still a little weak. Using routines from [xdis](https://github.com/rocky/python-xdis) we added support for wordcode (when we get around to 3.6+) and `EXTENDED_ARGS` which is more prevalent when wordcodes are in use, since an operand size is only one byte without the "extended arg" prefix.
 
 Since we are using `xdis`, we have the ability to read and parse bytecode files from a version of Python different from the one running. Making use of this, `xpython` can accept a bytecode file in addition to accepting Python source code.
 

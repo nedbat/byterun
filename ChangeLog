@@ -1,6 +1,42 @@
+2020-05-20  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, NEWS.md, xpython/version.py: Get ready for release
+	1.2.1
+
+2020-05-20  rocky <rocky@dusytfeet.com>
+
+	* : commit 4aa244758a9e2c794819e002b08858ba3504b2eb Author: rocky
+	<rocky@dusytfeet.com> Date:   Wed May 20 17:35:27 2020 -0400
+
+2020-05-20  R. Bernstein <rocky@users.noreply.github.com>
+
+	* README.rst: Update README.rst
+
+2020-05-20  rocky <rocky@dusytfeet.com>
+
+	* README.rst, screenshots/.bashrc, screenshots/README.md,
+	screenshots/assign.py, screenshots/assign.txt,
+	screenshots/ifelse.txt, screenshots/trepan-xpy-assign.cast,
+	screenshots/trepan-xpy-ifelse.cast: Add screenshots
+
+2020-05-20  rocky <rocky@dusytfeet.com>
+
+	* xpython/execfile.py, xpython/vm.py, xpython/vmtrace.py: 
+	format_instruction handled as callback...  so we can replace it with something that colorizes.  One callback signature mismatched was fixed too.
+
 2020-05-19  rocky <rocky@dusytfeet.com>
 
-	* __pkginfo__.py, xpython/version.py: Get ready for release 1.0.0
+	* xpython/vmtrace.py: Set callback status when no callback
+
+2020-05-19  rocky <rocky@dusytfeet.com>
+
+	* xpython/vm.py, xpython/vmtrace.py: Follow set sys.settrace() more
+	closely...  and fix bug in instructions tracing.
+
+2020-05-19  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, NEWS.md, __pkginfo__.py, xpython/version.py: Get ready
+	for release 1.2.0
 
 2020-05-18  rocky <rocky@dusytfeet.com>
 
