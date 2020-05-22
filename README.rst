@@ -1,4 +1,4 @@
-|TravisCI| |CircleCI|
+|TravisCI| |CircleCI| |Latest Version| |Supported Python Versions|
 
 x-python
 --------
@@ -211,3 +211,6 @@ bytecodes so he could fix branch coverage bugs in coverage.py.
 		 :target: https://travis-ci.org/rocky/x-python
 
 .. |assign example| image:: https://github.com/rocky/x-python/blob/master/screenshots/trepan-xpy-assign.gif
+.. |Latest Version| image:: https://badge.fury.io/py/x-python.svg
+		 :target: https://badge.fury.io/py/x-python
+.. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/x-python.svg
