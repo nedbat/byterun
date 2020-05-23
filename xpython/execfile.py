@@ -231,7 +231,7 @@ def run_python_file(
                 code = compile(source, filename, "exec")
                 python_version = PYTHON_VERSION
 
-        except (IOError):
+        except (IOError, ImportError):
             raise NoSourceError("No file to run: %r" % filename)
 
         # Execute the source file.

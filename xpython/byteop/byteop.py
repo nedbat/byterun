@@ -73,7 +73,7 @@ class ByteOpBase(object):
                         posargs[0] = self.convert_native_to_Function(frame, posargs[0])
                     elif PYTHON_VERSION >= 3.6 and self.version < 3.6:
                         raise self.PyVMError(
-                            "We can't wordcode to non-wordcode interpreting right now. We are %s; code is %s."
+                            "We can't do wordcode to non-wordcode interpreting right now. We are %s; code is %s."
                             % (PYTHON_VERSION, self.version)
                         )
 
