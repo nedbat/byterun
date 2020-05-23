@@ -6,6 +6,14 @@
 from xpython.pyobj import Function, Cell
 from xdis import codeType2Portable, PYTHON_VERSION, IS_PYPY
 
+def func_code(func):
+    if hasattr(func, "func_code"):
+        return func.func_code
+    else:
+        assert hasattr(func, "__code__"), (
+            "%s should be a function type; is %s" % (func, type(func))
+        )
+        return func.__code__
 
 def build_class(opc, func, name, *bases, **kwds):
     """
@@ -17,8 +25,8 @@ def build_class(opc, func, name, *bases, **kwds):
     """
 
     # Parameter checking...
-    if not isinstance(func, Function):
-        raise TypeError("func must be a function")
+    if not (isinstance(func, Function)):
+        raise TypeError("func must be a PyVM function")
     if not isinstance(name, str):
         raise TypeError("name is not a string")
 
@@ -42,7 +50,7 @@ def build_class(opc, func, name, *bases, **kwds):
         and python_implementation == opc.python_implementation
     ):
         # convert code to xdis's portable code type.
-        class_body_code = codeType2Portable(func.func_code)
+        class_body_code = codeType2Portable(func_code(func_code))
     else:
         class_body_code = func.func_code
 

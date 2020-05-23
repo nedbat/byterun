@@ -14,12 +14,14 @@ from xpython.buildclass import build_class
 
 log = logging.getLogger(__name__)
 
+
 class ByteOpBase(object):
     def __init__(self, vm):
         self.vm = vm
         # Convenience variables
         self.version = vm.version
         self.is_pypy = vm.is_pypy
+        self.PyVMError = self.vm.PyVMError
 
         # Set this lazily in "convert_method_native_func
         self.method_func_access = None
@@ -58,15 +60,22 @@ class ByteOpBase(object):
                 # Use the frame's locals(), not the interpreter's
                 self.vm.push(frame.f_globals)
                 return
-            elif (self.is_pypy or self.version != PYTHON_VERSION) and PYTHON_VERSION >= 3.4:
+            elif (
+                self.is_pypy or self.version != PYTHON_VERSION
+            ) and PYTHON_VERSION >= 3.4:
                 if func == __build_class__:
                     # later __build_class__() works only bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
 
                     # Try to convert to an interpreter function which is needed by build_class
-                    if True: # self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
+                    if self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
                         assert len(posargs) > 0
                         posargs[0] = self.convert_native_to_Function(frame, posargs[0])
+                    elif PYTHON_VERSION >= 3.6 and self.version < 3.6:
+                        raise self.PyVMError(
+                            "We can't wordcode to non-wordcode interpreting right now. We are %s; code is %s."
+                            % (PYTHON_VERSION, self.version)
+                        )
 
                     retval = build_class(self.vm.opc, *posargs, **namedargs)
                     self.vm.push(retval)
@@ -76,7 +85,7 @@ class ByteOpBase(object):
             # Try to convert to an interpreter function so we can interpret it.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
-            elif False: # self.vm.version < 3.0:
+            elif False:  # self.vm.version < 3.0:
                 # Not quite ready. See 3.7 test_asyncgen.py for an
                 # example of code that comes here. In that test, the
                 # LOAD_GLOBAL '_ignore_deprecated_imports' fails to
@@ -109,7 +118,7 @@ class ByteOpBase(object):
     def convert_native_to_Function(self, frame, func):
         assert inspect.isfunction(func) or isinstance(func, Function)
         slots = {
-            "kwdefaults" : {},
+            "kwdefaults": {},
             "annotations": {},
         }
         if self.vm.version >= 3.0:

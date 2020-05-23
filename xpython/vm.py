@@ -359,7 +359,7 @@ class PyVM(object):
             arg = None
 
             if op_has_argument(byteCode, self.opc):
-                if PYTHON_VERSION >= 3.6:
+                if self.version >= 3.6:
                     intArg = code2num(co_code, arg_offset) | extended_arg
                     # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
                     arg_offset += 1
