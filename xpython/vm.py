@@ -22,7 +22,7 @@ from xdis import (
 )
 from xdis.op_imports import get_opcode_module
 
-from xpython.pyobj import Frame, Block, traceback_from_frame
+from xpython.pyobj import Frame, Block, Traceback, traceback_from_frame
 from xpython.byteop import get_byteop
 
 PY2 = not PYTHON3
@@ -490,7 +490,8 @@ class PyVM(object):
                             )
                         )
                     )
-                self.last_traceback = traceback_from_frame(self.frame)
+                if not self.last_traceback:
+                    self.last_traceback = traceback_from_frame(self.frame)
                 self.in_exception_processing = True
 
             why = "exception"
@@ -619,7 +620,8 @@ class PyVM(object):
                                 )
                             )
                         )
-                    self.last_traceback = traceback_from_frame(self.frame)
+                    if self.last_traceback is None:
+                        self.last_traceback = traceback_from_frame(self.frame)
                     self.in_exception_processing = True
 
             if why == "reraise":
@@ -638,8 +640,13 @@ class PyVM(object):
         self.pop_frame()
 
         if why == "exception":
-            if self.last_exception and self.last_exception[0]:
-                six.reraise(*self.last_exception)
+            last_exception = self.last_exception
+            if last_exception and last_exception[0]:
+                if isinstance(last_exception[2], Traceback):
+                    if not self.frame:
+                        raise PyVMUncaughtException(last_exception)
+                else:
+                    six.reraise(*self.last_exception)
             else:
                 raise PyVMError("Borked exception recording")
             # if self.exception and .... ?
