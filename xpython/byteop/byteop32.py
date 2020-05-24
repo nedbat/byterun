@@ -28,6 +28,7 @@ del ByteOp25.DUP_TOPX
 COMPREHENSION_FN_NAMES = frozenset((
     "<setcomp>",
     "<dictcomp>",
+    "<listcomp>",
     "<genexpr>",
 ))
 
