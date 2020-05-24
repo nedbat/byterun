@@ -139,6 +139,7 @@ class ByteOp36(ByteOp35):
         if not inspect.iscode(code) and hasattr(code, "to_native"):
             code = code.to_native()
 
+        # from trepan.api import debug; debug()
         fn_vm = Function(
             name=name,
             code=code,
@@ -167,25 +168,10 @@ class ByteOp36(ByteOp35):
                 for cell in slot["closure"]
             ]
         )
-        try:
-            fn_native = types.FunctionType(
-                code,
-                globals=globs,
-                name=name,
-                argdefs=slot["defaults"],
-                closure=closure,
-            )
-        except:
-            fn_native = fn_vm
-        else:
-            # types.FunctionType doesn't (yet) allow these 3.x function
-            # parameters, so we have to fill them in.
-            fn_native.__kwdefaults__ = slot["kwdefaults"]
-            fn_native.__annotations__ = slot["annotations"]
+        if fn_vm._func:
+            self.vm.fn2native[fn_vm] = fn_vm._func
 
-        self.vm.fn2native[fn_native] = fn_vm
-
-        self.vm.push(fn_native)
+        self.vm.push(fn_vm)
 
     # New in 3.6...
 

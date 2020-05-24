@@ -174,7 +174,7 @@ class Function(object):
                 self._func.__annotations__ = annotations
         else:
             # cross version interpreting... FIXME: fix this up
-            self._func = self
+            self._func = None
 
     def __repr__(self):  # pragma: no cover
         return "<Function %s at 0x%08x>" % (self.func_name, id(self))
