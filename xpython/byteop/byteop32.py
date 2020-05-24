@@ -131,7 +131,7 @@ class ByteOp32(ByteOp27):
         if argc == 0 and name in COMPREHENSION_FN_NAMES:
             fn.has_dot_zero = True
 
-        fn.version = self.version
+        fn.version = self.version  # This is our extra tagging.
         self.vm.push(fn)
 
     # Order of function here is the same as in:

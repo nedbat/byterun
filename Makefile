@@ -43,7 +43,7 @@ dist: clean
 #: Remove .pyc files
 clean_pyc:
 	( cd xpython && $(RM) -f *.pyc */*.pyc )
-	( cd tests && $(RM) -f *.pyc */*.pyc )
+	( cd test && $(RM) -f *.pyc )
 
 #: Create source tarball
 sdist:

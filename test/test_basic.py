@@ -38,6 +38,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_slice_stmts(self):
         self.self_checking()
 
+    def test_callback(self):
+        self.self_checking()
+
     def test_generator_expression(self):
         self.do_one()
 
@@ -279,16 +282,6 @@ class TestBasic(vmtest.VmTestCase):
                 t = Thing()
                 m = t.meth
                 m(1815)
-                """)
-
-        def test_callback(self):
-            self.assert_ok("""\
-                def lcase(s):
-                    return s.lower()
-                l = ["xyz", "ABC"]
-                l.sort(key=lcase)
-                print(l)
-                assert l == ["ABC", "xyz"]
                 """)
 
         def test_unpacking(self):

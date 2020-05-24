@@ -10,7 +10,7 @@ import logging
 import sys
 from xdis import PYTHON_VERSION
 from xpython.pyobj import Function
-from xpython.buildclass import build_class
+from xpython.builtins import build_class
 
 log = logging.getLogger(__name__)
 
@@ -60,16 +60,21 @@ class ByteOpBase(object):
                 # Use the frame's locals(), not the interpreter's
                 self.vm.push(frame.f_globals)
                 return
-            elif (
-                self.is_pypy or self.version != PYTHON_VERSION
-            ) and PYTHON_VERSION >= 3.4:
-                if func == __build_class__:
-                    # later __build_class__() works only bytecode that matches the CPython interpeter,
+            elif PYTHON_VERSION >= 3.0 and func == __build_class__:
+                assert (
+                    len(posargs) > 0
+                ), "__build_class__() should have at least one argument, an __init__() function."
+                if (
+                    self.is_pypy or self.version != PYTHON_VERSION
+                ) and PYTHON_VERSION >= 3.4:
+                    # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
 
-                    # Try to convert to an interpreter function which is needed by build_class
+                    # Down the line we will try to do this universally, but it is tricky:
+                    # we should not into trace into our build_function() routine.
+
                     if self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
-                        assert len(posargs) > 0
+                        # Try to convert to an interpreter function which is needed by build_class
                         posargs[0] = self.convert_native_to_Function(frame, posargs[0])
                     elif PYTHON_VERSION >= 3.6 and self.version < 3.6:
                         raise self.PyVMError(
@@ -80,6 +85,12 @@ class ByteOpBase(object):
                     retval = build_class(self.vm.opc, *posargs, **namedargs)
                     self.vm.push(retval)
                     return
+                else:
+                    # Use builtin __build_class__(). However for that, we need a native function.
+                    # This is wrong though in that we won't trace into __init__().
+                    init_fn = posargs[0]
+                    if isinstance(init_fn, Function) and init_fn in self.vm.fn2native:
+                        posargs[0] = self.vm.fn2native[init_fn]
 
         if inspect.isfunction(func):
             # Try to convert to an interpreter function so we can interpret it.

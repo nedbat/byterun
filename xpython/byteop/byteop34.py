@@ -6,11 +6,14 @@ from __future__ import print_function, division
 import inspect
 import types
 
-from xpython.byteop.byteop32 import ByteOp32
+from xdis import PYTHON_VERSION, IS_PYPY
+from xpython.byteop.byteop32 import ByteOp32, COMPREHENSION_FN_NAMES
 from xpython.byteop.byteop33 import ByteOp33
+from xpython.pyobj import Function
 
 # Gone since 3.3
 del ByteOp32.STORE_LOCALS
+
 
 class ByteOp34(ByteOp33):
     def __init__(self, vm):
@@ -25,7 +28,6 @@ class ByteOp34(ByteOp33):
         bodies.
         """
         self.vm.push(self.vm.frame.cells[count].get())
-
 
     ##############################################################################
     # Order of function here is the same as in:
@@ -62,13 +64,15 @@ class ByteOp34(ByteOp33):
             annotate_objects = self.vm.popn(annotate_count - 1)
             n = len(annotate_names)
             assert n == len(annotate_objects)
-            annotations = {annotate_names[i]:annotate_objects[i] for i in range(n)}
+            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
         else:
             annotations = {}
 
         if kw_default_count:
             kw_default_pairs = self.vm.popn(2 * kw_default_count)
-            kwdefaults = dict(kw_default_pairs[i:i+2] for i in range(0, len(kw_default_pairs), 2))
+            kwdefaults = dict(
+                kw_default_pairs[i : i + 2] for i in range(0, len(kw_default_pairs), 2)
+            )
         else:
             kwdefaults = {}
 
@@ -94,5 +98,8 @@ class ByteOp34(ByteOp33):
         fn.__kwdefaults__ = kwdefaults
         fn.__annonations__ = annotations
 
-        fn.version = self.version # This is our extra tagging.
+        if argc == 0 and name in COMPREHENSION_FN_NAMES:
+            fn.has_dot_zero = True
+
+        fn.version = self.version  # This is our extra tagging.
         self.vm.push(fn)
