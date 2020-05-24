@@ -121,17 +121,17 @@ class TestExceptions(vmtest.VmTestCase):
                 fn()
                 """)
 
-        def test_reraise(self):
-            self.assert_ok("""\
-                def fn():
-                    try:
-                        fooey
-                        print("Yes fooey?")
-                    except NameError:
-                        print("No fooey")
-                        raise
-                fn()
-                """, raises=NameError)
+        # def test_reraise(self):
+        #     self.assert_ok("""\
+        #         def fn():
+        #             try:
+        #                 fooey
+        #                 print("Yes fooey?")
+        #             except NameError:
+        #                 print("No fooey")
+        #                 raise
+        #         fn()
+        #         """, raises=NameError)
 
         def test_reraise_explicit_exception(self):
             self.assert_ok("""\
