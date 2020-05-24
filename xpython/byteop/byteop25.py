@@ -9,7 +9,7 @@ import operator
 import logging
 import six
 from xpython.byteop.byteop import ByteOpBase
-from xpython.pyobj import Function
+from xpython.pyobj import Function, traceback_from_frame
 
 log = logging.getLogger(__name__)
 
@@ -281,6 +281,15 @@ class ByteOp25(ByteOpBase):
     def LOAD_NAME(self, name):
         """Pushes the value associated with co_names[namei] onto the stack."""
         self.vm.push(self.lookup_name(name))
+        # try:
+        #     self.lookup_name(name)
+        # except NameError:
+        #     self.vm.last_traceback = traceback_from_frame(self.vm.frame)
+        #     tb  = traceback_from_frame(self.vm.frame)
+        #     self.vm.last_exception = (NameError, NameError("name '%s' is not defined" % name), tb)
+        #     return "exception"
+        # else:
+        #     self.vm.push(self.lookup_name(name))
 
     # Building
 

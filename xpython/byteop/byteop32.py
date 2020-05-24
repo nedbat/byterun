@@ -36,39 +36,6 @@ class ByteOp32(ByteOp27):
     def __init__(self, vm):
         super(ByteOp32, self).__init__(vm)
 
-    def do_raise(self, exc, cause):
-        if exc is None:  # reraise
-            exc_type, val, tb = self.vm.last_exception
-            if exc_type is None:
-                return "exception"  # error
-            else:
-                return "reraise"
-
-        elif type(exc) == type:
-            # As in `raise ValueError`
-            exc_type = exc
-            val = exc()  # Make an instance.
-        elif isinstance(exc, BaseException):
-            # As in `raise ValueError('foo')`
-            exc_type = type(exc)
-            val = exc
-        else:
-            return "exception"  # error
-
-        # If you reach this point, you're guaranteed that
-        # val is a valid exception instance and exc_type is its class.
-        # Now do a similar thing for the cause, if present.
-        if cause:
-            if type(cause) == type:
-                cause = cause()
-            elif not isinstance(cause, BaseException):
-                return "exception"  # error
-
-            val.__cause__ = cause
-
-        self.vm.last_exception = exc_type, val, val.__traceback__
-        return "exception"
-
     # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7
     def MAKE_FUNCTION(self, argc):

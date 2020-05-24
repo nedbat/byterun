@@ -180,6 +180,39 @@ class ByteOpBase(object):
             self.vm.fn2native[native_func] = func
         return func
 
+    def do_raise(self, exc, cause):
+        if exc is None:  # reraise
+            exc_type, val, tb = self.vm.last_exception
+            if exc_type is None:
+                return "exception"  # error
+            else:
+                return "reraise"
+
+        elif type(exc) == type:
+            # As in `raise ValueError`
+            exc_type = exc
+            val = exc()  # Make an instance.
+        elif isinstance(exc, BaseException):
+            # As in `raise ValueError('foo')`
+            exc_type = type(exc)
+            val = exc
+        else:
+            return "exception"  # error
+
+        # If you reach this point, you're guaranteed that
+        # val is a valid exception instance and exc_type is its class.
+        # Now do a similar thing for the cause, if present.
+        if cause:
+            if type(cause) == type:
+                cause = cause()
+            elif not isinstance(cause, BaseException):
+                return "exception"  # error
+
+            val.__cause__ = cause
+
+        self.vm.last_exception = exc_type, val, val.__traceback__
+        return "exception"
+
     def lookup_name(self, name):
         """Returns the value in the current frame associated for name"""
         frame = self.vm.frame

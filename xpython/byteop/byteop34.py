@@ -85,18 +85,30 @@ class ByteOp34(ByteOp33):
 
         globs = self.vm.frame.f_globals
 
-        # FIXME: we should test PYTHON_VERSION to check for sanity.
-        if not inspect.iscode(code) and hasattr(code, "to_native"):
-            code = code.to_native()
+        fn = Function(
+            name=name,
+            code=code,
+            globs=globs,
+            argdefs=tuple(defaults),
+            vm=self.vm,
+            kwdefaults=kwdefaults,
+            annotations=annotations,
+            # FIXME: figure out qualname
+        )
 
-        # Python 3.4 __build_class__ is more strict about what can be a
-        # function type whereas in earlier version we could get away with
-        # our own kind of xpython.pyobj.Function object.
-        #
+        if (
+            inspect.iscode(code)
+            and self.version == PYTHON_VERSION
+            and self.is_pypy == IS_PYPY
+        ):
+            # Python 3.4 __build_class__ is more strict about what can be a
+            # function type whereas in earlier version we could get away with
+            # our own kind of xpython.pyobj.Function object.
 
-        fn = types.FunctionType(code, globs, name, tuple(defaults))
-        fn.__kwdefaults__ = kwdefaults
-        fn.__annonations__ = annotations
+            native_fn = types.FunctionType(code, globs, name, tuple(defaults))
+            native_fn.__kwdefaults__ = kwdefaults
+            native_fn.__annonations__ = annotations
+            self.vm.fn2native[fn] = native_fn
 
         if argc == 0 and name in COMPREHENSION_FN_NAMES:
             fn.has_dot_zero = True
