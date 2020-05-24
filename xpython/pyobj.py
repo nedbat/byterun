@@ -265,7 +265,34 @@ class Cell(object):
         self.contents = value
 
 
-Block = collections.namedtuple("Block", "type, handler, level")
+class Block(object):
+    """
+    Block(type, handler, level)
+
+    The equivalent of CPython's PyFrame_BlockSetup()
+
+    The are used in "try" and "with" statements; before Python 3.8 also in opcodes
+    associated with `for` (`SETUP_LOOP`) and `except` (`SETUP_EXCEPT`).
+
+    From Python Include/frameobject.h:
+
+    int b_type;                 /* what kind of block this is */
+    int b_handler;              /* where to jump to find handler */
+    int b_level;                /* value stack level to pop to */
+
+    """
+
+    def __init__(self, type, handler, level):
+        self.type = type
+        self.handler = handler
+        self.level = level
+        return
+
+    def __repr__(self):
+        return (
+            "<Block type: %s, end offset: @%d, stack level: %d" %
+            (self.type, self.handler, self.level)
+        )
 
 
 class Frame(object):
