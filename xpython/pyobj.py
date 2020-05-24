@@ -5,6 +5,7 @@ import collections
 import inspect
 import linecache
 import types
+from copy import copy
 from sys import stderr
 from xdis import CO_GENERATOR, iscode, PYTHON3, PYTHON_VERSION
 
@@ -386,7 +387,7 @@ def traceback_from_frame(frame):
     tb = None
 
     while frame:
-        next_tb = Traceback(frame)
+        next_tb = Traceback(copy(frame))
         next_tb.tb_next = tb
         tb = next_tb
         frame = frame.f_back
