@@ -43,7 +43,6 @@ def build_class(opc, func, name, *bases, **kwds):
     if isinstance(metaclass, type):
         metaclass = calculate_metaclass(metaclass, bases)
 
-    print("XXX calling __prepare__")
     if hasattr(metaclass, "__prepare__"):
         prepare = metaclass.__prepare__
         namespace = prepare(name, bases, **kwds)
