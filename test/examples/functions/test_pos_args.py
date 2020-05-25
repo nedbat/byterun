@@ -10,7 +10,7 @@
 
 digest_cons = lambda d=b'': 5
 
-# Handle single kwarg
+# Handle single keyword-only arg
 x = lambda *, d=0: d
 assert x(d=1) == 1
 assert x() == 0

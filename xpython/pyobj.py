@@ -9,6 +9,9 @@ from copy import copy
 from sys import stderr
 from xdis import CO_GENERATOR, iscode, PYTHON3, PYTHON_VERSION
 
+if PYTHON_VERSION >= 3.0:
+    import xpython.stdlib.inspect3 as inspect3
+
 import six
 
 PY2 = not PYTHON3
@@ -120,7 +123,7 @@ class Function(object):
             raise TypeError("Function() argument 6 (vm) must be passed")
 
         # Function field names below change between Python 2.7 and 3.x.
-        # We create attibutes for both names. Other code in this file assumes
+        # We create attributes for both names. Other code in this file assumes
         # 2.7ish names, while bytecode for 3.x will use 3.x names.
         # TODO: be more stringent based on vm version.
         self.func_code = self.__code__ = code
@@ -136,7 +139,7 @@ class Function(object):
         )
 
         if vm.version >= 3.0:
-            self.__annotations = annotations
+            self.__annotations__ = annotations
             self.__kwdefaults__ = kwdefaults
             if vm.version >= 3.4:
                 self.__qualname___ = qualname if qualname else self.__name__
@@ -165,13 +168,17 @@ class Function(object):
                 pass
 
         if isinstance(code, types.CodeType):
-            self._func = types.FunctionType(code, globs, **kw)
-            if vm.version >= 3.0:
-                # Above, types.FunctionType() above doesn't allow passing
-                # in the following attributes, so we set them as
-                # assignments below.
-                self._func.__kwdefaults__ = kwdefaults
-                self._func.__annotations__ = annotations
+            try:
+                self._func = types.FunctionType(code, globs, **kw)
+                if vm.version >= 3.0:
+                    # Above, types.FunctionType() above doesn't allow passing
+                    # in the following attributes, so we set them as
+                    # assignments below.
+                    self._func.__kwdefaults__ = kwdefaults
+                    self._func.__annotations__ = annotations
+                    pass
+            except:
+                self._func = None
         else:
             # cross version interpreting... FIXME: fix this up
             self._func = None
@@ -196,8 +203,15 @@ class Function(object):
             # so just do the right thing.
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
-        else:
+        elif self._func:
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
+        elif PYTHON_VERSION >= 3.0 and self.version >= 3.0:
+            callargs = inspect3.getcallargs(self, *args, **kwargs)
+        else:
+            # FIXME: fill in other inspect routines
+            raise RuntimeError("Can't get function signature for %s in Python %s from %s" %
+                               (self, self.version, PYTHON_VERSION))
+
         frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, {})
         if self.func_code.co_flags & CO_GENERATOR:
             gen = Generator(frame, self._vm)

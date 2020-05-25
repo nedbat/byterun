@@ -15,6 +15,8 @@ del ByteOp25.CALL_FUNCTION_VAR
 del ByteOp25.CALL_FUNCTION_KW
 del ByteOp25.CALL_FUNCTION_VAR_KW
 
+MAKE_FUNCTION_SLOT_NAMES = ("defaults", "kwdefaults", "annotations", "closure")
+MAKE_FUNCTION_SLOTS = len(MAKE_FUNCTION_SLOT_NAMES)
 
 def identity(x):
     return x
@@ -103,7 +105,8 @@ class ByteOp36(ByteOp35):
         carries a specified flag value
 
         * 0x01 a tuple of default values for positional-only and positional-or-keyword parameters in positional order
-        * 0x02 a dictionary of keyword-only parameters  default values
+        * 0x02 a dictionary of the default values for the keyword-only parameters
+               the key is the parameter name and the value is the default value
         * 0x04 an annotation dictionary
         * 0x08 a tuple containing cells for free variables, making a closure
           the code associated with the function (at TOS1)
@@ -112,24 +115,19 @@ class ByteOp36(ByteOp35):
         name = self.vm.pop()
         code = self.vm.pop()
 
-        slot_names = ("closure", "annotations", "kwdefaults", "closure")
         slot = {
             "defaults": tuple(),
             "kwdefaults": {},
             "annotations": {},
             "closure": tuple(),
         }
-        assert argc < 17
-        parameters = []
-        for i in range(4):
+        assert 0 <= argc < (1 << MAKE_FUNCTION_SLOTS)
+        for i in range(MAKE_FUNCTION_SLOTS):
             if argc & 1:
-                parameters.insert(0, self.vm.pop())
+                slot[MAKE_FUNCTION_SLOT_NAMES[i]] = self.vm.pop()
             argc >>= 1
             if argc == 0:
                 break
-
-        for i in range(len(parameters)):
-            slot[slot_names[i]] = parameters[i]
 
         # FIXME: DRY with code in byteop3{2,4}.py
 
@@ -139,7 +137,6 @@ class ByteOp36(ByteOp35):
         if not inspect.iscode(code) and hasattr(code, "to_native"):
             code = code.to_native()
 
-        # from trepan.api import debug; debug()
         fn_vm = Function(
             name=name,
             code=code,
