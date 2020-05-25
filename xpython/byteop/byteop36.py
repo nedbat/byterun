@@ -3,8 +3,8 @@
 from __future__ import print_function, division
 
 import inspect
-import types
 
+from xdis import PYTHON_VERSION
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.pyobj import Cell, Function, make_cell
@@ -49,19 +49,6 @@ class ByteOp36(ByteOp35):
         posargs = self.vm.popn(lenPos)
         func = self.vm.pop()
         self.call_function_with_args_resolved(func, posargs, namedargs)
-
-    def format_value(self, attr, value):
-        if attr & 4:
-            value = self.vm.pop()
-            attr_flags = attr & 3
-            if attr_flags:
-                conversion_fn = FSTRING_CONVERSION_MAP.get(attr_flags, identity)
-            else:
-                conversion_fn = identity
-        else:
-            conversion_fn = FSTRING_CONVERSION_MAP.get(attr, identity)
-
-        return str(conversion_fn(value))
 
     ##############################################################################
     # Order of function here is the same as in:
@@ -197,7 +184,18 @@ class ByteOp36(ByteOp35):
         Formatting is performed using PyObject_Format(). The result is
         pushed on the stack.
         """
-        self.vm.push(self.format_value(flags, self.vm.pop()))
+        if flags & 0x04 == 0x04:
+            format_spec = self.vm.pop()
+        else:
+            format_spec = ''
+
+        value = self.vm.pop()
+        attr_flags = flags & 0x03
+        if attr_flags:
+            value = FSTRING_CONVERSION_MAP.get(attr_flags, identity)(value)
+
+        result = format(value, format_spec)
+        self.vm.push(result)
 
     def BUILD_CONST_KEY_MAP(self, count):
         """

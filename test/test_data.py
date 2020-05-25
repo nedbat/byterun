@@ -23,8 +23,7 @@ class TestData(vmtest.VmTestCase):
         def test_map_unpack(self):
             self.self_checking()
 
-    # FIXME
-    # if PYTHON_VERSION >= 3.6:
+    if PYTHON_VERSION >= 3.6:
 
-    #     def test_fstring(self):
-    #         self.self_checking()
+        def test_fstring(self):
+            self.self_checking()
