@@ -69,19 +69,7 @@ class ByteOpBase(object):
                 ) and PYTHON_VERSION >= 3.4:
                     # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
-
                     # Down the line we will try to do this universally, but it is tricky:
-                    # we should not into trace into our build_function() routine.
-
-                    if self.version == PYTHON_VERSION and self.is_pypy != IS_PYPY:
-                        # Try to convert to an interpreter function which is needed by build_class
-                        posargs[0] = self.convert_native_to_Function(frame, posargs[0])
-                    elif PYTHON_VERSION >= 3.6 and self.version < 3.6:
-                        raise self.PyVMError(
-                            "We can't do wordcode to non-wordcode interpreting right now. We are %s; code is %s."
-                            % (PYTHON_VERSION, self.version)
-                        )
-
                     retval = build_class(self.vm.opc, *posargs, **namedargs)
                     self.vm.push(retval)
                     return

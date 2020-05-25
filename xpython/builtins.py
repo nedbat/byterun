@@ -56,7 +56,7 @@ def build_class(opc, func, name, *bases, **kwds):
         and python_implementation == opc.python_implementation
     ):
         # convert code to xdis's portable code type.
-        class_body_code = codeType2Portable(func_code(func_code))
+        class_body_code = codeType2Portable(func_code(func))
     else:
         class_body_code = func.func_code
 

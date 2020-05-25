@@ -133,7 +133,16 @@ class Function(object):
 
         self.func_globals = globs
         self.func_locals = vm.frame.f_locals
-        self.__dict__ = {}
+        # Investigate: in Python 2.7 and before bytecode, setting dict
+        # to {} wipes out self._vm and self.version?
+        if vm.version >= 3.0:
+            self.__dict__ = {}
+        else:
+            self.__dict__ = {
+                "version": vm.version,
+                "_vm": vm,
+            }
+
         self.__doc__ = (
             code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
         )
@@ -205,12 +214,8 @@ class Function(object):
             callargs = {".0": args[0]}
         elif self._func:
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
-        elif PYTHON_VERSION >= 3.0 and self.version >= 3.0:
-            callargs = inspect3.getcallargs(self, *args, **kwargs)
         else:
-            # FIXME: fill in other inspect routines
-            raise RuntimeError("Can't get function signature for %s in Python %s from %s" %
-                               (self, self.version, PYTHON_VERSION))
+            callargs = inspect3.getcallargs(self, *args, **kwargs)
 
         frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, {})
         if self.func_code.co_flags & CO_GENERATOR:
