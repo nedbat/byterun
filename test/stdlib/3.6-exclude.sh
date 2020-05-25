@@ -1,29 +1,24 @@
 SKIP_TESTS=(
-    [test_ast.py]=1 # FIXME: Works on c90ff51
-    [test_cmath.py]=1  # FIXME: Works on c90ff51
-    [test_format.py]=1 # FIXME: Works on c90ff51
-    [test_ftplib.py]=1 # FIXME: Works on c90ff51
-    [test_slice.py]=1 # FIXME: Works on c90ff51
-    [test_sort.py]=1 # FIXME: Works on c90ff51
-    [test_timeit.py]=1 # FIXME: Works on c90ff51
-    [test_os.py]=1 # parse error FIXME: Works on c90ff51
+    # PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
+    [test_os.py]=1
 
     [test___all__.py]=1  # it fails on its own
-    [test_aifc.py]=1  #
     [test_argparse.py]=1 # it fails on its own
     [test_asdl_parser.py]=1 # it fails on its own
-    [test_asyncgen.py]=1  # parse error
+
+    # GET_AITER not implemented
+    [test_asyncgen.py]=1
+
     [test_atexit.py]=1  # The atexit test looks for specific comments in error lines
 
-    [test_baseexception.py]=1 # test assert error
-    [test_bdb.py]=1  #
+    [test_bdb.py]=1  # probably sys.settrace stuff
+
     [test_bisect.py]=1  # it fails on its own
-    [test_buffer.py]=1  # parse error
+    [test_buffer.py]=1  # Takes a long time to run in tests
     [test_builtin.py]=1  # Fails on its own
 
     [test test_capi.py]=1 # it fails on its own
     [test_cmd_line.py]=1 # Interactive?
-    [test_codeccallbacks.py]=1 # TypeError: ... must return (str/bytes, int) tuple
     [test_codecencodings_cn.py]=1 # it fails on its own
     [test_codecencodings_hk.py]=1 # it fails on its own
     [test_codecencodings_iso2022.py]=1 # it fails on its own
@@ -39,7 +34,6 @@ SKIP_TESTS=(
     [test_collections.py]= # it fails on its own
     [test_compile.py]=1  # Code introspects on co_consts in a non-decompilable way
     [test_concurrent_futures.py]=1 # Takes long
-    [test_contextlib.py]=1 # test assertion failure
     [test_contextlib_async.py]=1 # Investigate
     [test_coroutines.py]=1 # parse error
     [test_curses.py]=1 # Parse error
@@ -47,20 +41,19 @@ SKIP_TESTS=(
 
     [test_datetime.py]=1 # it fails on its own
     [test_dbm_ndbm.py]=1 # it fails on its own
-    [test_decimal.py]=1
-    [test_decorators.py]=1 # control-flow failures
-    [test_descr.py]=1   # syntax error: Investigate
+    [test_decimal.py]=1 # Takes to long to run: 20 seconds
+
+    [test_decorators.py]=1
+
     [test_devpoll.py]=1 # it fails on its own
     [test_dict.py]=1 # it fails on its own
     [test_dis.py]=1   # We change line numbers - duh!
-    [test_doctest2.py]=1  #
-    [test_doctest.py]=1  #
+    [test_doctest.py]=1  # fails on its own
     [test_docxmlrpc.py]=1 # it fails on its own
     [test_dtrace.py]=1 # it fails on its own
     [test_dummy_thread.py]=1 # it fails on its own
 
     [test_enum.py]=1  #
-    [test_exceptions.py]=1   # parse error
 
     [test_faulthandler.py]=1 # test takes too long to run: 24 seconds
     [test_filecmp.py]=1   # parse error
@@ -97,7 +90,6 @@ SKIP_TESTS=(
     [test_marshal.py]=1 #
     [test_math.py]=1 # test assert errors call param Investigate
     [test_metaclass.py]=1
-    [test_modulefinder.py]=1  # test assertion error
     [test_msilib.py]=1 # it fails on its own
     [test_multiprocessing_fork.py]=1 # it fails on its own
     [test_multiprocessing_forkserver.py]=1 # it fails on its own
@@ -164,19 +156,18 @@ SKIP_TESTS=(
     [test_threading.py]=1
     [test_threadsignals.py]=1
 
-    [test_time.py]=1 # Works but not on POWER: Rounding error?
-
-    [test_timeout.py]=1
+    [test_timeout.py]=1 # takes too long to run: 18 seconds
     [test_tix.py]=1 # it fails on its own
     [test_tk.py]=1 # it fails on its own
     [test_tokenize.py]=1 # test takes too long to run: 80 seconds
     [test_trace.py]= # it fails on its own
+
     [test_traceback.py]=1
     [test_tracemalloc.py]=1
     [test_ttk_guionly.py]= # it fails on its own
     [test_ttk_textonly.py]=1 # it fails on its own
     [test_turtle.py]=1 # it fails on its own
-    [test_typing.py]=1 # investigate syntax error
+    [test_typing.py]=1 #
 
     [test_ucn.py]=1 # it fails on its own
     [test_urllib2_localnet.py]=1 # long
@@ -184,7 +175,6 @@ SKIP_TESTS=(
     [test_urllib2.py]=1 # it fails on its own
     [test_urllibnet.py]=1 # it fails on its own
     [test_urllib.py]=1 # it fails on its own
-    [test_urlparse.py]=1 # test failure
 
     [test_venv.py]=1 # test takes too long to run: 13 seconds
 
@@ -197,9 +187,7 @@ SKIP_TESTS=(
 
     [test_zipfile.py]=1 # Too long - 11 seconds
     [test_zipfile64.py]=1
-    [test_zipimport.py]=1
-    [test_zipimport_support.py]=1
-    [test_zlib.py]=1
+    [test_zipimport_support.py]=1  # fails on its own
 )
 # 236 unit-test files in about 13 minutes
 
