@@ -104,10 +104,8 @@ class TestFunctions(vmtest.VmTestCase):
                 assert four == 4
                 """)
 
-        # FIXME for 3.6
-        if PYTHON_VERSION < 3.6:
-            def test_partial_with_kwargs(self):
-                self.self_checking()
+        def test_partial_with_kwargs(self):
+            self.self_checking()
 
         def test_wraps(self):
             self.assert_ok("""\

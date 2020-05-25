@@ -9,7 +9,7 @@ import operator
 import logging
 import six
 from xpython.byteop.byteop import ByteOpBase
-from xpython.pyobj import Function, traceback_from_frame
+from xpython.pyobj import Function # , traceback_from_frame
 
 log = logging.getLogger(__name__)
 
@@ -280,6 +280,11 @@ class ByteOp25(ByteOpBase):
 
     def LOAD_NAME(self, name):
         """Pushes the value associated with co_names[namei] onto the stack."""
+        # Running this opcode can raise a NameError.
+        #
+        # FIXME: Better would be to separate NameErrors caused by
+        # interpreting bytecode versus NameErrors that are caused as a result of bugs
+        # in the interpreter.
         self.vm.push(self.lookup_name(name))
         # try:
         #     self.lookup_name(name)

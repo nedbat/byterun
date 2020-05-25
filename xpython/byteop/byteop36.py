@@ -4,7 +4,6 @@ from __future__ import print_function, division
 
 import inspect
 
-from xdis import PYTHON_VERSION
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.pyobj import Cell, Function, make_cell
@@ -42,7 +41,7 @@ class ByteOp36(ByteOp35):
     def call_function_kw(self, argc):
         namedargs = {}
         namedargs_tup = self.vm.pop()
-        for name in namedargs_tup:
+        for name in reversed(namedargs_tup):
             namedargs[name] = self.vm.pop()
 
         lenPos = argc - len(namedargs_tup)
