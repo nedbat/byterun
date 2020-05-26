@@ -1,3 +1,10 @@
+# This program stresses WITH_FINALLY and in 3.5+
+# WITH_CLEANUP_FINISH.
+
+# Compare with test_suppressed_raise_context_manager.py
+"""This program is self-checking!"""
+
+
 class NullContext(object):
     def __enter__(self):
         l.append("i")
@@ -16,8 +23,10 @@ try:
         raise ValueError("Boo!")
     l.append("e")
 except ValueError:
-    l.append("x")
+    # Raise should propagate to here
+    l.append("-propagated-")
 l.append("r")
 s = "".join(l)
-print("Look: %r" % s)
-assert s == "iwoxr"
+
+expect = "iwo-propagated-r"
+assert s == expect, "'%s' vs '%s'" % (s, expect)

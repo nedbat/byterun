@@ -1,5 +1,7 @@
 # The complete code for an @contextmanager example, lifted from
 # the stdlib.
+"""This program is self-checking!"""
+
 from _functools import partial
 
 WRAPPER_ASSIGNMENTS = ('__module__', '__name__', '__doc__')
