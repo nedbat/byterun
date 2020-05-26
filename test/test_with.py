@@ -61,10 +61,10 @@ class TestWithStatement(vmtest.VmTestCase):
         def test_at_context_manager_simplified(self):
             self.do_one()
 
+        def test_at_context_manager_complete(self):
+            self.do_one()
+
         if PYTHON_VERSION >= 3.3:
-            # FIXME - this a bug in our 3.2 handling
-            def test_at_context_manager_complete(self):
-                self.do_one()
 
             # "yield from" is not in 3.2-
             def test_generator_with_context_manager(self):
