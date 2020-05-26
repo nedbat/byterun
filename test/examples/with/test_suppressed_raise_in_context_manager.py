@@ -1,3 +1,7 @@
+# This program stresses WITH_FINALLY and in 3.5+
+# WITH_CLEANUP_FINISH
+"""This program is self-checking!"""
+
 class SuppressingContext(object):
     def __enter__(self):
         l.append("i")
@@ -11,6 +15,7 @@ class SuppressingContext(object):
 
 l = []
 try:
+    # Check that "with SuppressingContext()" suppresses the below raise ValueError()
     with SuppressingContext():
         l.append("w")
         raise ValueError("Boo!")
@@ -19,5 +24,4 @@ except ValueError:
     l.append("x")
 l.append("r")
 s = "".join(l)
-print("Look: %r" % s)
 assert s == "iwoer"

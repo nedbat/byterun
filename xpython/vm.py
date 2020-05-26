@@ -510,8 +510,9 @@ class PyVM(object):
             why = None
             return why
 
-        self.pop_block()
-        self.unwind_block(block)
+        if not (block.type == "except-handler" and why == "silenced"):
+            self.pop_block()
+            self.unwind_block(block)
 
         if block.type == "loop" and why == "break":
             why = None
@@ -555,6 +556,10 @@ class PyVM(object):
                 why = None
                 self.jump(block.handler)
                 return why
+            elif block.type == "except-handler" and why == "silenced":
+                # 3.5+ WITH_CLEANUP_FINISH
+                # Nothing needs to be done here.
+                return None
 
         return why
 

@@ -308,10 +308,16 @@ class Block(object):
         return
 
     def __repr__(self):
-        return (
-            "<Block type: %s, end offset: @%d, stack level: %d" %
-            (self.type, self.handler, self.level)
-        )
+        if self.handler is None:
+            return (
+                "<Block type: %s, stack level: %d" %
+                (self.type, self.level)
+            )
+        else:
+            return (
+                "<Block type: %s, end offset: @%d, stack level: %d" %
+                (self.type, self.handler, self.level)
+            )
 
 
 class Frame(object):

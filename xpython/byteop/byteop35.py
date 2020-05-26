@@ -199,12 +199,15 @@ class ByteOp35(ByteOp34):
         """Pops exception type and result of "exit" function call from the stack.
 
         If the stack represents an exception, and the function call
-        returns a  true  value, this information is "zapped" and
+        returns a true value, this information is "zapped" and
         replaced with a single WHY_SILENCED to prevent END_FINALLY
         from re-raising the exception. (But non-local gotos will still
         be resumed.)
         """
-        exit_ret = self.vm.pop(1)
-        u = self.vm.pop()
-        if type(u) is type and issubclass(u, BaseException) and exit_ret:
+        exit_result = self.vm.pop()
+        exception = self.vm.pop()
+        if exit_result and type(exception) is type and issubclass(exception, BaseException):
+            # Pop the exception and replace with "silenced".
+            self.vm.popn(1)
             self.vm.push("silenced")
+            return "silenced"
