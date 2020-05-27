@@ -149,52 +149,58 @@ Currently bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.5 are
 supported. Extending to 3.8 and beyond is on hold until there is more
 interest, I get help, I need or there is or funding,
 
-Whereas *Byterun* was a bit loose in accepting bytecode opcodes that
-is invalid for particular Python but may be valid for another;
-*x-python* is more stringent. This has pros and cons. On the plus side
-*Byterun* might run certain Python 3.4 bytecode because the opcode
-sets are similar. However starting with Python 3.5 and beyond the
-likelihood happening becomes vanishingly small. And while the
+Whereas *Byterun* is loose in accepting bytecode opcodes that is
+invalid for particular Python but may be valid for another; *x-python*
+is more stringent. This has some pros but mostly cons. On the plus
+side *Byterun* might run certain Python 3.4 bytecode because the
+opcode sets are similar. However starting with Python 3.5 and beyond
+the likelihood happening becomes vanishingly small. And while the
 underlying opcode names may be the same, the semantics of the
 operation may change subtely. See for example
 https://github.com/nedbat/byterun/issues/34.
 
-Internally Byterun needs the kind of overhaul we have here to be able
-to scale to support bytecode for more Pythons, and to be able to run
-bytecode across different versions of Python. Specifically, you can't
-rely on Python's `dis <https://docs.python.org/3/library/dis.html>`_
-module if you expect to expect to run a bytecode other than the
-bytecode that the interpreter is running.
+Byterun needs the kind of overhaul we have here to be able to scale to
+support bytecode for more Pythons, and to be able to run bytecode
+across different versions of Python. Specifically, you can't rely on
+Python's `dis <https://docs.python.org/3/library/dis.html>`_ module if
+you expect to expect to run a bytecode other than the bytecode that
+the interpreter is running, or run newer "wordcode" bytecode on a
+"byte"-oriented byteocde, or vica versa.
 
-In *x-python* there is a clear distinction between the version being
-interpreted and the version of Python that is running. There is
-tighter control of opcodes and an opcode's implementation is kept for
-each Python version. So we'll warn early when something is
-invalid. You can run 3.3 bytecode using Python 3.7 (largely).
+In contrast, *x-python* there is a clear distinction between the
+version being interpreted and the version of Python that is
+running. There is tighter control of opcodes and an opcode's
+implementation is kept for each Python version. So we'll warn early
+when something is invalid. You can run bytecode back to Python 2.5
+using Python 3.7 (largely), which is amazing give that 3.7's native
+byte code is 2 bytes per instruction while 2.5's is 1 or 3 bytes per
+instruction.
 
 The "largely" part is because the interpreter has always made use of
-Python builtins. When a Python version running the interperter matches a
-supported bytecode close enough, the interpreter can (and does) make use
-interpreter internals. For example, built-in functions like `range()`
-are supported this way.
+Python builtins and libraries, and for the most part these haven't
+changed very much. Often, since many of the underlying builtins are
+the same, the interpreter can (and does) make use interpreter
+internals. For example, built-in functions like `range()` are
+supported this way.
 
-Running 2.7 bytecode on 3.x is sometimes not possible when the
-portions of the runtime and internal libraries are too different.
+So interpreting bytecode from a newer Python release than the release
+the Pyton interpreter is using, is often doable too. Even though
+Python 2.7 doesn't support keyword-only arguments or format strings,
+it can still interpret bytecode created from using these constructs.
 
-Over time more of Python's internals need to be get added so we have
-better cross-version compatability. More difficult is running later
-byecode from earlier Python versions. The challenge here is that many
-new features like asynchronous I/O and concurrency primatives are not
-in the older versions and may not easily be simulated. However that
-too is a possibility if there is interest.
+That's possible here because these specific features are more
+syntactic sugar than extensions to the runtime. For example format
+strings basically map down to using the `format()` function which is
+available on 2.7.
+
+New features like asynchronous I/O and concurrency primatives are not
+in the older versions and need to be simulated. However that too is a
+possibility if there is interest or support.
 
 You can run many of the tests that Python uses to test itself, (and I
 do!) and those work. Right now this program works best on Python up to
 3.4 when life in Python was much simpler. It runs over 300 in Python's
 test suite for itself without problems.
-
-Moving back and forward from 3.4 things worse. Python 3.5 is pretty
-good. Python 3.6 and 3.7 is okay but need work.
 
 
 History

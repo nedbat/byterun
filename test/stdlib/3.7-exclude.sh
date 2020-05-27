@@ -1,5 +1,6 @@
 SKIP_TESTS=(
 
+    # exec(ASYNCIO_TESTS)
     # NameError: name 'TypeVar' is not defined
     [test_typing.py]=1 #
 
@@ -7,6 +8,9 @@ SKIP_TESTS=(
     # class TestLegacyAPI(unittest.TestCase):
     # TypeError: __build_class__: func must be a function
     [test_abc.py]=1
+
+    # GET_AITER not implemented
+    [test_asyncgen.py]=1
 
     # File "test_keywordonlyarg.py", line 16, in <module>
     # def mixedargs_sum(a, b=0, *arg, k1, k2=0):
@@ -18,8 +22,12 @@ SKIP_TESTS=(
     # (should be /tmp/test3.7
     [test_math.py]=1
 
+    # xpython.vm.PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
+    [test_decimal.py]=1
+
     [test_bdb.py]=1 # test assert errors
-    [test_calendar.py]=1 # test assert errors
+
+    # _pickle.PicklingError: Can't pickle <class 'xpython.byteop.byteop.TestNT'>: attribute lookup TestNT on xpython.byteop.byteop failed
     [test_collections.py]=1 # test assert errors
 
     [test___all__.py]=1 # it fails on its own
@@ -39,9 +47,6 @@ SKIP_TESTS=(
     [test_curses.py]=1 # probably byte string not handled properly
     [test_datetime.py]=1   # Takes too long *before* decompiling
     [test_dbm_ndbm.py]=1 # it fails on its own
-
-    # Does something with sys.args?
-    [test_decimal.py]=1
 
     [test_descr.py]=1   # test assertion failures
     [test_devpoll.py]=1 # it fails on its own
@@ -67,7 +72,6 @@ SKIP_TESTS=(
     [test_nntplib.py]=1 # Too long in running before decomplation takes 25 seconds
 
     [test_ossaudiodev.py]=1 # it fails on its own
-    [test_optparse.py]=1 # test takes more than 15 seconds to run
 
     [test_pdb.py]=1 # Probably relies on comments
     [test_poll.py]=1 # Takes too long to run before decompiling 11 seconds
@@ -76,7 +80,6 @@ SKIP_TESTS=(
     [test_regrtest.py]=1 # takes too long to run before decompiling
     [test_runpy.py]=1  # Too long to run before decompiling
 
-    [test_select.py]=1 # test takes too long to run: 11 seconds
     [test_selectors.py]=1 # Takes too long to run before decompling: 17 seconds
     [test_shutil.py]=1 # fails on its own
     [test_signal.py]=1 # Takes too long to run before decompiling: 22 seconds
@@ -86,7 +89,6 @@ SKIP_TESTS=(
     [test_subprocess.py]=1 # Takes too long to run before decompile: 25 seconds
 
     [test_tarfile.py]=1 # test takes too long to run before decompiling
-    [test_telnetlib.py]=1 # test run takes more than 15 seconds
     [test_tk.py]=1  # test takes too long to run: 13 seconds
     [test_tokenize.py]=1 # test takes too long to run before decompilation: 43 seconds
     [test_trace.py]=1  # it fails on its own

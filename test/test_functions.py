@@ -22,6 +22,10 @@ class TestFunctions(vmtest.VmTestCase):
         def test_pos_args(self):
             self.self_checking()
 
+        # "yield from" and bytecode YIELD_FROM added in 3.3
+        def test_yield_from_tuple(self):
+            self.self_checking()
+
     if PYTHON_VERSION >= 3.6:
         print("Test not gone over yet for >= 3.6")
     else:
@@ -280,9 +284,6 @@ class TestFunctions(vmtest.VmTestCase):
 
                     main()
                     """)
-
-            def test_yield_from_tuple(self):
-                self.do_one()
 
             def test_distinguish_iterators_and_generators(self):
                 self.assert_ok("""\

@@ -2,6 +2,9 @@ SKIP_TESTS=(
     # PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
     [test_os.py]=1
 
+    # TypeError: mixedargs_sum() got an unexpected keyword argument 'k1'
+    [test_keywordonlyarg.py]=1
+
     [test___all__.py]=1  # it fails on its own
     [test_argparse.py]=1 # it fails on its own
     [test_asdl_parser.py]=1 # it fails on its own
@@ -18,6 +21,13 @@ SKIP_TESTS=(
     [test_builtin.py]=1  # Fails on its own
 
     [test test_capi.py]=1 # it fails on its own
+
+    # TypeError: __repr__ returned non-string (type NoneType)
+    [test_class.py]=1
+
+    # TypeError: can't pickle module objects
+    [test_copy.py]=1
+
     [test_cmd_line.py]=1 # Interactive?
     [test_codecencodings_cn.py]=1 # it fails on its own
     [test_codecencodings_hk.py]=1 # it fails on its own
@@ -45,6 +55,9 @@ SKIP_TESTS=(
 
     [test_decorators.py]=1
 
+    # TypeError: can't pickle module objects
+    [test_defaultdict.py]=1
+
     [test_devpoll.py]=1 # it fails on its own
     [test_dict.py]=1 # it fails on its own
     [test_dis.py]=1   # We change line numbers - duh!
@@ -54,6 +67,9 @@ SKIP_TESTS=(
     [test_dummy_thread.py]=1 # it fails on its own
 
     [test_enum.py]=1  #
+
+    # KeyError: 'PIP_CONFIG_FILE'
+    [test_ensurepip.py]=1
 
     [test_faulthandler.py]=1 # test takes too long to run: 24 seconds
     [test_filecmp.py]=1   # parse error
@@ -71,25 +87,38 @@ SKIP_TESTS=(
     [test_glob.py]=1 #
     [test_grammar.py]=1 # parse error
 
+    # AssertionError: f_back.cells: None
+    [test_gzip.py]=1
+
     [test_hashlib.py]=1 # it fails on its own
     [test_heapq.py]=1 # it fails on its own
 
     [test_io.py]=1 # it fails on its own
     [test_imaplib.py]=1
     [test_inspect.py]=1 # Syntax error Investigate
-    [test_itertools.py]=1 # test assertion failures
+
+    # byteCode = byteint(co_code[opoffset])
+    # IndexError: index out of range
+    [test_itertools.py]=1
 
     [test_kqueue.py]=1 # it fails on its own
 
     [test_lib2to3.py]=1 # it fails on its own
+
+
+    # KeyError: '/home/rocky/.pyenv/versions/3.6.10/lib/python3.6/linecache.py.missing'
+    [test_linecache.py]=1
+
     [test_logging.py]=1 # it fails on its own
     [test_long.py]=1 #
     [test_lzma.py]=1 # fails on its own
 
     [test_mailbox.py]=1 # it fails on its own
     [test_marshal.py]=1 #
-    [test_math.py]=1 # test assert errors call param Investigate
-    [test_metaclass.py]=1
+
+    # TypeError: sequence item 0: expected str instance, int found
+    [test_math.py]=1
+
     [test_msilib.py]=1 # it fails on its own
     [test_multiprocessing_fork.py]=1 # it fails on its own
     [test_multiprocessing_forkserver.py]=1 # it fails on its own
@@ -99,41 +128,50 @@ SKIP_TESTS=(
     [test_nntplib.py]=1 # test takes too long to run: 31 seconds
     [test_normalization.py]=1 # it fails on its own
 
-    [test_optparse.py]=1 # test fails
+    # NameError: name 'ntpath' is not defined
+    [test_ntpath.py]=1
+
     [test_ordered_dict.py]=1 # it fails on its own
     [test_ossaudiodev.py]=1 # it fails on its own
 
     [test_pdb.py]=1 # Probably introspection
-    [test_peepholer.py]=1
     [test_pickle.py]=1
     [test_pkgimport.py]=1 # it fails on its own
-    [test_platform.py]=1
     [test_plistlib.py]=1
     [test_poll.py]=1 # Takes too long 11 seconds
-    [test_poplib.py]=1
     [test_pprint.py]=1 # it fails on its own
-    [test_pulldom.py]=1
     [test_pyclbr.py]=1 # it fails on its own
     [test_pydoc.py]=1 # it fails on its own
 
-    [test_quopri.py]=1      # AssertionError: b'123=four' != '123=four'
-
     [test_random.py]=1 # it fails on its own
+
+    # Run doesn't terminate
     [test_range.py]=1
+
     [test_regrtest.py]=1 # test takes too long to run: 12 seconds
-    [test_robotparser.py]=1
+
+    # AssertionError: 'test_re.py' != 'test_re.pyc'
+    # - test_re.py
+    # + test_re.pyc
+    # ?           +
+    [test_re.py]=1
+
+    # xpython.vm.PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
+    [test_reprlib.py]=1
+
     [test_runpy.py]=1 # decompile takes too long?
 
     [test_sax.py]=1 # it fails on its own
-    [test_sched.py]=1
-    [test_scope.py]=1
     [test_secrets.py]=1 # it fails on its own
     [test_select.py]=1 # test takes too long to run: 11 seconds
     [test_selectors.py]=1 # it fails on its own
+
+    # IndexError: pop from empty list
+    [test_sys_setprofile.py]=1
+
     [test_shutil.py]=1 # it fails on its own
     [test_signal.py]=1 # it fails on its own
     [test_site.py]=1 # it fails on its own
-    [test_smtpd.py]=1
     [test_smtplib.py]=1 # it fails on its own
     [test_socket.py]=1 # long
     [test_socketserver.py]=1
@@ -154,6 +192,11 @@ SKIP_TESTS=(
     [test_telnetlib.py]=1 # takes more than 15 seconds to run
     [test_thread.py]=1 # it fails on its own
     [test_threading.py]=1
+
+    # byteCode = byteint(co_code[opoffset])
+    # IndexError: index out of range
+    [test_threaded_import.py]=1
+
     [test_threadsignals.py]=1
 
     [test_timeout.py]=1 # takes too long to run: 18 seconds
@@ -167,6 +210,9 @@ SKIP_TESTS=(
     [test_ttk_guionly.py]= # it fails on its own
     [test_ttk_textonly.py]=1 # it fails on its own
     [test_turtle.py]=1 # it fails on its own
+
+    # exec(ASYNCIO_TESTS)
+    # NameError: name 'TypeVar' is not defined
     [test_typing.py]=1 #
 
     [test_ucn.py]=1 # it fails on its own
@@ -183,13 +229,15 @@ SKIP_TESTS=(
     [test_winreg.py]=1 # it fails on its own
     [test_winsound.py]=1 # it fails on its own
 
+    [test_with.py]=1
+
     [test_xmlrpc.py]=1 # it fails on its own
 
     [test_zipfile.py]=1 # Too long - 11 seconds
     [test_zipfile64.py]=1
     [test_zipimport_support.py]=1  # fails on its own
 )
-# 236 unit-test files in about 13 minutes
+# 237 unit-test files in about 7 minutes
 
 if (( BATCH )) ; then
     SKIP_TESTS[test_codeccallbacks.py]=1
