@@ -31,13 +31,13 @@ class PyVMTraced(PyVM):
         python_version=PYTHON_VERSION,
         is_pypy=IS_PYPY,
         vmtest_testing=False,
-        event_flags=31,
+        event_flags=63,
         format_instruction_func=format_instruction,
     ):
         super().__init__(python_version, is_pypy, vmtest_testing,
                          format_instruction_func=format_instruction_func)
-        self.callback = callback
         self.event_flags = event_flags
+        self.callback = callback
 
         # TODO:
         # * add events of interest
@@ -52,9 +52,16 @@ class PyVMTraced(PyVM):
         Exceptions are raised, the return value is returned.
 
         """
-        frame.f_trace = self.callback
-        frame.event_flags = self.event_flags
+        if self.frame:
+            # Inherit values from self.frame
+            frame.f_trace = self.frame.f_trace
+            frame.event_flags = self.frame.event_flags
+        else:
+            # Get (presumably initial) values from vm
+            frame.f_trace = self.callback
+            frame.event_flags = self.event_flags
 
+        result = None
         if frame.f_lasti == -1:
             # We were started new, not yielded back from
             frame.f_lasti = 0
@@ -65,15 +72,23 @@ class PyVMTraced(PyVM):
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
             if frame.f_trace and frame.event_flags & PyVMEVENT_CALL:
-                self.callback("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
+                result = frame.f_trace("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
                 pass
         else:
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if frame.f_trace and frame.event_flags & PyVMEVENT_YIELD:
-                self.callback("yield", frame.f_lasti, "YIELD_VALUE", self.opc.YIELD_VALUE, frame.f_lineno, None, [], self)
+                result = frame.f_trace("yield", frame.f_lasti, "YIELD_VALUE", self.opc.YIELD_VALUE, frame.f_lineno, None, [], self)
                 pass
             # byteCode == opcode["YIELD_VALUE"]?
+
+        if result:
+            if result == "finish":
+                frame.f_trace = None
+                frame.event_flags = PyVMEVENT_RETURN | PyVMEVENT_YIELD
+            elif result == "return":
+                return self.return_value
+
 
         self.frame.linestarts = dict(self.opc.findlinestarts(frame.f_code, dup_lines=True))
 
@@ -91,12 +106,12 @@ class PyVMTraced(PyVM):
             if log.isEnabledFor(logging.INFO):
                 self.log(byteName, intArg, arguments, opoffset, line_number)
 
-            if frame.f_trace and line_number is not None and frame.event_flags & (
+            if frame.f_trace and frame.f_trace and line_number is not None and frame.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
-                result = self.callback("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
+                result = frame.f_trace("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
             elif frame.f_trace and frame.event_flags & PyVMEVENT_INSTRUCTION:
-                result = self.callback("instruction", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
+                result = frame.f_trace("instruction", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
             else:
                 result = True
 
@@ -105,13 +120,17 @@ class PyVMTraced(PyVM):
                 # None indicates turning off tracing in this scope.
                 # We could imagine a fancier code organization where we use
                 # run_frame() of PyVM instead of PyVMTrace, but save that for later.
-                frame.event_flags = self.event_flags = 0
+                frame.event_flags = 0
             elif callable(result):
                 pass
             elif isinstance(result, str):
                 if result == "skip":
                     continue
                 elif result == "return":
+                    why = result
+                    break
+                elif result == "finish":
+                    frame.f_trace = None
                     why = result
                     break
 
@@ -140,13 +159,14 @@ class PyVMTraced(PyVM):
 
         # TODO: handle generator exception state
 
+        callback = frame.f_trace or self.callback
         if why == "exception":
-            if self.event_flags & PyVMEVENT_EXCEPTION:
-                self.callback(
+            if callback and self.event_flags & PyVMEVENT_EXCEPTION:
+                frame.f_trace(
                     "exception", opoffset, byteName, byteCode, line_number, None, self.last_exception, self
                 )
-            elif self.event_flags & PyVMEVENT_RETURN:
-                self.callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
+            elif callback and self.event_flags & PyVMEVENT_RETURN:
+                callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
             pass
 
         self.pop_frame()
@@ -161,7 +181,7 @@ class PyVMTraced(PyVM):
             # six.reraise(self.last_exception[0], None)
 
         self.in_exception_processing = False
-        if self.event_flags & PyVMEVENT_RETURN:
-            self.callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
+        if callback and self.event_flags & PyVMEVENT_RETURN:
+            callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
 
         return self.return_value
