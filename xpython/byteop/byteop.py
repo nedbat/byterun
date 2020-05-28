@@ -6,6 +6,7 @@ Note: this is subclassed. Later versions use operations from here.
 from __future__ import print_function, division
 
 import inspect
+import operator
 import logging
 import sys
 from xdis import PYTHON_VERSION
@@ -13,6 +14,64 @@ from xpython.pyobj import Function
 from xpython.builtins import build_class
 
 log = logging.getLogger(__name__)
+
+UNARY_OPERATORS = {
+    "POSITIVE": operator.pos,
+    "NEGATIVE": operator.neg,
+    "NOT": operator.not_,
+    "CONVERT": repr,
+    "INVERT": operator.invert,
+}
+
+BINARY_OPERATORS = {
+    "POWER": pow,
+    "MULTIPLY": operator.mul,
+    "DIVIDE": getattr(operator, "div", lambda x, y: None),
+    "FLOOR_DIVIDE": operator.floordiv,
+    "TRUE_DIVIDE": operator.truediv,
+    "MODULO": operator.mod,
+    "ADD": operator.add,
+    "SUBTRACT": operator.sub,
+    "SUBSCR": operator.getitem,
+    "LSHIFT": operator.lshift,
+    "RSHIFT": operator.rshift,
+    "AND": operator.and_,
+    "XOR": operator.xor,
+    "OR": operator.or_,
+}
+
+INPLACE_OPERATORS = frozenset([
+    "ADD",
+    "AND",
+    "DIVIDE",
+    "FLOOR_DIVIDE",
+    "LSHIFT",
+    "MODULO",
+    "MULTIPLY",
+    "OR",
+    "POWER"
+    "RSHIFT",
+    "SUBTRACT",
+    "TRUE_DIVIDE",
+    "XOR",
+    # 3.5 on
+    "POWER",
+    "MATRIX_MULTIPLY"])
+
+if PYTHON_VERSION >= 3.5:
+    BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
+
+def fmt_binary_op(vm):
+    """
+    returns string of the first two elements of stack
+    """
+    return " (%s, %s)" % (vm.peek(1), vm.peek(2))
+
+def fmt_unary_op(vm):
+    """
+    returns string of the first two elements of stack
+    """
+    return " (%s)" % vm.peek(1)
 
 
 class ByteOpBase(object):
@@ -23,8 +82,22 @@ class ByteOpBase(object):
         self.is_pypy = vm.is_pypy
         self.PyVMError = self.vm.PyVMError
 
+        # This is used in `vm.format_instruction()` to pick out stack elements
+        # to better show operand(s) of opcode.
+        self.stack_fmt = {}
+        for op in BINARY_OPERATORS.keys():
+            self.stack_fmt["BINARY_" + op] = fmt_binary_op
+        for op in UNARY_OPERATORS.keys():
+            self.stack_fmt["UNARY_" + op] = fmt_unary_op
+        for op in INPLACE_OPERATORS:
+            self.stack_fmt["INPLACE_" + op] = fmt_binary_op
+
         # Set this lazily in "convert_method_native_func
         self.method_func_access = None
+
+    def binaryOperator(self, op):
+        x, y = self.vm.popn(2)
+        self.vm.push(BINARY_OPERATORS[op](x, y))
 
     def build_container(self, count, container_fn):
         elts = self.vm.popn(count)
@@ -201,6 +274,39 @@ class ByteOpBase(object):
         self.vm.last_exception = exc_type, val, val.__traceback__
         return "exception"
 
+    def inplaceOperator(self, op):
+        x, y = self.vm.popn(2)
+        if op == "POWER":
+            x **= y
+        elif op == "MULTIPLY":
+            x *= y
+        elif op in ["DIVIDE", "FLOOR_DIVIDE"]:
+            x //= y
+        elif op == "TRUE_DIVIDE":
+            x /= y
+        elif op == "MODULO":
+            x %= y
+        elif op == "ADD":
+            x += y
+        elif op == "SUBTRACT":
+            x -= y
+        elif op == "LSHIFT":
+            x <<= y
+        elif op == "RSHIFT":
+            x >>= y
+        elif op == "AND":
+            x &= y
+        elif op == "XOR":
+            x ^= y
+        elif op == "OR":
+            x |= y
+        # 3.5 on
+        elif op == "MATRIX_MULTIPLY":
+            operator.imatmul(x, y)
+        else:  # pragma: no cover
+            raise self.PyVMError("Unknown in-place operator: %r" % op)
+        self.vm.push(x)
+
     def lookup_name(self, name):
         """Returns the value in the current frame associated for name"""
         frame = self.vm.frame
@@ -251,3 +357,7 @@ class ByteOpBase(object):
         print("", file=to)
         if hasattr(to, "softspace"):
             to.softspace = 0
+
+    def unaryOperator(self, op):
+        x = self.vm.pop()
+        self.vm.push(UNARY_OPERATORS[op](x))

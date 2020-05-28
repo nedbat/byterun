@@ -32,10 +32,21 @@ COMPREHENSION_FN_NAMES = frozenset((
     "<genexpr>",
 ))
 
+def fmt_make_function(vm):
+    """
+    returns the name of the function from the code object in the stack
+    """
+    # Gotta love Python for stuff like this.
+    fn_index = 1 if vm.version >= 3.2 else 2
+    fn_item = vm.peek(fn_index)
+    name = fn_item if isinstance(fn_item, str) else fn_item.co_name
+    return " (%s)" % name
+
 
 class ByteOp32(ByteOp27):
     def __init__(self, vm):
         super(ByteOp32, self).__init__(vm)
+        self.stack_fmt["MAKE_FUNCTION"] = fmt_make_function
 
     # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7

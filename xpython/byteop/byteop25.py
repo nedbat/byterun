@@ -16,10 +16,29 @@ log = logging.getLogger(__name__)
 # Code with these names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
+def fmt_function(vm):
+    """
+    returns the name of the function from the code object in the stack
+    """
+    TOS = vm.peek(0)
+    if hasattr(TOS, "co_name"):
+        return " (%s)" % TOS.co_name
+    else:
+        # Built-in functions don't have co_name
+        return ""
+
 
 class ByteOp25(ByteOpBase):
     def __init__(self, vm):
         super(ByteOp25, self).__init__(vm)
+        self.stack_fmt["MAKE_FUNCTION"] = fmt_function
+        self.stack_fmt["CALL_FUNCTION"] = fmt_function
+
+    def fmt_unary_op(vm):
+        """
+        returns string of the first two elements of stack
+        """
+        return " (%s)" % vm.peek(1)
 
     ############################################################################
     # Order of function here is the same as in:

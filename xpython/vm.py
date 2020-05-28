@@ -5,7 +5,6 @@
 from __future__ import print_function, division
 import linecache
 import logging
-import operator
 import sys
 
 import six
@@ -60,12 +59,25 @@ class PyVMUncaughtException(Exception):
 
     pass
 
-
 def format_instruction(
-    frame, opc, byteName, intArg, arguments, opoffset, line_number, extra_debug
+        frame, opc, byteName, intArg, arguments, opoffset, line_number, extra_debug,
+        vm=None
 ):
+    """Formats an instruction. What's a little different here is that in
+    contast to Python's `dis`, or a colorized version of that, used in
+    `trepan3k` we may have access to the frame eval stack and therefore
+    can show operands in a nicer way.
+
+    But we also make use of xdis' nicer argument formatting as well. These appear
+    for example in MAKE_FUNCTION, and CALL_FUNCTION.
+    """
     code = frame.f_code if frame else None
     byteCode = opc.opmap.get(byteName, 0)
+
+    if vm and byteName in vm.byteop.stack_fmt:
+        stack_args = vm.byteop.stack_fmt[byteName](vm)
+    else:
+        stack_args = ""
     if hasattr(opc, "opcode_arg_fmt") and byteName in opc.opcode_arg_fmt:
         argrepr = opc.opcode_arg_fmt[byteName](intArg)
     elif intArg is None:
@@ -82,7 +94,7 @@ def format_instruction(
         if line_number is None
         else LINE_NUMBER_WIDTH_FMT % line_number
     )
-    mess = "%s%3d: %s %s" % (line_str, opoffset, byteName, argrepr)
+    mess = "%s%3d: %s%s %s" % (line_str, opoffset, byteName, stack_args, argrepr)
     if extra_debug and frame:
         mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
     return mess
@@ -420,6 +432,7 @@ class PyVM(object):
             opoffset,
             line_number,
             log.isEnabledFor(logging.DEBUG),
+            vm=self,
         )
         indent = "    " * (len(self.frames) - 1)
         stack_rep = repper(self.frame.stack)
@@ -435,19 +448,20 @@ class PyVM(object):
 
         why = None
         self.in_exception_processing = False
+        byteop = self.byteop
         try:
             if byteName.startswith("UNARY_"):
-                self.unaryOperator(byteName[6:])
+                byteop.unaryOperator(byteName[6:])
             elif byteName.startswith("BINARY_"):
-                self.binaryOperator(byteName[7:])
+                byteop.binaryOperator(byteName[7:])
             elif byteName.startswith("INPLACE_"):
-                self.inplaceOperator(byteName[8:])
+                byteop.inplaceOperator(byteName[8:])
             elif "SLICE+" in byteName:
                 self.sliceOperator(byteName)
             else:
                 # dispatch
-                if hasattr(self.byteop, byteName):
-                    bytecode_fn = getattr(self.byteop, byteName, None)
+                if hasattr(byteop, byteName):
+                    bytecode_fn = getattr(byteop, byteName, None)
                 if not bytecode_fn:  # pragma: no cover
                     raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
@@ -662,75 +676,6 @@ class PyVM(object):
         return self.return_value
 
     ## Operators
-
-    UNARY_OPERATORS = {
-        "POSITIVE": operator.pos,
-        "NEGATIVE": operator.neg,
-        "NOT": operator.not_,
-        "CONVERT": repr,
-        "INVERT": operator.invert,
-    }
-
-    def unaryOperator(self, op):
-        x = self.pop()
-        self.push(self.UNARY_OPERATORS[op](x))
-
-    BINARY_OPERATORS = {
-        "POWER": pow,
-        "MULTIPLY": operator.mul,
-        "DIVIDE": getattr(operator, "div", lambda x, y: None),
-        "FLOOR_DIVIDE": operator.floordiv,
-        "TRUE_DIVIDE": operator.truediv,
-        "MODULO": operator.mod,
-        "ADD": operator.add,
-        "SUBTRACT": operator.sub,
-        "SUBSCR": operator.getitem,
-        "LSHIFT": operator.lshift,
-        "RSHIFT": operator.rshift,
-        "AND": operator.and_,
-        "XOR": operator.xor,
-        "OR": operator.or_,
-    }
-
-    if PYTHON_VERSION >= 3.5:
-        BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
-
-    def binaryOperator(self, op):
-        x, y = self.popn(2)
-        self.push(self.BINARY_OPERATORS[op](x, y))
-
-    def inplaceOperator(self, op):
-        x, y = self.popn(2)
-        if op == "POWER":
-            x **= y
-        elif op == "MULTIPLY":
-            x *= y
-        elif op in ["DIVIDE", "FLOOR_DIVIDE"]:
-            x //= y
-        elif op == "TRUE_DIVIDE":
-            x /= y
-        elif op == "MODULO":
-            x %= y
-        elif op == "ADD":
-            x += y
-        elif op == "SUBTRACT":
-            x -= y
-        elif op == "LSHIFT":
-            x <<= y
-        elif op == "RSHIFT":
-            x >>= y
-        elif op == "AND":
-            x &= y
-        elif op == "XOR":
-            x ^= y
-        elif op == "OR":
-            x |= y
-        # 3.5 on
-        elif op == "MATRIX_MULTIPLY":
-            operator.imatmul(x, y)
-        else:  # pragma: no cover
-            raise PyVMError("Unknown in-place operator: %r" % op)
-        self.push(x)
 
     def sliceOperator(self, op):
         start = 0

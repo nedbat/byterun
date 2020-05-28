@@ -14,7 +14,6 @@ from xpython.pyobj import Function
 # Gone since 3.3
 del ByteOp32.STORE_LOCALS
 
-
 class ByteOp34(ByteOp33):
     def __init__(self, vm):
         super(ByteOp34, self).__init__(vm)

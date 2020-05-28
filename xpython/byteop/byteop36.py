@@ -33,7 +33,6 @@ COMPREHENSION_FN_NAMES = frozenset(
     ("<setcomp>", "<dictcomp>", "<genexpr>", "<listcomp>",)
 )
 
-
 class ByteOp36(ByteOp35):
     def __init__(self, vm):
         super(ByteOp36, self).__init__(vm)

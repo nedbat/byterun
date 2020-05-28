@@ -26,7 +26,7 @@ have a pdb/gdb like debugger also with the ability to step bytecode
 instructions.
 
 I may also experiment with faster ways to support trace callbacks such
-as those used in a debugger. In particular I may add a `BREAKPOINT`
+as those used in a debugger. In particular I may add a ``BREAKPOINT``
 instruction to support fast breakpoints and breakpointing on a
 particular instruction that doesn't happen to be on a line boundary.
 
@@ -61,8 +61,8 @@ Try this:
    INFO:xpython.vm:       @ 16: LOAD_CONST None
    INFO:xpython.vm:       @ 18: RETURN_VALUE
 
-Option `-c` is the same as Python's flag (program passed in as string)
-and `-v` is also analogus Python's flag. Here, it shows the bytecode
+Option ``-c`` is the same as Python's flag (program passed in as string)
+and ``-v`` is also analogus Python's flag. Here, it shows the bytecode
 instructions run.
 
 Want the execution stack stack and block stack in addition? Add another `v`:
@@ -180,7 +180,7 @@ The "largely" part is because the interpreter has always made use of
 Python builtins and libraries, and for the most part these haven't
 changed very much. Often, since many of the underlying builtins are
 the same, the interpreter can (and does) make use interpreter
-internals. For example, built-in functions like `range()` are
+internals. For example, built-in functions like ``range()`` are
 supported this way.
 
 So interpreting bytecode from a newer Python release than the release
@@ -190,7 +190,7 @@ it can still interpret bytecode created from using these constructs.
 
 That's possible here because these specific features are more
 syntactic sugar than extensions to the runtime. For example format
-strings basically map down to using the `format()` function which is
+strings basically map down to using the ``format()`` function which is
 available on 2.7.
 
 New features like asynchronous I/O and concurrency primatives are not
@@ -200,7 +200,8 @@ possibility if there is interest or support.
 You can run many of the tests that Python uses to test itself, (and I
 do!) and those work. Right now this program works best on Python up to
 3.4 when life in Python was much simpler. It runs over 300 in Python's
-test suite for itself without problems.
+test suite for itself without problems. For Python 3.6 the number
+drops down to about 237; Python 3.7 is worse still.
 
 
 History
