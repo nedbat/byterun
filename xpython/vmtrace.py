@@ -16,13 +16,28 @@ import logging
 
 log = logging.getLogger(__name__)
 
-PyVMEVENT_INSTRUCTION = 1
-PyVMEVENT_LINE = 2
-PyVMEVENT_CALL = 4
-PyVMEVENT_RETURN = 8
-PyVMEVENT_EXCEPTION = 16
-PyVMEVENT_YIELD = 32
+PyVMEVENT_INSTRUCTION = 1  # tracing an instruction
+PyVMEVENT_LINE = 2         # tracing an instruction which has has a line number. Above includes this.
+PyVMEVENT_CALL = 4         # tracing calls. Note "Step over" disables this kind of trace
+PyVMEVENT_RETURN = 8       # tracing returns
+PyVMEVENT_EXCEPTION = 16   # tracing exceptions
+PyVMEVENT_YIELD = 32       # tracing "yield"
+PyVMEVENT_FATAL = 64       # Final fatal error
+PyVMEVENT_STEP_OVER = 128  # tracing using step over - don't trace into calls
 
+# All flags except STEP_OVER which is a kind of negation
+PyVMEVENT_ALL = (
+    PyVMEVENT_INSTRUCTION |
+    PyVMEVENT_LINE |
+    PyVMEVENT_CALL |
+    PyVMEVENT_RETURN |
+    PyVMEVENT_EXCEPTION |
+    PyVMEVENT_YIELD |
+    PyVMEVENT_FATAL
+    )
+
+# All flags cleared
+PyVMEVENT_NONE = 0
 
 class PyVMTraced(PyVM):
     def __init__(
@@ -31,7 +46,7 @@ class PyVMTraced(PyVM):
         python_version=PYTHON_VERSION,
         is_pypy=IS_PYPY,
         vmtest_testing=False,
-        event_flags=63,
+        event_flags=PyVMEVENT_ALL,
         format_instruction_func=format_instruction,
     ):
         super().__init__(python_version, is_pypy, vmtest_testing,
@@ -61,6 +76,9 @@ class PyVMTraced(PyVM):
             frame.f_trace = self.callback
             frame.event_flags = self.event_flags
 
+        if frame.event_flags & PyVMEVENT_STEP_OVER:
+            frame.event_flags = PyVMEVENT_NONE
+
         result = None
         if frame.f_lasti == -1:
             # We were started new, not yielded back from
@@ -71,8 +89,13 @@ class PyVMTraced(PyVM):
             byteCode = None
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
-            if frame.f_trace and frame.event_flags & PyVMEVENT_CALL:
-                result = frame.f_trace("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
+            if frame.f_trace and (frame.event_flags & PyVMEVENT_CALL) :
+                if frame.event_flags & PyVMEVENT_STEP_OVER:
+                    # Since we are about to enter a function, but not tracing it, clear return-like events
+                    # return and yield
+                    frame.event_flags &= ~(PyVMEVENT_RETURN | PyVMEVENT_YIELD)
+                else:
+                    result = frame.f_trace("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
                 pass
         else:
             byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
@@ -161,11 +184,11 @@ class PyVMTraced(PyVM):
 
         callback = frame.f_trace or self.callback
         if why == "exception":
-            if callback and self.event_flags & PyVMEVENT_EXCEPTION:
+            if callback and frame and (not frame or frame.event_flags & PyVMEVENT_EXCEPTION):
                 frame.f_trace(
                     "exception", opoffset, byteName, byteCode, line_number, None, self.last_exception, self
                 )
-            elif callback and self.event_flags & PyVMEVENT_RETURN:
+            elif callback and (not frame or frame.event_flags & PyVMEVENT_RETURN):
                 callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
             pass
 
@@ -181,7 +204,7 @@ class PyVMTraced(PyVM):
             # six.reraise(self.last_exception[0], None)
 
         self.in_exception_processing = False
-        if callback and self.event_flags & PyVMEVENT_RETURN:
+        if callback and frame.event_flags & PyVMEVENT_RETURN:
             callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
 
         return self.return_value
