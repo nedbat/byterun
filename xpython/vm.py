@@ -75,7 +75,7 @@ def format_instruction(
     byteCode = opc.opmap.get(byte_name, 0)
 
     if vm and byte_name in vm.byteop.stack_fmt:
-        stack_args = vm.byteop.stack_fmt[byte_name](vm)
+        stack_args = vm.byteop.stack_fmt[byte_name](vm, int_arg)
     else:
         stack_args = ""
 
@@ -429,17 +429,20 @@ class PyVM(object):
 
     def log(self, byte_name, int_arg, arguments, offset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
-        op = self.format_instruction(
-            self.frame,
-            self.opc,
-            byte_name,
-            int_arg,
-            arguments,
-            offset,
-            line_number,
-            log.isEnabledFor(logging.DEBUG),
-            vm=self,
-        )
+        try:
+            op = self.format_instruction(
+                self.frame,
+                self.opc,
+                byte_name,
+                int_arg,
+                arguments,
+                offset,
+                line_number,
+                log.isEnabledFor(logging.DEBUG),
+                vm=self,
+            )
+        except:
+            from trepan.api import debug; debug()
         indent = "    " * (len(self.frames) - 1)
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)

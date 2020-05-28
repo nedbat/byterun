@@ -8,19 +8,40 @@ from __future__ import print_function, division
 import operator
 import logging
 import six
-from xpython.byteop.byteop import ByteOpBase
-from xpython.pyobj import Function # , traceback_from_frame
+from xpython.byteop.byteop import (
+    ByteOpBase,
+    fmt_binary_op,
+    fmt_ternary_op,
+    fmt_unary_op,
+)
+from xpython.pyobj import Function  # , traceback_from_frame
 
 log = logging.getLogger(__name__)
 
 # Code with these names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
-def fmt_function(vm):
+
+def fmt_call_function(vm, argc):
     """
     returns the name of the function from the code object in the stack
     """
-    TOS = vm.peek(1)
+    name_default, pos_args = divmod(argc, 256)
+    code_position = name_default + pos_args + 1
+    code = vm.peek(name_default + pos_args + 1)
+    for attr in ("co_name", "func_name", "__name__"):
+        if hasattr(code, attr):
+            return " (%s)" % getattr(code, attr)
+
+    # Nothing found.
+    return ""
+
+
+def fmt_make_function(vm, arg=None):
+    """
+    returns the name of the function from the code object in the stack
+    """
+    TOS = vm.top()
     for attr in ("co_name", "func_name", "__name__"):
         if hasattr(TOS, attr):
             return " (%s)" % getattr(TOS, attr)
@@ -32,10 +53,27 @@ def fmt_function(vm):
 class ByteOp25(ByteOpBase):
     def __init__(self, vm):
         super(ByteOp25, self).__init__(vm)
-        self.stack_fmt["MAKE_FUNCTION"] = fmt_function
-        self.stack_fmt["CALL_FUNCTION"] = fmt_function
+        self.stack_fmt["MAKE_FUNCTION"] = fmt_make_function
+        self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
+        self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
+        for op in (
+            "COMPARE_OP ROT_TWO DELETE_SUBSCR PRINT_ITEM_TO STORE_ATTR IMPORT_NAME"
+        ).split():
+            self.stack_fmt[op] = fmt_binary_op
 
-    def fmt_unary_op(vm):
+        for op in (
+            "ROT_THREE STORE_SUBSCR EXEC_STMT BUILD_CLASS"
+        ).split():
+            self.stack_fmt[op] = fmt_ternary_op
+
+        for op in (
+            "GET_ITER DUP_TOP LIST_APPEND RETURN_VALUE "
+            "IMPORT_STAR STORE_NAME DELETE_ATTR "
+            "STORE_GLOBAL LOAD_ADDR STORE_FAST"
+        ).split():
+            self.stack_fmt[op] = fmt_unary_op
+
+    def fmt_unary_op(vm, arg=None):
         """
         returns string of the first two elements of stack
         """

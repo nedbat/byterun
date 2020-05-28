@@ -32,7 +32,7 @@ COMPREHENSION_FN_NAMES = frozenset((
     "<genexpr>",
 ))
 
-def fmt_make_function(vm):
+def fmt_make_function(vm, arg=None):
     """
     returns the name of the function from the code object in the stack
     """

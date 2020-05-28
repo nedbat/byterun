@@ -33,9 +33,22 @@ COMPREHENSION_FN_NAMES = frozenset(
     ("<setcomp>", "<dictcomp>", "<genexpr>", "<listcomp>",)
 )
 
+def fmt_call_function(vm, argc):
+    """
+    returns the name of the function from the code object in the stack
+    """
+    TOS = vm.peek(argc + 1)
+    for attr in ("co_name", "func_name", "__name__"):
+        if hasattr(TOS, attr):
+            return " (%s)" % getattr(TOS, attr)
+
+    # Nothing found.
+    return ""
+
 class ByteOp36(ByteOp35):
     def __init__(self, vm):
         super(ByteOp36, self).__init__(vm)
+        self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
 
     def call_function_kw(self, argc):
         namedargs = {}

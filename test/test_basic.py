@@ -72,15 +72,7 @@ class TestBasic(vmtest.VmTestCase):
                     """)
 
         def test_building_stuff(self):
-            self.assert_ok("""\
-                print((1+1, 2+2, 3+3))
-                """)
-            self.assert_ok("""\
-                print([1+1, 2+2, 3+3])
-                """)
-            self.assert_ok("""\
-                print({1:1+1, 2:2+2, 3:3+3})
-                """)
+            self.do_one()
 
         def test_subscripting(self):
             self.assert_ok("""\

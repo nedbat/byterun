@@ -61,17 +61,24 @@ INPLACE_OPERATORS = frozenset([
 if PYTHON_VERSION >= 3.5:
     BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
 
-def fmt_binary_op(vm):
-    """
-    returns string of the first two elements of stack
-    """
-    return " (%s, %s)" % (vm.peek(1), vm.peek(2))
+def fmt_binary_op(vm, arg=None):
+    """returns a string of the repr() for each of the the first two
+    elements of evaluation stack
 
-def fmt_unary_op(vm):
     """
-    returns string of the first two elements of stack
+    return " (%r, %r)" % (vm.top(), vm.peek(2))
+
+def fmt_ternary_op(vm, arg=None):
+    """returns string of the repr() for each of the first three
+    elements of evaluation stack
     """
-    return " (%s)" % vm.peek(1)
+    return " (%r, %r, %r)" % (vm.top(), vm.peek(2), vm.peek(3))
+
+def fmt_unary_op(vm, arg=None):
+    """returns string of the repr() for the first element of
+    the evaluation stack
+    """
+    return " (%r)" % (vm.top(),)
 
 
 class ByteOpBase(object):
