@@ -60,7 +60,7 @@ class PyVMUncaughtException(Exception):
     pass
 
 def format_instruction(
-        frame, opc, byteName, intArg, arguments, opoffset, line_number, extra_debug,
+        frame, opc, byte_name, intArg, arguments, offset, line_number, extra_debug,
         vm=None
 ):
     """Formats an instruction. What's a little different here is that in
@@ -72,14 +72,14 @@ def format_instruction(
     for example in MAKE_FUNCTION, and CALL_FUNCTION.
     """
     code = frame.f_code if frame else None
-    byteCode = opc.opmap.get(byteName, 0)
+    byteCode = opc.opmap.get(byte_name, 0)
 
-    if vm and byteName in vm.byteop.stack_fmt:
-        stack_args = vm.byteop.stack_fmt[byteName](vm)
+    if vm and byte_name in vm.byteop.stack_fmt:
+        stack_args = vm.byteop.stack_fmt[byte_name](vm)
     else:
         stack_args = ""
-    if hasattr(opc, "opcode_arg_fmt") and byteName in opc.opcode_arg_fmt:
-        argrepr = opc.opcode_arg_fmt[byteName](intArg)
+    if hasattr(opc, "opcode_arg_fmt") and byte_name in opc.opcode_arg_fmt:
+        argrepr = opc.opcode_arg_fmt[byte_name](intArg)
     elif intArg is None:
         argrepr = ""
     elif byteCode in opc.COMPARE_OPS:
@@ -94,7 +94,7 @@ def format_instruction(
         if line_number is None
         else LINE_NUMBER_WIDTH_FMT % line_number
     )
-    mess = "%s%3d: %s%s %s" % (line_str, opoffset, byteName, stack_args, argrepr)
+    mess = "%s%3d: %s%s %s" % (line_str, offset, byte_name, stack_args, argrepr)
     if extra_debug and frame:
         mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
     return mess
@@ -216,6 +216,7 @@ class PyVM(object):
     def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
         # The callargs default is safe because we never modify the dict.
         # pylint: disable=dangerous-default-value
+
         log.debug(
             "make_frame: code=%r, callargs=%s, f_globals=%r, f_locals=%r",
             code,
@@ -246,6 +247,10 @@ class PyVM(object):
 
         f_locals.update(callargs)
         frame = Frame(code, f_globals, f_locals, self.frame, version=self.version)
+
+        # THINK ABOUT: should this go into making the frame?
+        frame.linestarts = dict(self.opc.findlinestarts(code, dup_lines=True))
+
         log.debug("%r", frame)
         return frame
 
@@ -361,13 +366,13 @@ class PyVM(object):
             else:
                 # Jump instructions must set this False.
                 f.fallthrough = True
-            opoffset = f.f_lasti
-            line_number = self.frame.linestarts.get(opoffset, None)
+            offset = f.f_lasti
+            line_number = self.frame.linestarts.get(offset, None)
             if line_number is not None:
                 f.f_lineno = line_number
-            byteCode = byteint(co_code[opoffset])
-            byteName = self.opc.opname[byteCode]
-            arg_offset = opoffset + 1
+            byteCode = byteint(co_code[offset])
+            byte_name = self.opc.opname[byteCode]
+            arg_offset = offset + 1
             arg = None
 
             if op_has_argument(byteCode, self.opc):
@@ -419,17 +424,17 @@ class PyVM(object):
                 arguments = [arg]
             break
 
-        return byteName, byteCode, intArg, arguments, opoffset, line_number
+        return byte_name, byteCode, intArg, arguments, offset, line_number
 
-    def log(self, byteName, intArg, arguments, opoffset, line_number):
+    def log(self, byte_name, intArg, arguments, offset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
         op = self.format_instruction(
             self.frame,
             self.opc,
-            byteName,
+            byte_name,
             intArg,
             arguments,
-            opoffset,
+            offset,
             line_number,
             log.isEnabledFor(logging.DEBUG),
             vm=self,
@@ -442,26 +447,26 @@ class PyVM(object):
         log.debug("  %sblocks     : %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
-    def dispatch(self, byteName, intArg, arguments, opoffset, line_number):
-        """ Dispatch by bytename to the corresponding methods.
+    def dispatch(self, byte_name, intArg, arguments, offset, line_number):
+        """ Dispatch by byte_name to the corresponding methods.
         Exceptions are caught and set on the virtual machine."""
 
         why = None
         self.in_exception_processing = False
         byteop = self.byteop
         try:
-            if byteName.startswith("UNARY_"):
-                byteop.unaryOperator(byteName[6:])
-            elif byteName.startswith("BINARY_"):
-                byteop.binaryOperator(byteName[7:])
-            elif byteName.startswith("INPLACE_"):
-                byteop.inplaceOperator(byteName[8:])
-            elif "SLICE+" in byteName:
-                self.sliceOperator(byteName)
+            if byte_name.startswith("UNARY_"):
+                byteop.unaryOperator(byte_name[6:])
+            elif byte_name.startswith("BINARY_"):
+                byteop.binaryOperator(byte_name[7:])
+            elif byte_name.startswith("INPLACE_"):
+                byteop.inplaceOperator(byte_name[8:])
+            elif "SLICE+" in byte_name:
+                self.sliceOperator(byte_name)
             else:
                 # dispatch
-                if hasattr(byteop, byteName):
-                    bytecode_fn = getattr(byteop, byteName, None)
+                if hasattr(byteop, byte_name):
+                    bytecode_fn = getattr(byteop, byte_name, None)
                 if not bytecode_fn:  # pragma: no cover
                     raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
@@ -469,14 +474,14 @@ class PyVM(object):
                             self.format_instruction(
                                 self.frame,
                                 self.opc,
-                                byteName,
+                                byte_name,
                                 intArg,
                                 arguments,
-                                opoffset,
+                                offset,
                                 line_number,
                                 False,
                             ),
-                            byteName,
+                            byte_name,
                         )
                     )
                 why = bytecode_fn(*arguments)
@@ -495,10 +500,10 @@ class PyVM(object):
                             % self.format_instruction(
                                 self.frame,
                                 self.opc,
-                                byteName,
+                                byte_name,
                                 intArg,
                                 arguments,
-                                opoffset,
+                                offset,
                                 line_number,
                                 False,
                             )
@@ -583,8 +588,7 @@ class PyVM(object):
         Exceptions are raised, the return value is returned.
 
         """
-        self.push_frame(frame)
-        self.f_code = self.frame.f_code
+        self.f_code = frame.f_code
         if frame.f_lasti == -1:
             # We were started new, not yielded back from.
             frame.f_lasti = 0
@@ -595,27 +599,24 @@ class PyVM(object):
             byteCode = byteint(self.f_code.co_code[frame.f_lasti])
             # byteCode == opcode["YIELD_VALUE"]?
 
-        # FIXME: we can use linestarts that is now located in the frame if this
-        # is a pyvmobj.Frame, and not a native frame.
-        self.frame.linestarts = dict(self.opc.findlinestarts(self.f_code, dup_lines=True))
-
-        opoffset = 0
+        self.push_frame(frame)
+        offset = 0
         while True:
 
             (
-                byteName,
+                byte_name,
                 byteCode,
                 intArg,
                 arguments,
-                opoffset,
+                offset,
                 line_number,
             ) = self.parse_byte_and_args(byteCode)
             if log.isEnabledFor(logging.INFO):
-                self.log(byteName, intArg, arguments, opoffset, line_number)
+                self.log(byte_name, intArg, arguments, offset, line_number)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
-            why = self.dispatch(byteName, intArg, arguments, opoffset, line_number)
+            why = self.dispatch(byte_name, intArg, arguments, offset, line_number)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
 
@@ -630,17 +631,17 @@ class PyVM(object):
                                 % self.format_instruction(
                                     frame,
                                     self.opc,
-                                    byteName,
+                                    byte_name,
                                     intArg,
                                     arguments,
-                                    opoffset,
+                                    offset,
                                 line_number,
                                 False,
                                 )
                             )
                         )
                     if self.last_traceback is None:
-                        self.last_traceback = traceback_from_frame(self.frame)
+                        self.last_traceback = traceback_from_frame(frame)
                     self.in_exception_processing = True
 
             if why == "reraise":

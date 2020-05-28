@@ -20,12 +20,13 @@ def fmt_function(vm):
     """
     returns the name of the function from the code object in the stack
     """
-    TOS = vm.peek(0)
-    if hasattr(TOS, "co_name"):
-        return " (%s)" % TOS.co_name
-    else:
-        # Built-in functions don't have co_name
-        return ""
+    TOS = vm.peek(1)
+    for attr in ("co_name", "func_name", "__name__"):
+        if hasattr(TOS, attr):
+            return " (%s)" % getattr(TOS, attr)
+
+    # Nothing found.
+    return ""
 
 
 class ByteOp25(ByteOpBase):
