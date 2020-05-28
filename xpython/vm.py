@@ -60,7 +60,7 @@ class PyVMUncaughtException(Exception):
     pass
 
 def format_instruction(
-        frame, opc, byte_name, intArg, arguments, offset, line_number, extra_debug,
+        frame, opc, byte_name, int_arg, arguments, offset, line_number, extra_debug,
         vm=None
 ):
     """Formats an instruction. What's a little different here is that in
@@ -78,12 +78,13 @@ def format_instruction(
         stack_args = vm.byteop.stack_fmt[byte_name](vm)
     else:
         stack_args = ""
+
     if hasattr(opc, "opcode_arg_fmt") and byte_name in opc.opcode_arg_fmt:
-        argrepr = opc.opcode_arg_fmt[byte_name](intArg)
-    elif intArg is None:
+        argrepr = opc.opcode_arg_fmt[byte_name](int_arg)
+    elif int_arg is None:
         argrepr = ""
     elif byteCode in opc.COMPARE_OPS:
-        argrepr = opc.cmp_op[intArg]
+        argrepr = opc.cmp_op[int_arg]
     elif isinstance(arguments, list) and arguments:
         argrepr = arguments[0]
     else:
@@ -355,10 +356,10 @@ class PyVM(object):
         # Note: There is never more than one argument.
         # The list size is used to indicate whether an argument
         # exists or not.
-        # FIMXE: remove and use intArg as a indicator of whether
+        # FIMXE: remove and use int_arg as a indicator of whether
         # the argument exists.
         arguments = []
-        intArg = None
+        int_arg = None
 
         while True:
             if f.fallthrough:
@@ -377,62 +378,62 @@ class PyVM(object):
 
             if op_has_argument(byteCode, self.opc):
                 if self.version >= 3.6:
-                    intArg = code2num(co_code, arg_offset) | extended_arg
+                    int_arg = code2num(co_code, arg_offset) | extended_arg
                     # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
                     arg_offset += 1
                     if byteCode == self.opc.EXTENDED_ARG:
-                        extended_arg = intArg << 8
+                        extended_arg = int_arg << 8
                         continue
                     else:
                         extended_arg = 0
                 else:
-                    intArg = (
+                    int_arg = (
                         code2num(co_code, arg_offset)
                         + code2num(co_code, arg_offset + 1) * 256
                         + extended_arg
                     )
                     arg_offset += 2
                     if byteCode == self.opc.EXTENDED_ARG:
-                        extended_arg = intArg * 65536
+                        extended_arg = int_arg * 65536
                         continue
                     else:
                         extended_arg = 0
 
                 if byteCode in self.opc.CONST_OPS:
-                    arg = f_code.co_consts[intArg]
+                    arg = f_code.co_consts[int_arg]
                 elif byteCode in self.opc.FREE_OPS:
-                    if intArg < len(f_code.co_cellvars):
-                        arg = f_code.co_cellvars[intArg]
+                    if int_arg < len(f_code.co_cellvars):
+                        arg = f_code.co_cellvars[int_arg]
                     else:
-                        var_idx = intArg - len(f.f_code.co_cellvars)
+                        var_idx = int_arg - len(f.f_code.co_cellvars)
                         arg = f_code.co_freevars[var_idx]
                 elif byteCode in self.opc.NAME_OPS:
-                    arg = f_code.co_names[intArg]
+                    arg = f_code.co_names[int_arg]
                 elif byteCode in self.opc.JREL_OPS:
                     # Many relative jumps are conditional,
                     # so setting f.fallthrough is wrong.
-                    arg = arg_offset + intArg
+                    arg = arg_offset + int_arg
                 elif byteCode in self.opc.JABS_OPS:
                     # We probably could set fallthough, since many (all?)
                     # of these are unconditional, but we'll make the jump do
                     # the work of setting.
-                    arg = intArg
+                    arg = int_arg
                 elif byteCode in self.opc.LOCAL_OPS:
-                    arg = f_code.co_varnames[intArg]
+                    arg = f_code.co_varnames[int_arg]
                 else:
-                    arg = intArg
+                    arg = int_arg
                 arguments = [arg]
             break
 
-        return byte_name, byteCode, intArg, arguments, offset, line_number
+        return byte_name, byteCode, int_arg, arguments, offset, line_number
 
-    def log(self, byte_name, intArg, arguments, offset, line_number):
+    def log(self, byte_name, int_arg, arguments, offset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
         op = self.format_instruction(
             self.frame,
             self.opc,
             byte_name,
-            intArg,
+            int_arg,
             arguments,
             offset,
             line_number,
@@ -447,7 +448,7 @@ class PyVM(object):
         log.debug("  %sblocks     : %s" % (indent, block_stack_rep))
         log.info("%s%s" % (indent, op))
 
-    def dispatch(self, byte_name, intArg, arguments, offset, line_number):
+    def dispatch(self, byte_name, int_arg, arguments, offset, line_number):
         """ Dispatch by byte_name to the corresponding methods.
         Exceptions are caught and set on the virtual machine."""
 
@@ -475,7 +476,7 @@ class PyVM(object):
                                 self.frame,
                                 self.opc,
                                 byte_name,
-                                intArg,
+                                int_arg,
                                 arguments,
                                 offset,
                                 line_number,
@@ -501,7 +502,7 @@ class PyVM(object):
                                 self.frame,
                                 self.opc,
                                 byte_name,
-                                intArg,
+                                int_arg,
                                 arguments,
                                 offset,
                                 line_number,
@@ -606,17 +607,17 @@ class PyVM(object):
             (
                 byte_name,
                 byteCode,
-                intArg,
+                int_arg,
                 arguments,
                 offset,
                 line_number,
             ) = self.parse_byte_and_args(byteCode)
             if log.isEnabledFor(logging.INFO):
-                self.log(byte_name, intArg, arguments, offset, line_number)
+                self.log(byte_name, int_arg, arguments, offset, line_number)
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
-            why = self.dispatch(byte_name, intArg, arguments, offset, line_number)
+            why = self.dispatch(byte_name, int_arg, arguments, offset, line_number)
             if why == "exception":
                 # TODO: ceval calls PyTraceBack_Here, not sure what that does.
 
@@ -632,7 +633,7 @@ class PyVM(object):
                                     frame,
                                     self.opc,
                                     byte_name,
-                                    intArg,
+                                    int_arg,
                                     arguments,
                                     offset,
                                 line_number,
