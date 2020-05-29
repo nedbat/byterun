@@ -33,7 +33,7 @@ COMPREHENSION_FN_NAMES = frozenset(
     ("<setcomp>", "<dictcomp>", "<genexpr>", "<listcomp>",)
 )
 
-def fmt_call_function(vm, argc):
+def fmt_call_function(vm, argc, repr=repr):
     """
     returns the name of the function from the code object in the stack
     """

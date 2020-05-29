@@ -22,12 +22,11 @@ log = logging.getLogger(__name__)
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
 
-def fmt_call_function(vm, argc):
+def fmt_call_function(vm, argc, repr=repr):
     """
     returns the name of the function from the code object in the stack
     """
     name_default, pos_args = divmod(argc, 256)
-    code_position = name_default + pos_args + 1
     code = vm.peek(name_default + pos_args + 1)
     for attr in ("co_name", "func_name", "__name__"):
         if hasattr(code, attr):
@@ -37,7 +36,7 @@ def fmt_call_function(vm, argc):
     return ""
 
 
-def fmt_make_function(vm, arg=None):
+def fmt_make_function(vm, arg=None, repr=repr):
     """
     returns the name of the function from the code object in the stack
     """

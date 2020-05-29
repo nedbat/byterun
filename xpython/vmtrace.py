@@ -129,7 +129,7 @@ class PyVMTraced(PyVM):
             if log.isEnabledFor(logging.INFO):
                 self.log(byteName, intArg, arguments, opoffset, line_number)
 
-            if frame.f_trace and frame.f_trace and line_number is not None and frame.event_flags & (
+            if frame.f_trace and line_number is not None and frame.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
                 result = frame.f_trace("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)

@@ -61,24 +61,31 @@ INPLACE_OPERATORS = frozenset([
 if PYTHON_VERSION >= 3.5:
     BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
 
-def fmt_binary_op(vm, arg=None):
+def fmt_binary_op(vm, arg=None, repr=repr):
     """returns a string of the repr() for each of the the first two
     elements of evaluation stack
 
     """
-    return " (%r, %r)" % (vm.top(), vm.peek(2))
+    return " (%s, %s)" % (repr(vm.peek(2)), repr(vm.top()))
 
-def fmt_ternary_op(vm, arg=None):
+def fmt_ternary_op(vm, arg=None, repr=repr):
     """returns string of the repr() for each of the first three
     elements of evaluation stack
     """
-    return " (%r, %r, %r)" % (vm.top(), vm.peek(2), vm.peek(3))
+    return " (%s, %s, %s)" % (repr(vm.peek(3)), repr(vm.peek(2)), repr(vm.top()))
 
-def fmt_unary_op(vm, arg=None):
+def fmt_unary_op(vm, arg=None, repr=repr):
     """returns string of the repr() for the first element of
     the evaluation stack
     """
-    return " (%r)" % (vm.top(),)
+    # We need to check the length because sometimes in a return event
+    # (as opposed to a
+    # a RETURN_VALUE callback can* the value has been popped, and if the
+    # return valuse was the only one on the stack, it will be empty here.
+    if len(vm.frame.stack):
+        return " (%s)" % (repr(vm.top()),)
+    else:
+        raise vm.PyVMError("Empty stack in unary op")
 
 
 class ByteOpBase(object):
