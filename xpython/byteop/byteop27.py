@@ -4,6 +4,7 @@ from __future__ import print_function, division
 
 import inspect
 import types
+from xdis import PYTHON_VERSION
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.byteop.byteop26 import ByteOp26
 
@@ -78,9 +79,13 @@ class ByteOp27(ByteOp26):
 
         # Make sure __enter__ and __exit__ functions in context_manager are
         # converted to our Function type so we can interpret them.
-        exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
+        if self.version == PYTHON_VERSION:
+            exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
+        else:
+            exit_method = context_manager.__exit__
         self.vm.push(exit_method)
-        self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
+        if self.version == PYTHON_VERSION:
+            self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
         finally_block = context_manager.__enter__()
         if self.version < 3.0:
             self.vm.push_block("with", delta)
