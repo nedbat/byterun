@@ -41,7 +41,7 @@ if 3.0 <= PYTHON_VERSION <= 3.2:
 else:
     click_version = ""
 
-install_requires = (["six", "xdis >= 4.6.0, < 4.7.0", "click%s" % click_version],)
+install_requires = (["six", "xdis >= 4.6.1, < 4.7.0", "click%s" % click_version],)
 
 py_modules = None
 short_desc = "Python cross-version byte-code interpeter"

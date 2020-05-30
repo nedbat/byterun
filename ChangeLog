@@ -1,3 +1,196 @@
+2020-05-30  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/version.py: Get ready for release 1.3.0
+
+2020-05-30  rocky <rocky@dusytfeet.com>
+
+	* test/test_compat.py: Small changes
+
+2020-05-30  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/pyobj.py, xpython/stdlib/inspect2.py,
+	xpython/stdlib/inspect3.py: Get Python 2.x signatures from 3.x...  and go over README.rst since log infomation has been improved.
+
+2020-05-29  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop27.py: cross-version interpreter
+	compatability...  in SETUP_WITH
+
+2020-05-29  rocky <rocky@dusytfeet.com>
+
+	* test/test_with.py: Reinstate a couple more tests on 3.6 & 3.7
+
+2020-05-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop36.py,
+	xpython/vmtrace.py: reorder stack arguments in instruction  fmt
+
+2020-05-28  rocky <rocky@dusytfeet.com>
+
+	* test/examples/basic/test_building_stuff.py, test/test_basic.py,
+	xpython/byteop/byteop.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop36.py,
+	xpython/vm.py: More bytecode formatting
+
+2020-05-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/vm.py: Small name change
+
+2020-05-28  rocky <rb@dustyfeet.com>
+
+	* xpython/vmtrace.py: Go over tracing events yet again.
+
+2020-05-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/vm.py: Improve CALL_FUNCTION
+	instruction display
+
+2020-05-28  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/byteop/byteop.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop34.py,
+	xpython/byteop/byteop36.py, xpython/vm.py: Use stack in formatting
+	instructions; Refactor ops We can now pull off values from the frame eval stack when formatting
+	an instruction.  byteop.py: Move UNARY_OPERATORS, BINARY_OPERATORS, and
+	INPLACE_OPERATORS into byteops.  There are still the SLICE operators still in vm.py though README.rst: update RsT formatting
+
+2020-05-27  rocky <rb@dustyfeet.com>
+
+	* xpython/vmtrace.py: Better "finish" trace/debugger support
+
+2020-05-27  R. Bernstein <rocky@users.noreply.github.com>
+
+	* .github/FUNDING.yml: Create FUNDING.yml
+
+2020-05-27  rocky <rocky@dusytfeet.com>
+
+	* README.rst, test/examples/stmts/test_yield_from_tuple.py,
+	test/examples/test_yield_from_tuple.py, test/stdlib/3.6-exclude.sh,
+	test/stdlib/3.7-exclude.sh, test/test_functions.py: Revise README
+	and convert another test
+
+2020-05-26  rocky <rb@dustyfeet.com>
+
+	* test/examples/with/test_at_context_manager_complete.py,
+	test/examples/{ => with}/test_raise_in_context_manager.py,
+	test/examples/{ => with}/test_raise_in_with.py,
+	test/examples/with/test_suppressed_raise_in_context_manager.py,
+	test/test_with.py: Reinstate/revise with tests for 3.6+ These now work in 3.6 & 3.7
+
+2020-05-26  rocky <rocky@dusytfeet.com>
+
+	* test/examples/{ =>
+	with}/test_suppressed_raise_in_context_manager.py,
+	test/test_with.py, xpython/byteop/byteop35.py, xpython/pyobj.py,
+	xpython/vm.py: Fix up 3.5+ WITH_CLEANUP_FINISH ..  and reinstate test_suppressed_raise_in_context_manager.py for 3.5+
+
+2020-05-26  rocky <rocky@dusytfeet.com>
+
+	* test/examples/{ => with}/test_at_context_manager_complete.py,
+	test/test_with.py: move and reinstate a test
+
+2020-05-25  rocky <rb@dustyfeet.com>
+
+	* test/stdlib/3.6-exclude.sh: Go over 3.6 stdlib exclusions
+
+2020-05-25  rocky <rb@dustyfeet.com>
+
+	* test/test_functions.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop36.py: Fix Bug in 3.6 CALL_FUNCTION_KW
+
+2020-05-25  rocky <rocky@dusytfeet.com>
+
+	* test/test_data.py, xpython/byteop/byteop36.py: Fix up 3.6
+	FORMAT_STRING opcode
+
+2020-05-25  rocky <rocky@dusytfeet.com>
+
+	* xpython/buildclass.py, xpython/builtins.py,
+	xpython/byteop/byteop.py, xpython/pyobj.py,
+	xpython/stdlib/inspect3.py: Cross-version function function
+	signatures...  using modified stdlib inspect.py routines.  We still have some work to get 3.7 to understand 2.7 functions, but
+	we're probably close.
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/builtins.py: Remove debug statement
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/test_pos_args.py,
+	xpython/byteop/byteop36.py, xpython/pyobj.py,
+	xpython/stdlib/__init__.py, xpython/stdlib/inspect3.py: Fix bugs in
+	3.6+ MAKE_FUNCTION Also started a cross-version inspect library.
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop32.py: 3.0..3.2 needs listcomp as a .0 fn
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop36.py, xpython/pyobj.py: Clean up native
+	function access a little
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py: Document Block() better
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/vm.py: Inch closer to having exceptions simulated
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop34.py: More honest
+	3.4+ MAKE_FUNCTION...  Move do_raise() from out ouf byteop32.py and into byteop.py
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* test/examples/exceptions/test_reraise.py, test/test_exceptions.py: 
+	Separate and comment out test_reraise.py until ...  We understand how to do properly.  byterun uses six.raise which requires a real traceback and LOAD_NAME
+	raises NameError which makes six.raise work.  However down the line we really want to separate interpreter
+	exceptions from interpreted exceptions.  Right now, we can't do that - sigh.
+
+2020-05-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py: *copy* frame in tracebacks_from_frame() Otherwise when the frame is modified in exception handling, e.g.
+	frame.f_lastI we modify the traceback information which is wrong.
+
+2020-05-23  rocky <rocky@dusytfeet.com>
+
+	* Makefile, test/examples/basic/test_callback.py,
+	test/test_basic.py, xpython/builtins.py, xpython/byteop/byteop.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop34.py: Lots of
+	little fixups...  The main goal is to improve MAKE_FUNCTION so that it make our VM
+	functions more often. That's not achieved totally yet. But in the
+	interim.  split out test_callback() into its own test Makefile; fix bug in
+	cleaning pyc's byteop34.py: set dot_zero (.0) in comprehensions blacken some buffers
+
+2020-05-23  rocky <rocky@dusytfeet.com>
+
+	* requirements-dev.txt: Add requirements-dev.txt
+
+2020-05-23  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/execfile.py: execfile: better
+	msg when file not found
+
+2020-05-23  rocky <rocky@dusytfeet.com>
+
+	* xpython/buildclass.py, xpython/byteop/byteop.py, xpython/vm.py: 
+	Slightly better cross-version interpreting...  Todo: need to see if we can convert code objects between versions
+
+2020-05-22  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml, README.rst, __pkginfo__.py: Administrivia
+
+2020-05-20  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Adminstrivia and update
+	README.rst
+
 2020-05-20  rocky <rocky@dusytfeet.com>
 
 	* ChangeLog, NEWS.md, xpython/version.py: Get ready for release

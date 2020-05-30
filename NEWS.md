@@ -1,3 +1,12 @@
+1.3.0 2020-05-30 Lady Elaine
+============================
+
+* Logging often shows the operand that an opcode uses
+* Cross-version bytecode interpreting has been improved.
+* Support for debugger-like "step over" and "finish" trace commands was added.
+
+
+
 1.2.1 2020-04-20 trepan-xpy
 ===========================
 
