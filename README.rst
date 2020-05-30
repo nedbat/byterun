@@ -13,12 +13,15 @@ You can use this to:
 * Have one Python program that runs multiple versions of Python bytecode.
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
-The sandboxed environment in a debugger I find interesting. Since
-there is a separate execution, and traceback stack, inside a debugger
-you can try things out in the middle of a debug session without
-effecting the real execution. On the other hand if a sequence of
-executions works out, it is possible to copy this (under certain
-circumstances) back into CPython's execution stack.
+The ability to run Python bytecode as far back as 2.5 from Python 3.7
+I find pretty neat. (Even more could easily be added).
+
+Also, The sandboxed environment in a debugger I find
+interesting. Since there is a separate execution, and traceback stack,
+inside a debugger you can try things out in the middle of a debug
+session without effecting the real execution. On the other hand if a
+sequence of executions works out, it is possible to copy this (under
+certain circumstances) back into CPython's execution stack.
 
 Going the other way, I have hooked in `trepan3k
 <https://pypi.python.org/pypi/trepan3k>`_ into this interpreter so you
@@ -52,27 +55,34 @@ Try this:
    $ xpython -vc "x, y = 2, 3; x **= y"
    INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3)
    INFO:xpython.vm:       @  2: UNPACK_SEQUENCE 2
-   INFO:xpython.vm:       @  4: STORE_NAME x
-   INFO:xpython.vm:       @  6: STORE_NAME y
+   INFO:xpython.vm:       @  4: STORE_NAME (2) x
+   INFO:xpython.vm:       @  6: STORE_NAME (3) y
    INFO:xpython.vm:L. 1   @  8: LOAD_NAME x
    INFO:xpython.vm:       @ 10: LOAD_NAME y
-   INFO:xpython.vm:       @ 12: INPLACE_POWER
-   INFO:xpython.vm:       @ 14: STORE_NAME x
+   INFO:xpython.vm:       @ 12: INPLACE_POWER (2, 3)
+   INFO:xpython.vm:       @ 14: STORE_NAME (8) x
    INFO:xpython.vm:       @ 16: LOAD_CONST None
-   INFO:xpython.vm:       @ 18: RETURN_VALUE
+   INFO:xpython.vm:       @ 18: RETURN_VALUE (None)
 
 Option ``-c`` is the same as Python's flag (program passed in as string)
 and ``-v`` is also analogus Python's flag. Here, it shows the bytecode
 instructions run.
 
-Want the execution stack stack and block stack in addition? Add another `v`:
+Note that the disassembly above in the dynamic trace above gives a
+little more than what you'd see from a static disassembler from
+Python's ``dis`` module. In particular, the ``STORE_NAME``
+instructions show the *value* that is store, e.g. "2" at instruction
+offset 4 into name ``x``. Similarly ``INPLACE_POWER`` shows the operands, 2 and 3, which is how the value
+8 is derived as the operand of the next instruction, ``STORE_NAME``.
+
+Want more like the execution stack stack and block stack in addition? Add another `v`:
 
 ::
 
    $ xpython -vvc "x, y = 2, 3; x **= y"
 
-   DEBUG:xpython.vm:make_frame: code=<code object <module> at 0x7f7acd353420, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 140165406216272), f_locals=(<class 'NoneType'>, 94599533407680)
-   DEBUG:xpython.vm:<Frame at 0x7f7acd322650: '<string x, y = 2, 3; x **= y>':1 @-1>
+   DEBUG:xpython.vm:make_frame: code=<code object <module> at 0x7f8018507db0, file "<string x, y = 2, 3; x **= y>", line 1>, callargs={}, f_globals=(<class 'dict'>, 140188140947488), f_locals=(<class 'NoneType'>, 93856967704000)
+   DEBUG:xpython.vm:<Frame at 0x7f80184c1e50: '<string x, y = 2, 3; x **= y>':1 @-1>
    DEBUG:xpython.vm:  frame.stack: []
    DEBUG:xpython.vm:  blocks     : []
    INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3) <module> in <string x, y = 2, 3; x **= y>:1
@@ -81,10 +91,10 @@ Want the execution stack stack and block stack in addition? Add another `v`:
    INFO:xpython.vm:       @  2: UNPACK_SEQUENCE 2 <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: [3, 2]
    DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @  4: STORE_NAME x <module> in <string x, y = 2, 3; x **= y>:1
+   INFO:xpython.vm:       @  4: STORE_NAME (2) x <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: [3]
    DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @  6: STORE_NAME y <module> in <string x, y = 2, 3; x **= y>:1
+   INFO:xpython.vm:       @  6: STORE_NAME (3) y <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: []
    DEBUG:xpython.vm:  blocks     : []
    INFO:xpython.vm:L. 1   @  8: LOAD_NAME x <module> in <string x, y = 2, 3; x **= y>:1
@@ -93,16 +103,16 @@ Want the execution stack stack and block stack in addition? Add another `v`:
    INFO:xpython.vm:       @ 10: LOAD_NAME y <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: [2, 3]
    DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 12: INPLACE_POWER  <module> in <string x, y = 2, 3; x **= y>:1
+   INFO:xpython.vm:       @ 12: INPLACE_POWER (2, 3)  <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: [8]
    DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 14: STORE_NAME x <module> in <string x, y = 2, 3; x **= y>:1
+   INFO:xpython.vm:       @ 14: STORE_NAME (8) x <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: []
    DEBUG:xpython.vm:  blocks     : []
    INFO:xpython.vm:       @ 16: LOAD_CONST None <module> in <string x, y = 2, 3; x **= y>:1
    DEBUG:xpython.vm:  frame.stack: [None]
    DEBUG:xpython.vm:  blocks     : []
-   INFO:xpython.vm:       @ 18: RETURN_VALUE  <module> in <string x, y = 2, 3; x **= y>:1
+   INFO:xpython.vm:       @ 18: RETURN_VALUE (None)  <module> in <string x, y = 2, 3; x **= y>:1
 
 
 Want to see this colorized in a terminal? Use this via `trepan-xpy`: |assign example|
@@ -112,19 +122,19 @@ this, but you are running Python 3.7?
 
 ::
 
-   $ xpython -vc "x = 6 if __name__ != '__main__' else 10"
+   $ xpython -v test/examples/assign-2.5.pyc
    INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3)
    INFO:xpython.vm:       @  3: UNPACK_SEQUENCE 2
-   INFO:xpython.vm:       @  6: STORE_NAME x
-   INFO:xpython.vm:       @  9: STORE_NAME y
+   INFO:xpython.vm:       @  6: STORE_NAME (2) x
+   INFO:xpython.vm:       @  9: STORE_NAME (3) y
    INFO:xpython.vm:L. 2   @ 12: LOAD_NAME x
    INFO:xpython.vm:       @ 15: LOAD_NAME y
-   INFO:xpython.vm:       @ 18: INPLACE_POWER
-   INFO:xpython.vm:       @ 19: STORE_NAME x
+   INFO:xpython.vm:       @ 18: INPLACE_POWER (2, 3)
+   INFO:xpython.vm:       @ 19: STORE_NAME (8) x
    INFO:xpython.vm:       @ 22: LOAD_CONST None
-   INFO:xpython.vm:       @ 25: RETURN_VALUE
+   INFO:xpython.vm:       @ 25: RETURN_VALUE (None)
 
-Not much has changed here, other then the fact that that in after 3.6 instructions are two bytes instead of 1-3 bytes.
+Not much has changed here, other then the fact that that in after 3.6 instructions are two bytes instead of 1- or 3-byte instructions.
 
 The above examples show straight-line code, so you see all of the instructions. But don't confuse this with a disassembler like `pydisasm` from `xdis`.
 The below example, with conditional branching example makes this more clear:
@@ -133,12 +143,13 @@ The below example, with conditional branching example makes this more clear:
     $ xpython -vc "x = 6 if __name__ != '__main__' else 10"
     INFO:xpython.vm:L. 1   @  0: LOAD_NAME __name__
     INFO:xpython.vm:       @  2: LOAD_CONST __main__
-    INFO:xpython.vm:       @  4: COMPARE_OP !=
+    INFO:xpython.vm:       @  4: COMPARE_OP ('__main__', '__main__') !=
     INFO:xpython.vm:       @  6: POP_JUMP_IF_FALSE 12
+                                                   ^^ Note jump below
     INFO:xpython.vm:       @ 12: LOAD_CONST 10
-    INFO:xpython.vm:       @ 14: STORE_NAME x
+    INFO:xpython.vm:       @ 14: STORE_NAME (10) x
     INFO:xpython.vm:       @ 16: LOAD_CONST None
-    INFO:xpython.vm:       @ 18: RETURN_VALUE
+    INFO:xpython.vm:       @ 18: RETURN_VALUE (None)
 
 Want even more status and control? See `trepan-xpy <https://github.com/rocky/trepan-xpy>`_.
 
@@ -189,9 +200,9 @@ Python 2.7 doesn't support keyword-only arguments or format strings,
 it can still interpret bytecode created from using these constructs.
 
 That's possible here because these specific features are more
-syntactic sugar than extensions to the runtime. For example format
-strings basically map down to using the ``format()`` function which is
-available on 2.7.
+syntactic sugar rather than extensions to the runtime. For example,
+format strings basically map down to using the ``format()`` function
+which is available on 2.7.
 
 New features like asynchronous I/O and concurrency primatives are not
 in the older versions and need to be simulated. However that too is a

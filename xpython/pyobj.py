@@ -9,8 +9,8 @@ from copy import copy
 from sys import stderr
 from xdis import CO_GENERATOR, iscode, PYTHON3, PYTHON_VERSION
 
-if PYTHON_VERSION >= 3.0:
-    import xpython.stdlib.inspect3 as inspect3
+import xpython.stdlib.inspect3 as inspect3
+import xpython.stdlib.inspect2 as inspect2
 
 import six
 
@@ -213,9 +213,13 @@ class Function(object):
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
         elif self._func:
+            # Perhaps this branch can go and we just use the others.
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
         else:
-            callargs = inspect3.getcallargs(self, *args, **kwargs)
+            if self.version >= 3.0:
+                callargs = inspect3.getcallargs(self, *args, **kwargs)
+            else:
+                callargs = inspect2.getcallargs(self, *args, **kwargs)
 
         frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, {})
         if self.func_code.co_flags & CO_GENERATOR:

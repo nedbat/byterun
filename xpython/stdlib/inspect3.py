@@ -1,12 +1,11 @@
-# The changed parts from the Python 3.6 inspect library.
+# The changed parts from the Python 3.6 "inspect" module
 # We've converted this also to run on Python back to 2.7
 
 import functools
 import types
-from inspect import isclass
+from inspect import isclass, ismethod
 
 from xdis import PYTHON_VERSION, COMPILER_FLAG_BIT
-
 
 if PYTHON_VERSION >= 3.3:
     from inspect import (
@@ -28,7 +27,6 @@ if PYTHON_VERSION >= 3.3:
             _signature_get_user_defined_method,
             _signature_is_builtin,
             _too_many,
-            ismethod,
             unwrap,
         )
 
