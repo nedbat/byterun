@@ -1,5 +1,18 @@
 2020-05-30  rocky <rocky@dusytfeet.com>
 
+	* setup.py, xpython/version.py: Get ready for release 1.3.1
+
+2020-05-30  rocky <rocky@dusytfeet.com>
+
+	* README.rst, screenshots/trepan-xpy-assign.cast: Fix broken
+	screenshot link and image contents
+
+2020-05-30  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Administrivia
+
+2020-05-30  rocky <rocky@dusytfeet.com>
+
 	* : commit 3d87ec475c08c88ad148f1db17ec7c83b340bc11 Author: rocky
 	<rocky@dusytfeet.com> Date:   Sat May 30 13:44:31 2020 -0400
 

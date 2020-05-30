@@ -1,11 +1,11 @@
-1.3.0 2020-05-30 Lady Elaine
+1.3.1 2020-05-30 Lady Elaine
 ============================
 
 * Logging often shows the operand that an opcode uses
 * Cross-version bytecode interpreting has been improved. Adding interoperable `inpsect` modules helps here.
 * Support for debugger-like "step over" and "finish" trace commands was added.
 
-
+1.3.0 was a botched release. xpython.stdlib wasn't included
 
 1.2.1 2020-04-20 trepan-xpy
 ===========================

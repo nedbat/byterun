@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from __pkginfo__ import (
     VERSION,
     author,
@@ -26,7 +26,7 @@ setup(
     entry_points=entry_points,
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    packages = ["xpython", "xpython.byteop"],
+    packages=find_packages(),
     py_modules = py_modules,
     install_requires=install_requires,
     url=url
