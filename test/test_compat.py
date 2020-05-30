@@ -17,9 +17,13 @@ from xdis import PYTHON_VERSION
 COMPATABILITY_MATRIX = {
     2.7: (2.6, 2.5),
     3.2: (),
+
+    # TODO: work on these. The list is not too large
     3.3: (3.2,),
-    # More or less punt on these for now
-    3.4:  (),
+    3.4:  (3.3,),
+
+    # 3.7: (3.6, 3.5, 3.4, 3.3, 3.2, 2.7, 2.6, 2.5),
+    # More or less punt on these for now, although these often work.
     3.5: (),
     3.6: (),
     3.7: (),
