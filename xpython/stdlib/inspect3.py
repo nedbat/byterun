@@ -29,12 +29,69 @@ if PYTHON_VERSION >= 3.3:
             _too_many,
             unwrap,
         )
+    pass
+else:
+    class Parameter(object):
+        # For interpreting Python 3.x from Python 2.x
+        # To be filled in...
+        pass
 
     # Note: we don't want to import pyobj and Function since that imports us.
 
 # Not Python's 3.2 and before inspect.py
 class _empty:
     """Marker object for Signature.empty and Parameter.empty."""
+    pass
+
+class MyParameter(Parameter):
+    '''Represents a parameter in a function signature.
+
+    Has the following public attributes:
+
+    * name : str
+        The name of the parameter as a string.
+    * default : object
+        The default value for the parameter if specified.  If the
+        parameter has no default value, this attribute is set to
+        `Parameter.empty`.
+    * annotation
+        The annotation for the parameter if specified.  If the
+        parameter has no annotation, this attribute is set to
+        `Parameter.empty`.
+    * kind : str
+        Describes how argument values are bound to the parameter.
+        Possible values: `Parameter.POSITIONAL_ONLY`,
+        `Parameter.POSITIONAL_OR_KEYWORD`, `Parameter.VAR_POSITIONAL`,
+        `Parameter.KEYWORD_ONLY`, `Parameter.VAR_KEYWORD`.
+    '''
+
+    def __init__(self, name, kind, default=_empty, annotation=_empty):
+
+        if kind not in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD,
+                        VAR_POSITIONAL, KEYWORD_ONLY, VAR_KEYWORD):
+            raise ValueError("invalid value for 'Parameter.kind' attribute")
+        self._kind = kind
+
+        if default is not _empty:
+            if kind in (VAR_POSITIONAL, VAR_KEYWORD):
+                msg = '{} parameters cannot have default values'.format(kind)
+                raise ValueError(msg)
+        self._default = default
+        self._annotation = annotation
+
+        if name is _empty:
+            raise ValueError('name is a required attribute for Parameter')
+
+        if not isinstance(name, str):
+            raise TypeError("name must be a str, not a {!r}".format(name))
+
+
+        if not (name.isidentifier() or name == ".0"):
+            raise ValueError('{!r} is not a valid parameter name'.format(name))
+
+        self._name = name
+
+
 
 # from _ParameterKind without the enum that doesn't work on older Pythons
 POSITIONAL_ONLY = 0
@@ -262,7 +319,9 @@ def _signature_from_function(cls, func):
             # of pure function:
             raise TypeError('%r is not a Python function' % func)
 
-    Parameter = cls._parameter_cls
+    # parameter_class = cls._parameter_cls
+    # if parameter_class != InspectParameter:
+    #     MyParameter = parameter_class
 
     # Parameter information.
     func_code = func.__code__
@@ -295,13 +354,13 @@ def _signature_from_function(cls, func):
     non_default_count = pos_count - pos_default_count
     for name in positional[:non_default_count]:
         annotation = annotations.get(name, _empty)
-        parameters.append(Parameter(name, annotation=annotation,
+        parameters.append(MyParameter(name, annotation=annotation,
                                     kind=POSITIONAL_OR_KEYWORD))
 
     # ... w/ defaults.
     for offset, name in enumerate(positional[non_default_count:]):
         annotation = annotations.get(name, _empty)
-        parameters.append(Parameter(name, annotation=annotation,
+        parameters.append(MyParameter(name, annotation=annotation,
                                     kind=POSITIONAL_OR_KEYWORD,
                                     default=defaults[offset]))
 
@@ -309,8 +368,8 @@ def _signature_from_function(cls, func):
     if func_code.co_flags & COMPILER_FLAG_BIT["VARARGS"]:
         name = arg_names[pos_count + keyword_only_count]
         annotation = annotations.get(name, _empty)
-        parameters.append(Parameter(name, annotation=annotation,
-                                    kind=VAR_POSITIONAL))
+        parameters.append(MyParameter(name, annotation=annotation,
+                                      kind=VAR_POSITIONAL))
 
     # Keyword-only parameters.
     for name in keyword_only:
@@ -319,7 +378,7 @@ def _signature_from_function(cls, func):
             default = kwdefaults.get(name, _empty)
 
         annotation = annotations.get(name, _empty)
-        parameters.append(Parameter(name, annotation=annotation,
+        parameters.append(MyParameter(name, annotation=annotation,
                                     kind=KEYWORD_ONLY,
                                     default=default))
     # **kwargs
@@ -330,8 +389,8 @@ def _signature_from_function(cls, func):
 
         name = arg_names[index]
         annotation = annotations.get(name, _empty)
-        parameters.append(Parameter(name, annotation=annotation,
-                                    kind=VAR_KEYWORD))
+        parameters.append(MyParameter(name, annotation=annotation,
+                                      kind=VAR_KEYWORD))
 
     # Is 'func' is a pure Python function - don't validate the
     # parameters list (for correct order and defaults), it should be OK.
