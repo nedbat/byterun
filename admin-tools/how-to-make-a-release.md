@@ -52,3 +52,7 @@ Goto https://github.com/rocky/x-python/releases/new
 	$ twine upload dist/x[-_]python-${VERSION}*
 
 Check on https://pypi.org/project/x-python/
+
+# Move dist files to uploaded
+
+	$ mv -v dist/x[_-]python-${VERSION}* dist/uploaded
