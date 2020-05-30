@@ -42,7 +42,7 @@ class ByteOp34(ByteOp33):
     #
     def MAKE_FUNCTION(self, argc):
         """
-        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of
+        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of:
 
         * argc & 0xFF default argument objects in positional order
         * (argc >> 8) & 0xFF pairs of name and default argument, with the name just below the object on the stack, for keyword-only parameters
@@ -89,6 +89,7 @@ class ByteOp34(ByteOp33):
             code=code,
             globs=globs,
             argdefs=tuple(defaults),
+            closure=None,
             vm=self.vm,
             kwdefaults=kwdefaults,
             annotations=annotations,

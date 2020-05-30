@@ -94,13 +94,15 @@ class ByteOp32(ByteOp27):
         else:
             defaults = tuple()
 
+        # FIXME: DRY with code in byteop3{2,6}.py
+
         globs = self.vm.frame.f_globals
 
         fn = Function(
-            name,
-            code,
-            globs,
-            defaults,
+            name=name,
+            code=code,
+            globs=globs,
+            argdefs=tuple(defaults),
             closure=None,
             vm=self.vm,
             kwdefaults=kwdefaults,
