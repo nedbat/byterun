@@ -29,6 +29,12 @@ class TestWithStatement(vmtest.VmTestCase):
     def test_at_context_manager_simplified(self):
         self.self_checking()
 
+    def test_break_in_with(self):
+        self.do_one()
+
+    def test_raise_in_with(self):
+        self.do_one()
+
     if PYTHON_VERSION >= 3.6:
         print("Test not gone over yet for >= 3.6")
     else:
@@ -57,12 +63,6 @@ class TestWithStatement(vmtest.VmTestCase):
                 print("Look: %r" % s)
                 assert s == "iwor"
                 """)
-
-        def test_break_in_with(self):
-            self.do_one()
-
-        def test_raise_in_with(self):
-            self.do_one()
 
         if PYTHON_VERSION >= 3.3:
 
