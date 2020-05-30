@@ -2,7 +2,7 @@
 ============================
 
 * Logging often shows the operand that an opcode uses
-* Cross-version bytecode interpreting has been improved.
+* Cross-version bytecode interpreting has been improved. Adding interoperable `inpsect` modules helps here.
 * Support for debugger-like "step over" and "finish" trace commands was added.
 
 

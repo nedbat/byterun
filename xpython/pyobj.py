@@ -133,14 +133,9 @@ class Function(object):
 
         self.func_globals = globs
         self.func_locals = vm.frame.f_locals
-        # Investigate: in Python 2.7 and before bytecode, setting dict
-        # to {} wipes out self._vm and self.version?
-        if vm.version >= 3.0:
-            self.__dict__ = {}
-        else:
-            self.__dict__ = {
-                "version": vm.version,
-                "_vm": vm,
+        self.__dict__ = {
+            "version": vm.version,
+            "_vm": vm,
             }
 
         self.__doc__ = (
@@ -212,7 +207,7 @@ class Function(object):
             # so just do the right thing.
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
-        elif self._func:
+        elif self._func and self.version == PYTHON_VERSION:
             # Perhaps this branch can go and we just use the others.
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
         else:

@@ -25,7 +25,15 @@ assert answer == 54
 import sys
 if sys.version_info[0:1] >= (2, 7):
     def pack(width, data):
-        return b''.join(v.to_bytes(width, "little", signed=True) for v in data)
+        return b''.join(v.to_bytes(
+            width, "little",
+            signed=True)
+                        for v in data)
 
-    packs = {w: (lambda data, width=w: pack(width, data)) for w in (1, 2, 3, 4)}
+    packs = {
+        w:
+        (lambda data, width=w: pack(width, data))
+        for w in
+        (1, 2, 3, 4)
+        }
     assert packs[3](data=[0, -1, 0x123456]) == b'\x00\x00\x00\xff\xff\xffV4\x12'

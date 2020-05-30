@@ -1,6 +1,19 @@
 2020-05-30  rocky <rocky@dusytfeet.com>
 
-	* __pkginfo__.py, xpython/version.py: Get ready for release 1.3.0
+	* : commit 3d87ec475c08c88ad148f1db17ec7c83b340bc11 Author: rocky
+	<rocky@dusytfeet.com> Date:   Sat May 30 13:44:31 2020 -0400
+
+2020-05-30  rocky <rb@dustyfeet.com>
+
+	* xpython/pyobj.py, xpython/stdlib/inspect3.py: Towards getting
+	cross-compiling closures working.
+
+2020-05-30  rocky <rb@dustyfeet.com>
+
+	* test/examples/functions/test_closures.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop34.py: Small
+	changes ...  the formatting changes to test_closures.py should help track down a
+	cross-version interpreting bug.
 
 2020-05-30  rocky <rocky@dusytfeet.com>
 
