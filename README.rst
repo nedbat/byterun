@@ -115,7 +115,8 @@ Want more like the execution stack stack and block stack in addition? Add anothe
    INFO:xpython.vm:       @ 18: RETURN_VALUE (None)  <module> in <string x, y = 2, 3; x **= y>:1
 
 
-Want to see this colorized in a terminal? Use this via `trepan-xpy`: |assign example|
+Want to see this colorized in a terminal? Use this via ``trepan-xpy -x``:
+|trepan-xpy-example|
 
 Suppose you have Python 2.5 bytecode (or some other bytecode) for
 this, but you are running Python 3.7?
@@ -228,7 +229,7 @@ bytecodes so he could fix branch coverage bugs in coverage.py.
 .. |TravisCI| image:: https://travis-ci.org/rocky/x-python.svg?branch=master
 		 :target: https://travis-ci.org/rocky/x-python
 
-.. |assign example| image:: https://github.com/rocky/x-python/blob/master/screenshots/trepan-xpy-assign.gif
+.. |trepan-xpy-example| image:: https://github.com/rocky/x-python/blob/master/screenshots/trepan-xpy-assign.gif
 .. |Latest Version| image:: https://badge.fury.io/py/x-python.svg
 		 :target: https://badge.fury.io/py/x-python
 .. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/x-python.svg
