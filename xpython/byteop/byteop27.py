@@ -12,10 +12,17 @@ from xpython.byteop.byteop26 import ByteOp26
 del ByteOp25.JUMP_IF_FALSE
 del ByteOp25.JUMP_IF_TRUE
 
+def fmt_set_add(vm, arg, repr=repr):
+    return " set.add(%s, %s)" % (repr(vm.peek(arg)), repr(vm.top()))
+
+def fmt_map_add(vm, arg, repr=repr):
+    return " dict.setitem(%s, %s, %s)" % (repr(vm.peek(arg)), repr(vm.top()), repr(vm.peek(2)))
+
 class ByteOp27(ByteOp26):
     def __init__(self, vm):
         super(ByteOp27, self).__init__(vm)
-
+        self.stack_fmt["SET_ADD"] = fmt_set_add
+        self.stack_fmt["MAP_ADD"] = fmt_map_add
 
     def convert_method_native_func(self, frame, method):
         """If a method's function is a native functions, converted it to the

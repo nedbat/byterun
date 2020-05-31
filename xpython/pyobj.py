@@ -209,6 +209,8 @@ class Function(object):
             callargs = {".0": args[0]}
         elif self._func and self.version == PYTHON_VERSION:
             # Perhaps this branch can go and we just use the others.
+            # It will require a *lot* more code from inspect.py to be added:
+            # classes Signature, Parameter, etc.
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
         else:
             if self.version >= 3.0:
