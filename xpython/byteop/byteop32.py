@@ -24,14 +24,6 @@ del ByteOp25.RAISE_VARARGS
 # Gone since 3.2
 del ByteOp25.DUP_TOPX
 
-# Code with these names have an implicit .0 in them
-COMPREHENSION_FN_NAMES = frozenset((
-    "<setcomp>",
-    "<dictcomp>",
-    "<listcomp>",
-    "<genexpr>",
-))
-
 def fmt_make_function(vm, arg=None, repr=repr):
     """
     returns the name of the function from the code object in the stack
@@ -109,10 +101,6 @@ class ByteOp32(ByteOp27):
             annotations=annotations,
         )
 
-        if argc == 0 and name in COMPREHENSION_FN_NAMES:
-            fn.has_dot_zero = True
-
-        fn.version = self.version  # This is our extra tagging.
         self.vm.push(fn)
 
     # Order of function here is the same as in:

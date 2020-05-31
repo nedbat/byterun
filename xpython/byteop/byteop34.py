@@ -7,7 +7,7 @@ import inspect
 import types
 
 from xdis import PYTHON_VERSION, IS_PYPY
-from xpython.byteop.byteop32 import ByteOp32, COMPREHENSION_FN_NAMES
+from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop33 import ByteOp33
 from xpython.pyobj import Function
 
@@ -110,8 +110,4 @@ class ByteOp34(ByteOp33):
             native_fn.__annonations__ = annotations
             self.vm.fn2native[fn] = native_fn
 
-        if argc == 0 and name in COMPREHENSION_FN_NAMES:
-            fn.has_dot_zero = True
-
-        fn.version = self.version  # This is our extra tagging.
         self.vm.push(fn)

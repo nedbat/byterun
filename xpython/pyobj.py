@@ -41,6 +41,14 @@ except:
     pass
 
 
+# Code with these names have an implicit .0 in them
+COMPREHENSION_FN_NAMES = frozenset((
+    "<setcomp>",
+    "<dictcomp>",
+    "<listcomp>",
+    "<genexpr>",
+))
+
 class Function(object):
     """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={},
                 annotations={}, doc=None, qualname=None)
@@ -156,7 +164,10 @@ class Function(object):
         # In Python 3.x is varous generators and list comprehensions have a .0 arg
         # but inspect doesn't show that. In the various MAKE_FUNCTION routines,
         # we will detect this and store True in this field when appropriate.
-        self.has_dot_zero = False
+        if not argdefs and self.__name__.split(".")[-1] in COMPREHENSION_FN_NAMES:
+            self.has_dot_zero = True
+        else:
+            self.has_dot_zero = False
 
         # Sometimes, we need a real Python function.  This is for that.
         kw = {
