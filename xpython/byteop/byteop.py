@@ -151,7 +151,8 @@ class ByteOpBase(object):
                 assert (
                     len(posargs) > 0
                 ), "__build_class__() should have at least one argument, an __init__() function."
-                if (
+                init_fn = posargs[0]
+                if (isinstance(init_fn, Function) or
                     self.is_pypy or self.version != PYTHON_VERSION
                 ) and PYTHON_VERSION >= 3.4:
                     # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
