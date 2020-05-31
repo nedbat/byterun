@@ -49,6 +49,7 @@
 Goto https://github.com/rocky/x-python/releases/new
 
 
+	$ twine upload dist/x[-_]python-${VERSION}-py3.7.egg  # Older versions don't support Markdown
 	$ twine upload dist/x[-_]python-${VERSION}*
 
 Check on https://pypi.org/project/x-python/
