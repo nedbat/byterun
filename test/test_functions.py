@@ -14,8 +14,17 @@ class TestFunctions(vmtest.VmTestCase):
     def test_no_builtins(self):
         self.self_checking()
 
+    def test_calling_function_with_args_kwargs(self):
+        self.self_checking()
+
     def test_different_globals_may_have_different_builtins(self):
         self.do_one()
+
+    # FIXME: see what's up with 3.6 & 3.7
+    # probably something with CALL_FUNCTION_... again
+    if 3.0 <= PYTHON_VERSION <= 3.5:
+        def test_function_calls(self):
+            self.self_checking()
 
     # test_pos_args has function syntax added in 3.3
     if PYTHON_VERSION >= 3.3:
@@ -64,16 +73,6 @@ class TestFunctions(vmtest.VmTestCase):
                     two()
                     print(x)
                 one()
-                """)
-
-        def test_calling_functions_with_args_kwargs(self):
-            self.assert_ok("""\
-                def fn(a, b=17, c="Hello", d=[]):
-                    d.append(99)
-                    print(a, b, c, d)
-                fn(6, *[77, 88])
-                fn(**{'c': 23, 'a': 7})
-                fn(6, *[77], **{'c': 23, 'd': [123]})
                 """)
 
         def test_defining_functions_with_args_kwargs(self):

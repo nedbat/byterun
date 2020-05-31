@@ -60,9 +60,7 @@ class ByteOp25(ByteOpBase):
         ).split():
             self.stack_fmt[op] = fmt_binary_op
 
-        for op in (
-            "ROT_THREE STORE_SUBSCR EXEC_STMT BUILD_CLASS"
-        ).split():
+        for op in ("ROT_THREE STORE_SUBSCR EXEC_STMT BUILD_CLASS").split():
             self.stack_fmt[op] = fmt_ternary_op
 
         for op in (
@@ -775,33 +773,39 @@ class ByteOp25(ByteOpBase):
         off the stack, calls the callable object with those arguments,
         and pushes the return value returned by the callable object.
         """
-        return self.call_function(argc, [], {})
+        return self.call_function(argc, var_args=[], keyword_args={})
 
     def CALL_FUNCTION_VAR(self, argc):
         """
-        Calls a function. argc is interpreted as in
-        CALL_FUNCTION. The top element on the stack contains the
-        variable argument list, followed by keyword and positional
-        arguments.
+        Calls a function. argc is interpreted as in CALL_FUNCTION.
+        The top element on the stack contains the variable argument
+        list (var_args), followed by keyword and positional arguments.
+
+        The order of var_args and keyword_args changes in 3.5.
+
         """
-        args = self.vm.pop()
-        return self.call_function(argc, args, {})
+        var_args = self.vm.pop()
+        return self.call_function(argc, var_args=var_args, keyword_args={})
 
     def CALL_FUNCTION_KW(self, argc):
-        """Calls a function. argc is interpreted as in CALL_FUNCTION.
-        The top element on the stack contains the keyword arguments
-        dictionary, followed by explicit keyword and positional
-        arguments.
         """
-        kwargs = self.vm.pop()
-        return self.call_function(argc, [], kwargs)
+        Calls a function. argc is interpreted as in CALL_FUNCTION.
+        The top element on the stack contains the keyword arguments
+        dictionary (keyword_args), followed by explicit keyword and
+        positional arguments.
+
+        """
+        keyword_args = self.vm.pop()
+        return self.call_function(argc, var_args=[], keyword_args=keyword_args)
 
     def CALL_FUNCTION_VAR_KW(self, argc):
         """
-        Calls a function. argc is interpreted as in
-        CALL_FUNCTION. The top element on the stack contains the keyword
-        arguments dictionary, followed by the variable-arguments tuple,
-        followed by explicit keyword and positional arguments.
+        Calls a function. argc is interpreted as in CALL_FUNCTION. The top
+        element on the stack contains the keyword arguments dictionary
+        (keyword_args), followed by the variable-arguments tuple,
+        (var_args) followed by explicit keyword and positional
+        arguments.
+
         """
-        args, kwargs = self.vm.popn(2)
-        return self.call_function(argc, args, kwargs)
+        var_args, keyword_args = self.vm.popn(2)
+        return self.call_function(argc, var_args=var_args, keyword_args=keyword_args)

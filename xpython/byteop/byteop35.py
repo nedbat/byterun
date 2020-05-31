@@ -37,63 +37,16 @@ class ByteOp35(ByteOp34):
 
     # New in 3.5
 
-    def BUILD_TUPLE_UNPACK(self, count):
+    def GET_YIELD_FROM_ITER(self):
         """
-        Pops count iterables from the stack, joins them in a single tuple,
-        and pushes the result. Implements iterable unpacking in
-        tuple displays (*x, *y, *z).
+        If TOS is a generator iterator or coroutine object it is left as
+        is. Otherwise, implements TOS = iter(TOS).
         """
-        self.build_container_flat(count, tuple)
-
-    def BUILD_LIST_UNPACK(self, count):
-        """
-        This is similar to BUILD_TUPLE_UNPACK, but pushes a list instead of tuple.
-        Implements iterable unpacking in list displays [*x, *y, *z].
-        """
-        self.build_container_flat(count, list)
-
-    def BUILD_SET_UNPACK(self, count):
-        """
-        Pops count mappings from the stack, merges them into a single
-        dictionary, and pushes the result. Implements dictionary
-        unpacking in dictionary displays {**x, **y, **z}.
-        """
-        self.build_container_flat(count, set)
-
-    def BUILD_MAP_UNPACK(self, count):
-        """
-        Pops count iterables from the stack, joins them in a single tuple,
-        and pushes the result. Implements iterable unpacking in
-        tuple displays (*x, *y, *z).
-        """
-        # Note: this isn't the same thing as build_container_flat
-        elts = self.vm.popn(count)
-        result = {}
-        for d in elts:
-            result.update(d)
-        self.vm.push(result)
-
-    def BUILD_MAP_UNPACK_WITH_CALL(self, oparg):
-        """
-        This is similar to BUILD_MAP_UNPACK, but is used for f(**x, **y,
-        **z) call syntax. The lowest byte of oparg is the count of
-        mappings, the relative position of the corresponding callable
-        f is encoded in the second byte of oparg.
-        """
-        fn_pos, count = divmod(oparg, 256)
-        elts = self.vm.popn(count)
-        if elts:
-            kwargs = {k: v for m in elts for k, v in m.items()}
-        else:
-            kwargs = None
-        posargs = self.vm.pop()
-        func = self.vm.pop(fn_pos)
-
-        # Put everything in the right order for CALL_FUNCTION_EX
-        self.vm.push(func)
-        self.vm.push(posargs)
-        if kwargs:
-            self.vm.push(kwargs)
+        TOS = self.vm.top()
+        if isinstance(TOS, types.GeneratorType) or isinstance(TOS, types.CoroutineType):
+            return
+        TOS = self.vm.pop()
+        self.vm.push(iter(TOS))
 
     # Coroutine opcodes
 
@@ -138,17 +91,6 @@ class ByteOp35(ByteOp34):
     def BEFORE_ASYNC_WITH(self):
         raise self.vm.PyVMError("BEFORE_ASYNC_WITH not implemented yet")
         return
-
-    def GET_YIELD_FROM_ITER(self):
-        """
-        If TOS is a generator iterator or coroutine object it is left as
-        is. Otherwise, implements TOS = iter(TOS).
-        """
-        TOS = self.vm.top()
-        if isinstance(TOS, types.GeneratorType) or isinstance(TOS, types.CoroutineType):
-            return
-        TOS = self.vm.pop()
-        self.vm.push(iter(TOS))
 
     def WITH_CLEANUP_START(self):
         """Cleans up the stack when a with statement block exits.
@@ -211,3 +153,96 @@ class ByteOp35(ByteOp34):
             self.vm.popn(1)
             self.vm.push("silenced")
             return "silenced"
+
+    # All of the following opcodes expect arguments. An argument is two bytes, with the more significant byte last.
+
+    def BUILD_TUPLE_UNPACK(self, count):
+        """
+        Pops count iterables from the stack, joins them in a single tuple,
+        and pushes the result. Implements iterable unpacking in
+        tuple displays (*x, *y, *z).
+        """
+        self.build_container_flat(count, tuple)
+
+    def BUILD_LIST_UNPACK(self, count):
+        """
+        This is similar to BUILD_TUPLE_UNPACK, but pushes a list instead of tuple.
+        Implements iterable unpacking in list displays [*x, *y, *z].
+        """
+        self.build_container_flat(count, list)
+
+    def BUILD_SET_UNPACK(self, count):
+        """
+        Pops count mappings from the stack, merges them into a single
+        dictionary, and pushes the result. Implements dictionary
+        unpacking in dictionary displays {**x, **y, **z}.
+        """
+        self.build_container_flat(count, set)
+
+    def BUILD_MAP_UNPACK(self, count):
+        """
+        Pops count iterables from the stack, joins them in a single tuple,
+        and pushes the result. Implements iterable unpacking in
+        tuple displays (*x, *y, *z).
+        """
+        # Note: this isn't the same thing as build_container_flat
+        elts = self.vm.popn(count)
+        result = {}
+        for d in elts:
+            result.update(d)
+        self.vm.push(result)
+
+    def BUILD_MAP_UNPACK_WITH_CALL(self, oparg):
+        """
+        This is similar to BUILD_MAP_UNPACK, but is used for f(**x, **y,
+        **z) call syntax. The lowest byte of oparg is the count of
+        mappings, the relative position of the corresponding callable
+        f is encoded in the second byte of oparg.
+        """
+        fn_pos, count = divmod(oparg, 256)
+        elts = self.vm.popn(count)
+        if elts:
+            kwargs = {k: v for m in elts for k, v in m.items()}
+        else:
+            kwargs = None
+        posargs = self.vm.pop()
+        func = self.vm.pop(fn_pos)
+
+        # Put everything in the right order for CALL_FUNCTION_EX
+        self.vm.push(func)
+        self.vm.push(posargs)
+        if kwargs:
+            self.vm.push(kwargs)
+
+    def CALL_FUNCTION_VAR(self, argc):
+        """Calls a callable object, similarly to `CALL_FUNCTION_VAR` and
+        `CALL_FUNCTION_KW`. *argc* represents the number of keyword
+        and positional arguments, identically to `CALL_FUNCTION`. The
+        top of the stack contains a mapping object, as per
+        `CALL_FUNCTION_KW`. Below that are keyword arguments (if any),
+        stored identically to `CALL_FUNCTION`. Below that is an iterable
+        object containing additional positional arguments. Below that
+        are positional arguments (if any) and a callable object,
+        identically to `CALL_FUNCTION`a. Before the callable is called,
+        the mapping object and iterable object are each "unpacked" and
+        their contents passed in as keyword and positional arguments
+        respectively, identically to `CALL_FUNCTION_VAR` and
+        `CALL_FUNCTION_KW`. The mapping object and iterable object are
+        both ignored when computing the value of argc.
+
+        Changed in version 3.5: In all Python versions 3.4, the
+        iterable object (var_args) was above the keyword arguments
+        (keyword_args); in 3.5 the iterable object was moved below the
+        keyword arguments.
+
+        """
+        keyword_args = {}
+        len_kw, len_pos = divmod(argc, 256)
+        for i in range(len_kw):
+            key, val = self.vm.popn(2)
+            keyword_args[key] = val
+        var_args = self.vm.pop()
+        pos_args = self.vm.popn(len_pos)
+        pos_args.extend(var_args)
+        func = self.vm.pop()
+        self.call_function_with_args_resolved(func, pos_args=pos_args, named_args=keyword_args)

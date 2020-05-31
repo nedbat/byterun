@@ -117,21 +117,21 @@ class ByteOpBase(object):
         elts = self.vm.popn(count)
         self.vm.push(container_fn(elts))
 
-    def call_function_with_args_resolved(self, func, posargs, namedargs):
+    def call_function_with_args_resolved(self, func, pos_args, named_args):
         frame = self.vm.frame
         if hasattr(func, "im_func"):
             # Methods get self as an implicit first parameter.
             if func.im_self is not None:
-                posargs.insert(0, func.im_self)
+                pos_args.insert(0, func.im_self)
             # The first parameter must be the correct type.
-            if not isinstance(posargs[0], func.im_class):
+            if not isinstance(pos_args[0], func.im_class):
                 raise TypeError(
                     "unbound method %s() must be called with %s instance "
                     "as first argument (got %s instance instead)"
                     % (
                         func.im_func.func_name,
                         func.im_class.__name__,
-                        type(posargs[0]).__name__,
+                        type(pos_args[0]).__name__,
                     )
                 )
             func = func.im_func
@@ -149,24 +149,24 @@ class ByteOpBase(object):
                 return
             elif PYTHON_VERSION >= 3.0 and func == __build_class__:
                 assert (
-                    len(posargs) > 0
+                    len(pos_args) > 0
                 ), "__build_class__() should have at least one argument, an __init__() function."
-                init_fn = posargs[0]
+                init_fn = pos_args[0]
                 if (isinstance(init_fn, Function) or
                     self.is_pypy or self.version != PYTHON_VERSION
                 ) and PYTHON_VERSION >= 3.4:
                     # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
                     # Down the line we will try to do this universally, but it is tricky:
-                    retval = build_class(self.vm.opc, *posargs, **namedargs)
+                    retval = build_class(self.vm.opc, *pos_args, **named_args)
                     self.vm.push(retval)
                     return
                 else:
                     # Use builtin __build_class__(). However for that, we need a native function.
                     # This is wrong though in that we won't trace into __init__().
-                    init_fn = posargs[0]
+                    init_fn = pos_args[0]
                     if isinstance(init_fn, Function) and init_fn in self.vm.fn2native:
-                        posargs[0] = self.vm.fn2native[init_fn]
+                        pos_args[0] = self.vm.fn2native[init_fn]
 
         if inspect.isfunction(func):
             # Try to convert to an interpreter function so we can interpret it.
@@ -180,27 +180,27 @@ class ByteOpBase(object):
                 # in test.support module of test/support/__init__.py.
                 # In Python 2.X we work around a similar problem by
                 # not tying to handle functions with closures.
-                assert len(posargs) > 0
-                posargs[0] = self.convert_native_to_Function(frame, posargs[0])
+                assert len(pos_args) > 0
+                pos_args[0] = self.convert_native_to_Function(frame, pos_args[0])
 
         if inspect.isfunction(func):
             log.debug("calling native function %s" % func.__name__)
 
-        retval = func(*posargs, **namedargs)
+        retval = func(*pos_args, **named_args)
         self.vm.push(retval)
 
-    def call_function(self, argc, args, kwargs):
-        namedargs = {}
-        lenKw, lenPos = divmod(argc, 256)
-        for i in range(lenKw):
+    def call_function(self, argc, var_args, keyword_args):
+        named_args = {}
+        len_kw, len_pos = divmod(argc, 256)
+        for i in range(len_kw):
             key, val = self.vm.popn(2)
-            namedargs[key] = val
-        namedargs.update(kwargs)
-        posargs = self.vm.popn(lenPos)
-        posargs.extend(args)
+            named_args[key] = val
+        named_args.update(keyword_args)
+        pos_args = self.vm.popn(len_pos)
+        pos_args.extend(var_args)
 
         func = self.vm.pop()
-        self.call_function_with_args_resolved(func, posargs, namedargs)
+        self.call_function_with_args_resolved(func, pos_args, named_args)
 
     def convert_native_to_Function(self, frame, func):
         assert inspect.isfunction(func) or isinstance(func, Function)
