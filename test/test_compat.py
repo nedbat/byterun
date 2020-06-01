@@ -15,7 +15,7 @@ from xdis import PYTHON_VERSION
 # the value is a list of Python bytecode
 # different from itself that it should be able to handle
 COMPATABILITY_MATRIX = {
-    2.7: (2.6, 2.5),
+    2.7: (2.6, 2.5, 2.4),
     3.2: (),
 
     # TODO: work on these. The list is not too large

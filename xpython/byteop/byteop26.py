@@ -3,8 +3,6 @@
 
 Note: this is subclassed so later versions may use operations from here.
 """
-from __future__ import print_function, division
-
 from xpython.byteop.byteop25 import ByteOp25
 
 class ByteOp26(ByteOp25):

@@ -5,24 +5,24 @@ from __future__ import print_function, division
 
 
 from xpython.byteop.byteop27 import ByteOp27
-from xpython.byteop.byteop25 import ByteOp25
+from xpython.byteop.byteop24 import ByteOp24
 from xpython.pyobj import Function
 
 # FIXME: investigate does "del" removing and attribute here
 # have an effect on what another module sees as ByteOp27's attributes?
 
 # Gone since 3.0
-del ByteOp25.PRINT_EXPR
-del ByteOp25.PRINT_ITEM
-del ByteOp25.PRINT_ITEM_TO
-del ByteOp25.PRINT_NEWLINE
-del ByteOp25.PRINT_NEWLINE_TO
-del ByteOp25.BUILD_CLASS
-del ByteOp25.EXEC_STMT
-del ByteOp25.RAISE_VARARGS
+del ByteOp24.PRINT_EXPR
+del ByteOp24.PRINT_ITEM
+del ByteOp24.PRINT_ITEM_TO
+del ByteOp24.PRINT_NEWLINE
+del ByteOp24.PRINT_NEWLINE_TO
+del ByteOp24.BUILD_CLASS
+del ByteOp24.EXEC_STMT
+del ByteOp24.RAISE_VARARGS
 
 # Gone since 3.2
-del ByteOp25.DUP_TOPX
+del ByteOp24.DUP_TOPX
 
 def fmt_make_function(vm, arg=None, repr=repr):
     """

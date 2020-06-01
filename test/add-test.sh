@@ -5,14 +5,21 @@ if [[ $# == 0 ]]; then
 fi
 mydir=$(dirname ${BASH_SOURCE[0]})
 
-PYENV_VERSIONS=${PYENV_VERSIONS:-"3.6.10 3.7.7 3.3.7 3.4.10 2.7.18 3.2.6 3.5.9 2.6.9 2.5.6"}
-for file in $*; do
-    for version in $PYENV_VERSIONS; do
+(cd ../../python-xdis && . ./admin-tools/setup-master.sh)
+# Note: Python < 2.7 is added at the end and 2.6.9 is used as a sentinal in the version test below
+PYENV_VERSIONS=${PYENV_VERSIONS:-"3.6.10 3.7.7 3.3.7 3.4.10 3.2.6 3.5.9 2.7.18 2.6.9 2.5.6 2.4.6"}
+for version in $PYENV_VERSIONS; do
+    # Note: below we use
+    if [[ $version == 2.6.9 ]]; then
+	(cd ../../python-xdis && . ./admin-tools/setup-python-2.4.sh)
+    fi
+    for file in $*; do
 	pyenv local $version
 	python ${mydir}/compile-file.py "$file"
     done
-    git add -f ${mydir}./bytecode-*/${short}*
-    rm -v .pyenv_version *~ || /bin/true
     short=$(basename $file .py)
+    git add -f ${mydir}/bytecode-*/${short}*
+    rm -v .pyenv_version *~ 2>/dev/null || /bin/true
 done
-rm .python-version
+rm -v .python-version 2>/dev/null || /bin/true
+(cd ../../python-xdis && . ./admin-tools/setup-master.sh)

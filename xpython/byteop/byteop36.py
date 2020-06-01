@@ -4,15 +4,15 @@ from __future__ import print_function, division
 
 import inspect
 
-from xpython.byteop.byteop25 import ByteOp25
+from xpython.byteop.byteop24 import ByteOp24
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.pyobj import Cell, Function, make_cell
 
 # Gone in 3.6
-del ByteOp25.MAKE_CLOSURE
-del ByteOp25.CALL_FUNCTION_VAR
-del ByteOp25.CALL_FUNCTION_KW
-del ByteOp25.CALL_FUNCTION_VAR_KW
+del ByteOp24.MAKE_CLOSURE
+del ByteOp24.CALL_FUNCTION_VAR
+del ByteOp24.CALL_FUNCTION_KW
+del ByteOp24.CALL_FUNCTION_VAR_KW
 
 MAKE_FUNCTION_SLOT_NAMES = ("defaults", "kwdefaults", "annotations", "closure")
 MAKE_FUNCTION_SLOTS = len(MAKE_FUNCTION_SLOT_NAMES)

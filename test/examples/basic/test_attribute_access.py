@@ -1,6 +1,8 @@
 # In addition to testing attributes, this
 # is a simple class test.
 
+"""This program is self-checking!"""
+
 class Thing(object):
     z = 17
     def __init__(self):

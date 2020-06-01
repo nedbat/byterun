@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import re, sys
+import sys
 import os.path as osp
 from xdis import IS_PYPY
 
@@ -27,7 +27,10 @@ else:
 assert source.endswith('.py')
 basename = osp.basename(source[:-3])
 
-platform='pypy' if IS_PYPY else ''
+if IS_PYPY:
+    platform="pypy"
+else:
+    platform=""
 
 bytecode_path = osp.normpath(osp.join(get_srcdir(),
                                       "bytecode-%s%s" % (platform, PY_VERSION),
@@ -36,5 +39,6 @@ bytecode_path = osp.normpath(osp.join(get_srcdir(),
 import py_compile
 print("compiling %s to %s" % (source, bytecode_path))
 py_compile.compile(source, bytecode_path, source)
-import os
-os.system("xpython %s" % bytecode_path)
+if PY_VERSION >= 2.7:
+    import os
+    os.system("xpython %s" % bytecode_path)

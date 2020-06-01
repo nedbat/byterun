@@ -5,12 +5,12 @@ from __future__ import print_function, division
 import inspect
 import types
 from xdis import PYTHON_VERSION
-from xpython.byteop.byteop25 import ByteOp25
+from xpython.byteop.byteop24 import ByteOp24
 from xpython.byteop.byteop26 import ByteOp26
 
 # Gone since 2.6
-del ByteOp25.JUMP_IF_FALSE
-del ByteOp25.JUMP_IF_TRUE
+del ByteOp24.JUMP_IF_FALSE
+del ByteOp24.JUMP_IF_TRUE
 
 def fmt_set_add(vm, arg, repr=repr):
     return " set.add(%s, %s)" % (repr(vm.peek(arg)), repr(vm.top()))

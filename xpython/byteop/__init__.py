@@ -11,26 +11,33 @@ def get_byteop(vm, python_version, is_pypy):
     int_vers = int(python_version * 10)
 
     if int_vers < 30:
-        if int_vers == 27:
-            if is_pypy:
-                from xpython.byteop.byteop27pypy import ByteOp27PyPy
+        if int_vers >= 26:
+            if int_vers == 27:
+                if is_pypy:
+                    from xpython.byteop.byteop27pypy import ByteOp27PyPy
 
-                byteop = ByteOp27PyPy(vm)
+                    byteop = ByteOp27PyPy(vm)
+                else:
+                    from xpython.byteop.byteop27 import ByteOp27
+
+                    byteop = ByteOp27(vm)
             else:
-                from xpython.byteop.byteop27 import ByteOp27
+                assert int_vers == 26
+                from xpython.byteop.byteop26 import ByteOp26
 
-                byteop = ByteOp27(vm)
-        elif int_vers == 26:
-            from xpython.byteop.byteop26 import ByteOp26
+                byteop = ByteOp26(vm)
+                pass
+        else:
+            if int_vers == 25:
+                from xpython.byteop.byteop25 import ByteOp25
 
-            byteop = ByteOp26(vm)
+                byteop = ByteOp25(vm)
+            elif int_vers == 24:
+                from xpython.byteop.byteop24 import ByteOp24
+
+                byteop = ByteOp24(vm)
+                pass
             pass
-        elif int_vers == 25:
-            from xpython.byteop.byteop25 import ByteOp25
-
-            byteop = ByteOp25(vm)
-            pass
-        pass
     else:
         # 3.0 or greater
         if int_vers < 35:

@@ -78,7 +78,7 @@ def get_supported_versions(is_pypy, is_bytecode):
         mess = (
             "PYPY 2.7, 3.2, 3.5 and 3.6"
             if is_pypy
-            else "CPython 2.5 .. 2.7, 3.2 .. 3.7"
+            else "CPython 2.4 .. 2.7, 3.2 .. 3.7"
         )
     else:
         supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
