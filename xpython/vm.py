@@ -79,6 +79,11 @@ def format_instruction(
     else:
         stack_args = ""
 
+    if vm and byte_name in vm.byteop.stack_fmt:
+        stack_args = vm.byteop.stack_fmt[byte_name](vm, int_arg, repr)
+    else:
+        stack_args = ""
+
     if hasattr(opc, "opcode_arg_fmt") and byte_name in opc.opcode_arg_fmt:
         argrepr = opc.opcode_arg_fmt[byte_name](int_arg)
     elif int_arg is None:
@@ -95,7 +100,13 @@ def format_instruction(
         if line_number is None
         else LINE_NUMBER_WIDTH_FMT % line_number
     )
-    mess = "%s%3d: %s%s %s" % (line_str, offset, byte_name, stack_args, argrepr)
+    mess = "%s%3d: %s%s %s" % (
+        line_str,
+        offset,
+        byte_name,
+        stack_args,
+        argrepr,
+    )
     if extra_debug and frame:
         mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
     return mess
@@ -429,20 +440,17 @@ class PyVM(object):
 
     def log(self, byte_name, int_arg, arguments, offset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
-        try:
-            op = self.format_instruction(
-                self.frame,
-                self.opc,
-                byte_name,
-                int_arg,
-                arguments,
-                offset,
-                line_number,
-                log.isEnabledFor(logging.DEBUG),
-                vm=self,
-            )
-        except:
-            from trepan.api import debug; debug()
+        op = self.format_instruction(
+            self.frame,
+            self.opc,
+            byte_name,
+            int_arg,
+            arguments,
+            offset,
+            line_number,
+            log.isEnabledFor(logging.DEBUG),
+            vm=self,
+        )
         indent = "    " * (len(self.frames) - 1)
         stack_rep = repper(self.frame.stack)
         block_stack_rep = repper(self.frame.block_stack)

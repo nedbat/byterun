@@ -9,7 +9,7 @@ from xpython.byteop.byteop24 import ByteOp24
 
 class ByteOp25(ByteOp24):
     def __init__(self, vm):
-        super(ByteOp24, self).__init__(vm)
+        super(ByteOp25, self).__init__(vm)
 
     # New in Python 2.5 but changes in 3.3.
     def WITH_CLEANUP(self):
