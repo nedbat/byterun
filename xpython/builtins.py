@@ -4,7 +4,7 @@ A place to implement built-in functions.
 We use the bytecode for these when doing cross-version interpreting
 """
 
-from xpython.pyobj import Function, Cell
+from xpython.pyobj import Function, Cell, make_cell
 from xdis import codeType2Portable, PYTHON_VERSION, IS_PYPY
 
 def func_code(func):
@@ -79,11 +79,32 @@ def build_class(opc, func, name, *bases, **kwds):
     # See test_attribute_access.py for a simple example that needs the update below.
     namespace.update(frame.f_locals)
 
+    # If metaclass is builtin "type", it can't deal with a xpython.pyobj.Cell object
+    # but needs a builtin cell object. make_cell() can do this.
+    if "__classcell__" in namespace and metaclass == type:
+        namespace["__classcell__"] = make_cell(namespace["__classcell__"].get())
     cls = metaclass(name, bases, namespace)
     if isinstance(cell, Cell):
         cell.set(cls)
     return cls
 
+# From Pypy 3.6
+# def find_metaclass(bases, namespace, globals, builtin):
+#     if '__metaclass__' in namespace:
+#         return namespace['__metaclass__']
+#     elif len(bases) > 0:
+#         base = bases[0]
+#         if hasattr(base, '__class__'):
+#             return base.__class__
+#         else:
+#             return type(base)
+#     elif '__metaclass__' in globals:
+#         return globals['__metaclass__']
+#     else:
+#         try:
+#             return builtin.__metaclass__
+#         except AttributeError:
+#             return type
 
 def calculate_metaclass(metaclass, bases):
     "Determine the most derived metatype."

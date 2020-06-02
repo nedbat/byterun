@@ -20,9 +20,7 @@ class TestFunctions(vmtest.VmTestCase):
     def test_different_globals_may_have_different_builtins(self):
         self.do_one()
 
-    # FIXME: see what's up with 3.6 & 3.7
-    # probably something with CALL_FUNCTION_... again
-    if 3.0 <= PYTHON_VERSION <= 3.5:
+    if 3.0 <= PYTHON_VERSION:
         def test_function_calls(self):
             self.self_checking()
 
