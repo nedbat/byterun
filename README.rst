@@ -118,12 +118,12 @@ Want more like the execution stack stack and block stack in addition? Add anothe
 Want to see this colorized in a terminal? Use this via ``trepan-xpy -x``:
 |trepan-xpy-example|
 
-Suppose you have Python 2.5 bytecode (or some other bytecode) for
+Suppose you have Python 2.4 bytecode (or some other bytecode) for
 this, but you are running Python 3.7?
 
 ::
 
-   $ xpython -v test/examples/assign-2.5.pyc
+   $ xpython -v test/examples/assign-2.4.pyc
    INFO:xpython.vm:L. 1   @  0: LOAD_CONST (2, 3)
    INFO:xpython.vm:       @  3: UNPACK_SEQUENCE 2
    INFO:xpython.vm:       @  6: STORE_NAME (2) x
