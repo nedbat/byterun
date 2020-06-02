@@ -504,7 +504,7 @@ if __name__ == "__main__":
     foo = Foo()
     myMfoo = Method(foo.bar, Foo, Foo.bar)
     Mfoo = types.MethodType(foo.bar, Foo)
-    # Should __name__, __func__ and __self__ match?
+    # Should __name__, _func and __self__ match?
     for attr in "__doc__".split():
         assert getattr(Mfoo, attr) == getattr(myMfoo, attr), attr
 

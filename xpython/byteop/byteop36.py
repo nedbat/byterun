@@ -14,7 +14,8 @@ del ByteOp24.CALL_FUNCTION_VAR
 del ByteOp24.CALL_FUNCTION_KW
 del ByteOp24.CALL_FUNCTION_VAR_KW
 
-MAKE_FUNCTION_SLOT_NAMES = ("defaults", "kwdefaults", "annotations", "closure")
+# Note the order is important. The TOS is listed *last*.
+MAKE_FUNCTION_SLOT_NAMES = ("closure", "annotations", "kwdefaults", "defaults")
 MAKE_FUNCTION_SLOTS = len(MAKE_FUNCTION_SLOT_NAMES)
 
 def identity(x):
@@ -120,12 +121,10 @@ class ByteOp36(ByteOp35):
             "closure": tuple(),
         }
         assert 0 <= argc < (1 << MAKE_FUNCTION_SLOTS)
+        have_param = list(reversed([True if 1 << i & argc else False for i in range(4)]))
         for i in range(MAKE_FUNCTION_SLOTS):
-            if argc & 1:
+            if have_param[i]:
                 slot[MAKE_FUNCTION_SLOT_NAMES[i]] = self.vm.pop()
-            argc >>= 1
-            if argc == 0:
-                break
 
         # FIXME: DRY with code in byteop3{2,4}.py
 

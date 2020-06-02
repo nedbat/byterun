@@ -2,7 +2,8 @@
 
 # Tests CALL_FUNCTION_KW among other things.
 
-# RUNNABLE!
+"""This program is self-checking!"""
+
 def showparams(c, test, **extra_args):
     return {'c': c, **extra_args, 'test': test}
 
