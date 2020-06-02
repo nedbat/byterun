@@ -157,19 +157,50 @@ Want even more status and control? See `trepan-xpy <https://github.com/rocky/tre
 Status:
 +++++++
 
-Currently bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.5 are
+Currently bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.4 are
 supported. Extending to 3.8 and beyond is on hold until there is more
-interest, I get help, I need or there is or funding,
+interest, I get help, I need or there is or funding.
 
-Whereas *Byterun* is loose in accepting bytecode opcodes that is
-invalid for particular Python but may be valid for another; *x-python*
-is more stringent. This has some pros but mostly cons. On the plus
-side *Byterun* might run certain Python 3.4 bytecode because the
-opcode sets are similar. However starting with Python 3.5 and beyond
-the likelihood happening becomes vanishingly small. And while the
-underlying opcode names may be the same, the semantics of the
-operation may change subtely. See for example
-https://github.com/nedbat/byterun/issues/34.
+*Byterun*, from which this was based on, is awesome. But it cheats in
+subtle ways.
+
+Want to write a very small interpreter using CPython?
+
+::
+
+   # get code somehow
+   exec(code)
+
+This cheats in kind of a gross way, but this the kind of cheating goes
+on in *Byterun*in a more subtle way. As in the example above which
+relies on buil-in function ``exec`` to do all of the work, *Byterun*
+relies on various similar sorts of built-in functions to support
+opcode interpretation.  And some of those primitives have an effect in
+the interpreter namespace, just as the ``exec`` above does.  So the
+two namespaces then get intermingled.
+
+One example of this that has been noted is for ``import``. See
+https://github.com/nedbat/byterun/issues/26.  But there are others
+cases as well.  While we haven't addressed the ``import`` issue
+mentioned in issue 26, we have addressed similar kinds of issues like
+this.
+
+Some built-in functions and the ``inpsect`` module require the use of
+built-in types, like cell, traceback, or frame objects. They can't use
+the corresponding interpreter classes. Here is an example of this in
+*Byterun*: class ``__init__`` functions don't get traced into,
+because the built-in function ``__build_class__`` is relied on. And
+``__build_class__`` needs a native function, not an interpreter-traceable
+function. See https://github.com/nedbat/byterun/pull/20.
+
+Also *Byterun* is loose in accepting bytecode opcodes that is invalid
+for particular Python but may be valid for another. I suppose this is
+okay since you don't expect invalid opcodes appearing in valid
+bytecode. It can however appear code that has been obtained via some
+sort of extraction process, when the extraction process isn't accruate.
+
+In contrast to *Byterun*, *x-python* is more stringent what opcodes it
+accepts.
 
 Byterun needs the kind of overhaul we have here to be able to scale to
 support bytecode for more Pythons, and to be able to run bytecode
@@ -177,26 +208,26 @@ across different versions of Python. Specifically, you can't rely on
 Python's `dis <https://docs.python.org/3/library/dis.html>`_ module if
 you expect to expect to run a bytecode other than the bytecode that
 the interpreter is running, or run newer "wordcode" bytecode on a
-"byte"-oriented byteocde, or vica versa.
+"byte"-oriented byteocde, or vice versa.
 
 In contrast, *x-python* there is a clear distinction between the
 version being interpreted and the version of Python that is
 running. There is tighter control of opcodes and an opcode's
 implementation is kept for each Python version. So we'll warn early
-when something is invalid. You can run bytecode back to Python 2.5
+when something is invalid. You can run bytecode back to Python 2.4
 using Python 3.7 (largely), which is amazing give that 3.7's native
 byte code is 2 bytes per instruction while 2.5's is 1 or 3 bytes per
 instruction.
 
-The "largely" part is because the interpreter has always made use of
-Python builtins and libraries, and for the most part these haven't
-changed very much. Often, since many of the underlying builtins are
-the same, the interpreter can (and does) make use interpreter
-internals. For example, built-in functions like ``range()`` are
-supported this way.
+The "largely" part is, as metioned above, because the interpreter has
+always made use of Python builtins and libraries, and for the most
+part these haven't changed very much. Often, since many of the
+underlying builtins are the same, the interpreter can (and does) make
+use interpreter internals. For example, built-in functions like
+``range()`` are supported this way.
 
 So interpreting bytecode from a newer Python release than the release
-the Pyton interpreter is using, is often doable too. Even though
+the Python interpreter is using, is often doable too. Even though
 Python 2.7 doesn't support keyword-only arguments or format strings,
 it can still interpret bytecode created from using these constructs.
 
@@ -205,12 +236,12 @@ syntactic sugar rather than extensions to the runtime. For example,
 format strings basically map down to using the ``format()`` function
 which is available on 2.7.
 
-New features like asynchronous I/O and concurrency primatives are not
-in the older versions and need to be simulated. However that too is a
+But new features like asynchronous I/O and concurrency primitives are not
+in the older versions. So those need to be simulated, and that too is a
 possibility if there is interest or support.
 
-You can run many of the tests that Python uses to test itself, (and I
-do!) and those work. Right now this program works best on Python up to
+You can run many of the tests that Python uses to test itself, and I
+do! And most of those work. Right now this program works best on Python up to
 3.4 when life in Python was much simpler. It runs over 300 in Python's
 test suite for itself without problems. For Python 3.6 the number
 drops down to about 237; Python 3.7 is worse still.
