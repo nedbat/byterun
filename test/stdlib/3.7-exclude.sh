@@ -23,7 +23,7 @@ SKIP_TESTS=(
     [test_math.py]=1
 
     # xpython.vm.PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
-    [test_decimal.py]=1
+    [test_decimal.py]=1 # Takes more than 32 seconds to run
 
     [test_bdb.py]=1 # test assert errors
 

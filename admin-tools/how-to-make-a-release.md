@@ -7,7 +7,9 @@
 - [Update NEWS.md from ChangeLog. Then:](#update-newsmd-from-changelog-then)
 - [Update NEWS.md from master branch](#update-newsmd-from-master-branch)
 - [Make packages and check](#make-packages-and-check)
-- [Get on PyPy](#get-on-pypy)
+- [Release on Github](#release-on-github)
+- [Get on PyPI](#get-on-pypi)
+- [Move dist files to uploaded](#move-dist-files-to-uploaded)
 
 <!-- markdown-toc end -->
 
@@ -44,9 +46,29 @@
     $ ./admin-tools/make-dist.sh
 	$ twine check dist/x[-_]python-$VERSION*
 
-# Get on PyPy
+# Check package on github
+
+Todo: put this in admintools as a script
+
+	$ mkdir /tmp/gittest; cd /tmp/gittest
+	$ pyenv local 3.7.5
+	$ pip install -e git://github.com/rocky/x-python.git#egg=x-python
+	$ xpython -V # see that new version appears
+	$ pip uninstall x-python
+
+# Release on Github
 
 Goto https://github.com/rocky/x-python/releases/new
+
+Now check the tagged release
+
+    $ cd /tmp/gittest
+	$ pyenv local 3.7.5
+	$ pip install -e git://github.com/rocky/x-python.git@${VERSION}#egg=x-python
+	$ xpython -V # see that new version appears
+	$ pip uninstall x-python
+
+# Get on PyPI
 
 
 	$ twine upload dist/x[-_]python-${VERSION}-py3.7.egg  # Older versions don't support Markdown
