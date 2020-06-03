@@ -8,17 +8,17 @@ There is better cross version interpreting.
 Release before we do a major overhaul on the closure or cell "freeops", e.g. `LOAD_DEREF` and `STORE_DEREF`.
 
 * Fix bug in detecting 3.6+ keyword-only signatures
-* Correct bugs in 3.6+ MAKE
-* Improve our build_class()
+* Correct bugs in 3.6+ `MAKE_FUNCTION`
+* Improve our build_class(); don't try to convert built-in `__entry__`, `__exit__` routines
 * Add Python 2.4 bytecode interpreting
-* Improve logging opperator formatting
+* Improve logging operator formatting
 
 
 1.3.1 2020-05-30 Lady Elaine
 ============================
 
 * Logging often shows the operand that an opcode uses
-* Cross-version bytecode interpreting has been improved. Adding interoperable `inpsect` modules helps here.
+* Cross-version bytecode interpreting has been improved. Adding inter-operable `inspect` modules helps here.
 * Support for debugger-like "step over" and "finish" trace commands was added.
 
 1.3.0 was a botched release. xpython.stdlib wasn't included
@@ -86,7 +86,7 @@ We also added support for Python 2.6, 2.5 and 3.2. Since the `x-python` doesn't 
 
 The code has been reorganized to allow support for more bytecode and to be able to scale testing to a much greater extent. (I will say that the tests that were byterun were generally pretty good for the kinds of things it tests).
 
-The level of verbosity on `nosetest -s` has been reduced by removing the disassembly listing by default. If you want a disassembly listing, consider `pydisasm` from the `xdis` package. This works because I've pulled out many of the Python test programs from strings in the tests to individual files. This makes it much easier to debug individual problems with those tests. And it makes the test files much shorter, at the expense of more files in a test directory. However I consider that good. If the test file is a real Python file then when you edit your editor will better understand what's in the string, and you can compile it and get lint on it.  Oh, and it makes it easier to write comments describing more about what's up with the test.
+The level of verbosity on `nosetests -s` has been reduced by removing the disassembly listing by default. If you want a disassembly listing, consider `pydisasm` from the `xdis` package. This works because I've pulled out many of the Python test programs from strings in the tests to individual files. This makes it much easier to debug individual problems with those tests. And it makes the test files much shorter, at the expense of more files in a test directory. However I consider that good. If the test file is a real Python file then when you edit your editor will better understand what's in the string, and you can compile it and get lint on it.  Oh, and it makes it easier to write comments describing more about what's up with the test.
 
 Some of the bugs in `MAKE_FUNCTION` have been fixed. (It is expect that these would appear since Python function signatures are complicated the internal have changed numerous times between releases.
 

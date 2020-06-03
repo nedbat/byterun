@@ -52,9 +52,13 @@ class ByteOp27(ByteOp26):
     # the 2.7 docs although the first appear there.
     # The docstring for these below is taken from 3.1 docs.
     # (3.0 doesn't have have MAP, although it has SET
-    # which is exactly what is below.)
+    # which is what is below.)
+
+    # The descripitons of these is weird becase values are
+    # peeked and not popped. Probably has something to do with
+    # the way comprehensions work.
     def SET_ADD(self, count):
-        """Calls set.add(TOS1[-i], TOS). Used to implement set
+        """Calls set.add(TOS1[-count], TOS). Used to implement set
         comprehensions.
         """
         val = self.vm.pop()
@@ -63,9 +67,10 @@ class ByteOp27(ByteOp26):
 
     def MAP_ADD(self, count):
         """
-        Calls dict.setitem(TOS1[-i], TOS, TOS1). Used to implement dict
+        Calls dict.setitem(TOS1[-count], TOS, TOS1). Used to implement dict
         comprehensions.
         """
+        # FIXME: the below seems fishy.
         val, key = self.vm.popn(2)
         the_map = self.vm.peek(count)
         the_map[key] = val
@@ -86,12 +91,13 @@ class ByteOp27(ByteOp26):
 
         # Make sure __enter__ and __exit__ functions in context_manager are
         # converted to our Function type so we can interpret them.
-        if self.version == PYTHON_VERSION:
+        # Note though that built-in functions can't be traced.
+        if self.version == PYTHON_VERSION and not inspect.isbuiltin(context_manager.__exit__):
             exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)
-        if self.version == PYTHON_VERSION:
+        if self.version == PYTHON_VERSION and not inspect.isbuiltin(context_manager.__enter__):
             self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
         finally_block = context_manager.__enter__()
         if self.version < 3.0:
