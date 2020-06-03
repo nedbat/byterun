@@ -1,6 +1,92 @@
+2020-06-03  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, NEWS.md, xpython/version.py: Get ready for release
+	1.3.2
+
+2020-06-03  rocky <rocky@dusytfeet.com>
+
+	* Makefile, README.rst, test/test_compat.py,
+	xpython/byteop/byteop.py, xpython/byteop/byteop36.py,
+	xpython/pyobj.py, xpython/stdlib/inspect3.py: Fix inspect3 bug in
+	getting kwonly signatures...  This allows us to expand the compatibility matrix, but in general
+	this the matrix is kind of sketchy since some things we list as
+	compatible are only largely compatbile, and many tests between
+	"incompatible" versions does ineed work.  Add more Python 2.4 tests
+
+2020-06-02  rocky <rocky@dusytfeet.com>
+
+	* README.rst, test/test_functions.py, xpython/byteop/byteop24.py: 
+	Note what's up with closure test..  where a cell variable name might appear more than once.  Need to comment out our closure test for now until this is
+	straightened out.
+
+2020-06-02  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Revise README.rst
+
+2020-06-02  rocky <rocky@dusytfeet.com>
+
+	* test/test_functions.py, xpython/builtins.py: Inch forward with our
+	own 3.6+ build_class()...  Here, if the metaclass is type() then, cells need to be real cells
+	and not a xpython.pyobj.Cell object.
+
+2020-06-01  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/test_call_ex_kw.py,
+	xpython/byteop/byteop36.py, xpython/pyobj.py: Correct 3.6+
+	MAKE_FUNCTION parameter decoding
+
+2020-06-01  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Use Python 2.4 bytecode in old-python example
+
+2020-06-01  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop25.py, xpython/vm.py: Improved operator
+	formating and ...  more pre 2.7 tests
+
+2020-06-01  rocky <rb@dustyfeet.com>
+
+	* test/add-test.sh, test/compile-file.py,
+	test/examples/basic/test_attribute_access.py, test/test_compat.py,
+	xpython/byteop/__init__.py, xpython/byteop/byteop24.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop35.py, xpython/byteop/byteop36.py,
+	xpython/execfile.py, xpython/version.py: Support 2.4 bytecode
+	interpreting
+
+2020-05-31  rocky <rocky@dusytfeet.com>
+
+	*
+	test/examples/functions/test_calling_function_with_args_kwargs.py,
+	test/examples/functions/test_function_calls.py,
+	test/test_functions.py, xpython/byteop/byteop.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop35.py: Address 3.5
+	CALL_FUNCTION_VAR...  and regularize variable names around CALL_FUNCTION{...}
+
+2020-05-31  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop32.py, xpython/byteop/byteop34.py,
+	xpython/pyobj.py: Clean up and improve .0 parameter checking...  With the dup code I had been missing 3.4+ MAKE_CLOSURE's
+
+2020-05-31  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop.py: Use non-builtin __build_class__ more
+	often....  when __init__() is a byteop Function instead of a native function.
+
+2020-05-31  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop27.py, xpython/pyobj.py: Better formatting of
+	SET_ADD and SET_MAP
+
+2020-05-31  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Adminsitrivia
+
 2020-05-30  rocky <rocky@dusytfeet.com>
 
-	* setup.py, xpython/version.py: Get ready for release 1.3.1
+	* ChangeLog, NEWS.md, setup.py, xpython/version.py: Get ready for
+	release 1.3.1
 
 2020-05-30  rocky <rocky@dusytfeet.com>
 

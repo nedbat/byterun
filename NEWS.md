@@ -1,3 +1,19 @@
+1.3.2 2020-06-03 Marilyn + 1
+============================
+
+Overall, some bugs were fixed especially on the 3.6+ side.
+
+There is better cross version interpreting.
+
+Release before we do a major overhaul on the closure or cell "freeops", e.g. `LOAD_DEREF` and `STORE_DEREF`.
+
+* Fix bug in detecting 3.6+ keyword-only signatures
+* Correct bugs in 3.6+ MAKE
+* Improve our build_class()
+* Add Python 2.4 bytecode interpreting
+* Improve logging opperator formatting
+
+
 1.3.1 2020-05-30 Lady Elaine
 ============================
 
