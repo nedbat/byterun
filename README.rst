@@ -172,7 +172,7 @@ Want to write a very small interpreter using CPython?
    exec(code)
 
 This cheats in kind of a gross way, but this the kind of cheating goes
-on in *Byterun*in a more subtle way. As in the example above which
+on in *Byterun* in a more subtle way. As in the example above which
 relies on buil-in function ``exec`` to do all of the work, *Byterun*
 relies on various similar sorts of built-in functions to support
 opcode interpretation.  And some of those primitives have an effect in
@@ -185,19 +185,21 @@ cases as well.  While we haven't addressed the ``import`` issue
 mentioned in issue 26, we have addressed similar kinds of issues like
 this.
 
-Some built-in functions and the ``inpsect`` module require the use of
-built-in types, like cell, traceback, or frame objects. They can't use
-the corresponding interpreter classes. Here is an example of this in
-*Byterun*: class ``__init__`` functions don't get traced into,
-because the built-in function ``__build_class__`` is relied on. And
-``__build_class__`` needs a native function, not an interpreter-traceable
-function. See https://github.com/nedbat/byterun/pull/20.
+Some built-in functions and the ``inpsect`` module require built-in
+types like cell, traceback, or frame objects, and they can't use the
+corresponding interpreter classes. Here is an example of this in
+*Byterun*: class ``__init__`` functions don't get traced into, because
+the built-in function ``__build_class__`` is relied on. And
+``__build_class__`` needs a native function, not an
+interpreter-traceable function. See
+https://github.com/nedbat/byterun/pull/20.
 
 Also *Byterun* is loose in accepting bytecode opcodes that is invalid
 for particular Python but may be valid for another. I suppose this is
 okay since you don't expect invalid opcodes appearing in valid
-bytecode. It can however appear code that has been obtained via some
-sort of extraction process, when the extraction process isn't accruate.
+bytecode. It can however accidentally or erronously appear code that
+has been obtained via some sort of extraction process, when the
+extraction process isn't accruate.
 
 In contrast to *Byterun*, *x-python* is more stringent what opcodes it
 accepts.
@@ -206,8 +208,8 @@ Byterun needs the kind of overhaul we have here to be able to scale to
 support bytecode for more Pythons, and to be able to run bytecode
 across different versions of Python. Specifically, you can't rely on
 Python's `dis <https://docs.python.org/3/library/dis.html>`_ module if
-you expect to expect to run a bytecode other than the bytecode that
-the interpreter is running, or run newer "wordcode" bytecode on a
+you expect to run a bytecode other than the bytecode that the
+interpreter is running, or run newer "wordcode" bytecode on a
 "byte"-oriented byteocde, or vice versa.
 
 In contrast, *x-python* there is a clear distinction between the
@@ -216,7 +218,7 @@ running. There is tighter control of opcodes and an opcode's
 implementation is kept for each Python version. So we'll warn early
 when something is invalid. You can run bytecode back to Python 2.4
 using Python 3.7 (largely), which is amazing give that 3.7's native
-byte code is 2 bytes per instruction while 2.5's is 1 or 3 bytes per
+byte code is 2 bytes per instruction while 2.4's is 1 or 3 bytes per
 instruction.
 
 The "largely" part is, as metioned above, because the interpreter has

@@ -589,12 +589,19 @@ class ByteOp24(ByteOpBase):
         storage. Pushes a reference to the object the cell contains on the
         stack.
         """
+        # FIXME: i is really a name and what we *should* be passing is an index
+        # and vm.frame.cells should be a list, not a dictionary.
+        # In contrast to other names, the same identifier may appear more than once
+        # (in different scopes). So we need a structure that deal with this, and
+        # a dictionary where the key is the name, while it works most of the time,
+        # doesn't cut it more generally.
         self.vm.push(self.vm.frame.cells[i].get())
 
     def STORE_DEREF(self, name):
         """
         Stores TOS into the cell contained in slot i of the cell and free variable storage.
         """
+        # FIXME: see comment under LOAD_DEREF
         self.vm.frame.cells[name].set(self.vm.pop())
 
     # End names
