@@ -22,11 +22,9 @@ COMPATABILITY_MATRIX = {
     3.3: (3.2,),
     3.4:  (3.3,),
 
-    # 3.7: (3.6, 3.5, 3.4, 3.3, 3.2, 2.7, 2.6, 2.5),
-    # More or less punt on these for now, although these often work.
-    3.5: (),
-    3.6: (),
-    3.7: (),
+    3.5: (3.7, 3.6, 3.4),
+    3.6: (3.5, 3.4, 3.3),
+    3.7: (3.6, 3.4),
 }
 
 # In addition, PyPy and CPython *should* be inter compatible,
@@ -39,14 +37,16 @@ COMPATABILITY_MATRIX = {
 #    it has checks for iscode and so on. Change those to
 #    be use duck typing.
 
+STARS = "*" * 10
 class TestCompat(vmtest.VmTestCase):
 
     if not os.environ.get("SKIP_COMPAT", False):
         def test_cross_version_compatablity(self):
             compatible_versions = COMPATABILITY_MATRIX.get(PYTHON_VERSION, ())
-            # import logging
-            # logging.basicConfig(level=logging.DEBUG)
+            import logging
+            logging.basicConfig(level=logging.WARN)
             for version in compatible_versions:
+                print("%s%s%s" % (STARS, version, STARS))
                 os.chdir(os.path.join(vmtest.srcdir, "bytecode-%s" % version))
                 for bytecode_file in iglob("*.pyc"):
                     # print(bytecode_file, version)

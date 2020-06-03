@@ -4,9 +4,10 @@ from __future__ import print_function, division
 
 import inspect
 
+from xdis import PYTHON_VERSION
 from xpython.byteop.byteop24 import ByteOp24
 from xpython.byteop.byteop35 import ByteOp35
-from xpython.pyobj import Cell, Function, make_cell
+from xpython.pyobj import Function
 
 # Gone in 3.6
 del ByteOp24.MAKE_CLOSURE
@@ -130,8 +131,7 @@ class ByteOp36(ByteOp35):
 
         globs = self.vm.frame.f_globals
 
-        # FIXME: we should test PYTHON_VERSION to check for sanity.
-        if not inspect.iscode(code) and hasattr(code, "to_native"):
+        if not inspect.iscode(code) and hasattr(code, "to_native") and self.version == PYTHON_VERSION:
             code = code.to_native()
 
         fn_vm = Function(
@@ -148,20 +148,6 @@ class ByteOp36(ByteOp35):
         if argc == 0 and code.co_name in COMPREHENSION_FN_NAMES:
             fn_vm.has_dot_zero = True
 
-        # Python 3.4 __build_class__ is more strict about what can be a
-        # function type whereas in earlier version we could get away with
-        # our own kind of xpython.pyobj.Function object.
-        #
-        # Therefore we'll try to create a native function.
-        #
-        # First though, we have to convert our Cells into native cells.
-        # FIXME: Cells might not be equivalent to native cells. Investigate and fix if needed.
-        closure = tuple(
-            [
-                make_cell(cell.get()) if isinstance(cell, Cell) else cell
-                for cell in slot["closure"]
-            ]
-        )
         if fn_vm._func:
             self.vm.fn2native[fn_vm] = fn_vm._func
 

@@ -338,7 +338,7 @@ def _signature_from_function(cls, func):
     else:
         annotations = {}
     defaults = func.__defaults__
-    if hasattr(func_code, "__kwdefaults__"):
+    if hasattr(func, "__kwdefaults__"):
         kwdefaults = func.__kwdefaults__
     else:
         kwdefaults = {}

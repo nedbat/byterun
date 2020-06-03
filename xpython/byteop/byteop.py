@@ -168,7 +168,7 @@ class ByteOpBase(object):
                     if isinstance(init_fn, Function) and init_fn in self.vm.fn2native:
                         pos_args[0] = self.vm.fn2native[init_fn]
 
-        if inspect.isfunction(func):
+        if inspect.isfunction(func) and self.version == PYTHON_VERSION:
             # Try to convert to an interpreter function so we can interpret it.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
@@ -183,7 +183,7 @@ class ByteOpBase(object):
                 assert len(pos_args) > 0
                 pos_args[0] = self.convert_native_to_Function(frame, pos_args[0])
 
-        if inspect.isfunction(func):
+        if inspect.isfunction(func) and self.version == PYTHON_VERSION:
             log.debug("calling native function %s" % func.__name__)
 
         retval = func(*pos_args, **named_args)

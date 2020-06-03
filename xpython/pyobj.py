@@ -169,7 +169,24 @@ class Function(object):
         else:
             self.has_dot_zero = False
 
-        # Sometimes, we need a real Python function.  This is for that.
+        # From byterun.py:
+        #   Sometimes, we need a real Python function. This is for that.
+        #
+        #
+        # An elaboration of the above pity comment may be helpful.
+        # Until this project emulates more functions, we rely heavily
+        # on some built-in, or standard library
+        # functions. `__build_class__` is an example of a builtin;
+        # `import` is another example.  Many of Python's standard
+        # library inspect routines require native functions, not our
+        # emulated classes and types.
+        #
+        # For the `inspect` module, we've started providing equivalent
+        # alternatives, but overall more of this needs to be done.
+        #
+        # The intent in providing native functions is for use in type
+        # testing, mostly. The functios should not be run, since that defeats our
+        # ability to trace functions.
         kw = {
             "argdefs": self.func_defaults,
         }

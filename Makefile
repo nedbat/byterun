@@ -10,6 +10,7 @@ PYTHON3 ?= python3
 RM      ?= rm
 LINT    = flake8
 SHELL   ?= bash
+SKIP_COMPAT ?= 1
 
 PHONY=all check check-compat check-full clean unittest dist distclean lint flake8 test rmChangeLog clean_pyc
 
@@ -19,11 +20,11 @@ all: check
 # Run all tests, exluding those that need pyenv
 check:
 	test -f test/.python-version && rm -v test/.python-version || true
-	cd test && python -V && SKIP_COMPAT=1 nosetests --stop
+	cd test && python -V && SKIP_COMPAT=$(SKIP_COMPAT) nosetests --stop
 
 #: Check across all Python versions
 check-full:
-	SKIP_COMPAT=1 bash ./admin-tools/check-versions.sh
+	SKIP_COMPAT=$(SKIP_COMPAT) bash ./admin-tools/check-versions.sh
 
 # There is a bug somewhere that causes check-compat not to run
 # when run with the other tests.

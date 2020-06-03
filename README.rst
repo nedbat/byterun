@@ -13,11 +13,14 @@ You can use this to:
 * Have one Python program that runs multiple versions of Python bytecode.
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
-The ability to run Python bytecode as far back as 2.5 from Python 3.7
+The ability to run Python bytecode as far back as 2.4 from Python 3.7
 I find pretty neat. (Even more could easily be added).
 
 Also, The sandboxed environment in a debugger I find
-interesting. Since there is a separate execution, and traceback stack,
+interesting. (Note: currently environments are not sandboxed that
+well, but I am working towards that.)
+
+Since there is a separate execution, and traceback stack,
 inside a debugger you can try things out in the middle of a debug
 session without effecting the real execution. On the other hand if a
 sequence of executions works out, it is possible to copy this (under
