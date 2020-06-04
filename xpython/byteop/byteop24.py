@@ -22,6 +22,18 @@ log = logging.getLogger(__name__)
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
 
+def fmt_free_op(vm, i, repr=repr):
+    f_code = vm.frame.f_code
+    # From LOAD_CLOSURE:
+    # The name of the variable is co_cellvars[i] if i is less
+    # than the length of co_cellvars. Otherwise it is co_freevars[i -len(co_cellvars)]
+    if i < len(f_code.co_cellvars):
+        arg = f_code.co_cellvars[i]
+    else:
+        var_idx = i - len(f_code.co_cellvars)
+        arg = f_code.co_freevars[var_idx]
+    return " (%s)" % arg
+
 def fmt_call_function(vm, argc, repr=repr):
     """
     returns the name of the function from the code object in the stack
@@ -34,7 +46,6 @@ def fmt_call_function(vm, argc, repr=repr):
 
     # Nothing found.
     return ""
-
 
 def fmt_make_function(vm, arg=None, repr=repr):
     """
@@ -55,20 +66,24 @@ class ByteOp24(ByteOpBase):
         self.stack_fmt["MAKE_FUNCTION"] = fmt_make_function
         self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
-        for op in (
+        for opname in (
             "COMPARE_OP ROT_TWO DELETE_SUBSCR PRINT_ITEM_TO STORE_ATTR IMPORT_NAME"
         ).split():
-            self.stack_fmt[op] = fmt_binary_op
+            self.stack_fmt[opname] = fmt_binary_op
 
-        for op in ("ROT_THREE STORE_SUBSCR EXEC_STMT BUILD_CLASS").split():
-            self.stack_fmt[op] = fmt_ternary_op
+        for opname in ("ROT_THREE STORE_SUBSCR EXEC_STMT BUILD_CLASS").split():
+            self.stack_fmt[opname] = fmt_ternary_op
 
-        for op in (
+        for opname in (
             "GET_ITER DUP_TOP LIST_APPEND RETURN_VALUE "
             "IMPORT_STAR STORE_NAME DELETE_ATTR "
             "STORE_GLOBAL LOAD_ADDR STORE_FAST"
         ).split():
-            self.stack_fmt[op] = fmt_unary_op
+            self.stack_fmt[opname] = fmt_unary_op
+
+        for opname in (self.vm.opc.opname[i] for i in self.vm.opc.hasfree):
+            self.stack_fmt[opname] = fmt_free_op
+
 
     def fmt_unary_op(vm, arg=None):
         """
@@ -589,12 +604,6 @@ class ByteOp24(ByteOpBase):
         storage. Pushes a reference to the object the cell contains on the
         stack.
         """
-        # FIXME: i is really a name and what we *should* be passing is an index
-        # and vm.frame.cells should be a list, not a dictionary.
-        # In contrast to other names, the same identifier may appear more than once
-        # (in different scopes). So we need a structure that deal with this, and
-        # a dictionary where the key is the name, while it works most of the time,
-        # doesn't cut it more generally.
         self.vm.push(self.vm.frame.cells[i].get())
 
     def STORE_DEREF(self, name):

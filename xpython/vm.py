@@ -414,10 +414,9 @@ class PyVM(object):
                     arg = f_code.co_consts[int_arg]
                 elif byteCode in self.opc.FREE_OPS:
                     if int_arg < len(f_code.co_cellvars):
-                        arg = f_code.co_cellvars[int_arg]
+                        arg = int_arg
                     else:
-                        var_idx = int_arg - len(f.f_code.co_cellvars)
-                        arg = f_code.co_freevars[var_idx]
+                        arg = int_arg - len(f.f_code.co_cellvars)
                 elif byteCode in self.opc.NAME_OPS:
                     arg = f_code.co_names[int_arg]
                 elif byteCode in self.opc.JREL_OPS:
