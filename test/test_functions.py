@@ -20,6 +20,9 @@ class TestFunctions(vmtest.VmTestCase):
     def test_different_globals_may_have_different_builtins(self):
         self.do_one()
 
+    def test_wraps(self):
+        self.self_checking()
+
     if 3.0 <= PYTHON_VERSION:
         def test_function_calls(self):
             self.self_checking()
