@@ -136,17 +136,13 @@ class TestFunctions(vmtest.VmTestCase):
     class TestClosures(vmtest.VmTestCase):
         def test_closures(self):
             self.self_checking()
+
+        def test_closure_vars_from_static_parent(self):
+            self.self_checking()
+
         if PYTHON_VERSION >= 3.6:
             print("Test not gone over yet for >= 3.6")
         else:
-
-            # FIXME: we need to chang the hasfree[] kinds of ops
-            # LOAD_DEREF, STORE_DEREF from dictionary-based to
-            # list-based as it is the opcode.py because
-            # variable names (the key currently in our frame.cells structure)
-            # can appear multiple times.
-            # def test_closure_vars_from_static_parent(self):
-            #     self.self_checking()
 
             if PYTHON_VERSION > 3.5:
                 # Investigate for < 3.5

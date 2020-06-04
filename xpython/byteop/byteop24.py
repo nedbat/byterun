@@ -21,18 +21,27 @@ log = logging.getLogger(__name__)
 # Code with these names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
-
-def fmt_free_op(vm, i, repr=repr):
-    f_code = vm.frame.f_code
+def get_cell_name(vm, i):
     # From LOAD_CLOSURE:
     # The name of the variable is co_cellvars[i] if i is less
     # than the length of co_cellvars. Otherwise it is co_freevars[i -len(co_cellvars)]
+    f_code = vm.frame.f_code
     if i < len(f_code.co_cellvars):
-        arg = f_code.co_cellvars[i]
+        return f_code.co_cellvars[i]
     else:
         var_idx = i - len(f_code.co_cellvars)
-        arg = f_code.co_freevars[var_idx]
-    return " (%s)" % arg
+        return f_code.co_freevars[var_idx]
+
+
+def fmt_store_deref(vm, i, repr=repr):
+    f_code = vm.frame.f_code
+    return " (%s = %s)" % (get_cell_name(vm, i), vm.top())
+
+def fmt_load_deref(vm, i, repr=repr):
+    return " (%s: %s)" % (get_cell_name(vm, i), vm.frame.cells[i].get())
+
+def fmt_free_op(vm, i, repr=repr):
+    return " (%s)" % get_cell_name(vm, i)
 
 def fmt_call_function(vm, argc, repr=repr):
     """
@@ -81,8 +90,13 @@ class ByteOp24(ByteOpBase):
         ).split():
             self.stack_fmt[opname] = fmt_unary_op
 
+        # Note a number of these ops is overwritten by more custom
+        # format functions below
         for opname in (self.vm.opc.opname[i] for i in self.vm.opc.hasfree):
             self.stack_fmt[opname] = fmt_free_op
+
+        self.stack_fmt["STORE_DEREF"] = fmt_store_deref
+        self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
 
 
     def fmt_unary_op(vm, arg=None):
