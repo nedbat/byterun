@@ -48,7 +48,7 @@
 
 # Check package on github
 
-Todo: put this in admintools as a script
+Todo: turn this into a script in `admin-tools`
 
 	$ mkdir /tmp/gittest; cd /tmp/gittest
 	$ pyenv local 3.7.5
@@ -60,16 +60,19 @@ Todo: put this in admintools as a script
 
 Goto https://github.com/rocky/x-python/releases/new
 
-Now check the tagged release
+Now check the tagged release.
 
-    $ cd /tmp/gittest
+Todo: turn this into a script in `admin-tools`
+
+	$ git pull # to pull down new tag
+    $ pushd /tmp/gittest
 	$ pyenv local 3.7.5
 	$ pip install -e git://github.com/rocky/x-python.git@${VERSION}#egg=x-python
 	$ xpython -V # see that new version appears
 	$ pip uninstall x-python
+	$ popd
 
 # Get on PyPI
-
 
 	$ twine upload dist/x[-_]python-${VERSION}-py3.7.egg  # Older versions don't support Markdown
 	$ twine upload dist/x[-_]python-${VERSION}*
