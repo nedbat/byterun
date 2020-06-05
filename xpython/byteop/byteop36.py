@@ -47,10 +47,19 @@ def fmt_call_function(vm, argc, repr=repr):
     # Nothing found.
     return ""
 
+def fmt_call_function_kw(vm, argc, repr=repr):
+    """
+    returns the name of the function from the code object in the stack
+    """
+    namedargs_tup = vm.top()
+    func = vm.peek(argc + 2)
+    return " (keyrowrd: %s, function: %s)" % (namedargs_tup, func)
+
 class ByteOp36(ByteOp35):
     def __init__(self, vm):
         super(ByteOp36, self).__init__(vm)
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
+        self.stack_fmt["CALL_FUNCTION_KW"] = fmt_call_function_kw
 
     def call_function_kw(self, argc):
         namedargs = {}
