@@ -1,20 +1,24 @@
 """This program is self-checking!"""
 
-def f1(a):
-    b = 2*a
-    def f2(c):
-        d = 2*c
-        def f3(e):
-            f = 2*e
-            def f4(g):
-                h = 2*g
-                return a+b+c+d+e+f+g+h
-            return f4
-        return f3
-    return f2
+# Variables in inner nested functions accessing values from the
+# encompasing functions.
+# Notice that free_var and cell_var indices refer to different
+# variables as we nest.
+def f2(c):
+    d = 2*c
+    def f3(e):
+        f = 2*e
+        def f4(g):
+            h = 2*g
+            expect = (4, 8, 5, 10, 6, 12)
+            assert (c,d,e,f,g, h) == expect, "got: %s, expect: %s" % ((c,d,e,f,g, h), expect)
+            return c+d+e+f+g+h
+        return f4
+    return f3
 
-answer = f1(3)(4)(5)(6)
-assert answer == 54, "f1(3)(4)(5)(6) is %d; should be 54." % answer
+expect = 4+8+5+10+6+12
+answer = f2(4)(5)(6)
+assert answer == expect, "f1(3)(4)(5)(6) is %d; should be %d." % (answer, expect)
 
 # From test_audiop.py
 # This is an example where we to create a function with a non-zero
