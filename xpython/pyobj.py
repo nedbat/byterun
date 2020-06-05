@@ -42,12 +42,10 @@ except:
 
 
 # Code with these names have an implicit .0 in them
-COMPREHENSION_FN_NAMES = frozenset((
-    "<setcomp>",
-    "<dictcomp>",
-    "<listcomp>",
-    "<genexpr>",
-))
+COMPREHENSION_FN_NAMES = frozenset(
+    ("<setcomp>", "<dictcomp>", "<listcomp>", "<genexpr>",)
+)
+
 
 class Function(object):
     """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={},
@@ -144,7 +142,7 @@ class Function(object):
         self.__dict__ = {
             "version": vm.version,
             "_vm": vm,
-            }
+        }
 
         self.__doc__ = (
             code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
@@ -246,7 +244,9 @@ class Function(object):
             else:
                 callargs = inspect2.getcallargs(self, *args, **kwargs)
 
-        frame = self._vm.make_frame(self.func_code, callargs, self.func_globals, {})
+        frame = self._vm.make_frame(
+            self.func_code, callargs, self.func_globals, {}, self.__closure__
+        )
         if self.func_code.co_flags & CO_GENERATOR:
             gen = Generator(frame, self._vm)
             frame.generator = gen
@@ -338,19 +338,19 @@ class Block(object):
 
     def __repr__(self):
         if self.handler is None:
-            return (
-                "<Block type: %s, stack level: %d" %
-                (self.type, self.level)
-            )
+            return "<Block type: %s, stack level: %d" % (self.type, self.level)
         else:
-            return (
-                "<Block type: %s, end offset: @%d, stack level: %d" %
-                (self.type, self.handler, self.level)
+            return "<Block type: %s, end offset: @%d, stack level: %d" % (
+                self.type,
+                self.handler,
+                self.level,
             )
 
 
 class Frame(object):
-    def __init__(self, f_code, f_globals, f_locals, f_back, version=PYTHON_VERSION):
+    def __init__(
+        self, f_code, f_globals, f_locals, f_back, version=PYTHON_VERSION, closure=None
+    ):
         self.f_code = f_code
         self.f_globals = f_globals
         self.f_locals = f_locals
@@ -391,10 +391,23 @@ class Frame(object):
         if f_code.co_freevars:
             if not self.cells:
                 self.cells = {}
-            for var in f_code.co_freevars:
-                assert self.cells is not None
-                assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
-                self.cells[var] = f_back.cells[var]
+            for i, var in enumerate(f_code.co_freevars):
+                if closure:
+                    # print("XXX", f_code.co_freevars[i], closure[i].get())
+                    # if f_code.co_freevars[i] == "c" and  closure[i].get() == 5:
+                    #     from trepan.api import debug; debug()
+                    self.cells[var] = (closure[i])
+                else:
+                    # FIXME: this branch is probably wrong.
+                    # Also check all calls of Frame and make_frame() in vm to ensure we pass a function's
+                    # closure attribute.
+                    assert isinstance(f_back.cells[i], Cell), "f_back.cells[%d]: %r" % (
+                        i,
+                        f_back.cells[i],
+                    )
+                    self.cells[var] = f_back.cells[var]
+                pass
+            pass
 
         self.block_stack = []
         self.generator = None

@@ -59,9 +59,9 @@ class PyVMUncaughtException(Exception):
 
     pass
 
+
 def format_instruction(
-        frame, opc, byte_name, int_arg, arguments, offset, line_number, extra_debug,
-        vm=None
+    frame, opc, byte_name, int_arg, arguments, offset, line_number, extra_debug, vm=None
 ):
     """Formats an instruction. What's a little different here is that in
     contast to Python's `dis`, or a colorized version of that, used in
@@ -100,13 +100,7 @@ def format_instruction(
         if line_number is None
         else LINE_NUMBER_WIDTH_FMT % line_number
     )
-    mess = "%s%3d: %s%s %s" % (
-        line_str,
-        offset,
-        byte_name,
-        stack_args,
-        argrepr,
-    )
+    mess = "%s%3d: %s%s %s" % (line_str, offset, byte_name, stack_args, argrepr,)
     if extra_debug and frame:
         mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
     return mess
@@ -225,7 +219,9 @@ class PyVM(object):
         self.frame.f_lasti = jump
         self.frame.fallthrough = False
 
-    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
+    def make_frame(
+        self, code, callargs={}, f_globals=None, f_locals=None, closure=None
+    ):
         # The callargs default is safe because we never modify the dict.
         # pylint: disable=dangerous-default-value
 
@@ -258,7 +254,14 @@ class PyVM(object):
             f_locals = {"__locals__": {}}
 
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame, version=self.version)
+        frame = Frame(
+            f_code=code,
+            f_globals=f_globals,
+            f_locals=f_locals,
+            f_back=self.frame,
+            version=self.version,
+            closure=closure,
+        )
 
         # THINK ABOUT: should this go into making the frame?
         frame.linestarts = dict(self.opc.findlinestarts(code, dup_lines=True))
@@ -647,8 +650,8 @@ class PyVM(object):
                                     int_arg,
                                     arguments,
                                     offset,
-                                line_number,
-                                False,
+                                    line_number,
+                                    False,
                                 )
                             )
                         )

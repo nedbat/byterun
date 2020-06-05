@@ -7,19 +7,23 @@ We use the bytecode for these when doing cross-version interpreting
 from xpython.pyobj import Function, Cell, make_cell
 from xdis import codeType2Portable, PYTHON_VERSION, IS_PYPY
 
+
 def func_code(func):
     if hasattr(func, "func_code"):
         return func.func_code
     else:
-        assert hasattr(func, "__code__"), (
-            "%s should be a function type; is %s" % (func, type(func))
+        assert hasattr(func, "__code__"), "%s should be a function type; is %s" % (
+            func,
+            type(func),
         )
         return func.__code__
+
 
 # This code was originally written by Darius Bacon,
 # but follows code from PEP 3115 listed below.
 # Rocky Bernstein did the xdis adaptions and
 # added a couple of bug fixes.
+
 
 def build_class(opc, func, name, *bases, **kwds):
     """
@@ -69,7 +73,10 @@ def build_class(opc, func, name, *bases, **kwds):
     # the bytecode using in the running Python can cause a SEGV, specifically
     # between Python 3.5 running 3.4 or earlier.
     frame = func._vm.make_frame(
-        code=class_body_code, f_globals=func.func_globals, f_locals=namespace
+        code=class_body_code,
+        f_globals=func.func_globals,
+        f_locals=namespace,
+        closure=func.__closure__,
     )
 
     # rocky: cell is the return value of a function where?
@@ -88,6 +95,7 @@ def build_class(opc, func, name, *bases, **kwds):
         cell.set(cls)
     return cls
 
+
 # From Pypy 3.6
 # def find_metaclass(bases, namespace, globals, builtin):
 #     if '__metaclass__' in namespace:
@@ -105,6 +113,7 @@ def build_class(opc, func, name, *bases, **kwds):
 #             return builtin.__metaclass__
 #         except AttributeError:
 #             return type
+
 
 def calculate_metaclass(metaclass, bases):
     "Determine the most derived metatype."
