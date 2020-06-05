@@ -378,23 +378,25 @@ class Frame(object):
         self.f_lasti = -1
 
         if f_code.co_cellvars:
-            self.cells = []
+            self.cells = {}
             if not f_back.cells:
-                f_back.cells = []
+                f_back.cells = {}
             for var in f_code.co_cellvars:
                 # Make a cell for the variable in our locals, or None.
                 cell = Cell(self.f_locals.get(var))
-                self.cells.append(cell)
-                f_back.cells.append(cell)
+                f_back.cells[var] = self.cells[var] = cell
         else:
             self.cells = None
 
         if f_code.co_freevars:
             if not self.cells:
-                self.cells = []
-            for i in range(len(f_code.co_freevars)):
+                self.cells = {}
+            for i, var in enumerate(f_code.co_freevars):
                 if closure:
-                    self.cells.append(closure[i])
+                    # print("XXX", f_code.co_freevars[i], closure[i].get())
+                    # if f_code.co_freevars[i] == "c" and  closure[i].get() == 5:
+                    #     from trepan.api import debug; debug()
+                    self.cells[var] = (closure[i])
                 else:
                     # FIXME: this branch is probably wrong.
                     # Also check all calls of Frame and make_frame() in vm to ensure we pass a function's
@@ -403,7 +405,7 @@ class Frame(object):
                         i,
                         f_back.cells[i],
                     )
-                    self.cells.append(f_back.cells[i])
+                    self.cells[var] = f_back.cells[var]
                 pass
             pass
 

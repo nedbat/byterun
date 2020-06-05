@@ -14,7 +14,7 @@ def f1(a):
     return f2
 
 answer = f1(3)(4)(5)(6)
-assert answer == 54
+assert answer == 54, "f1(3)(4)(5)(6) is %d; should be 54." % answer
 
 # From test_audiop.py
 # This is an example where we to create a function with a non-zero

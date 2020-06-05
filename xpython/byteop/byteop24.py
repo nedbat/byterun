@@ -32,16 +32,11 @@ def get_cell_name(vm, i):
         var_idx = i - len(f_code.co_cellvars)
         return f_code.co_freevars[var_idx]
 
+def fmt_store_deref(vm, int_arg, repr=repr):
+    return " (%s)" % (vm.top())
 
-def fmt_store_deref(vm, i, repr=repr):
-    f_code = vm.frame.f_code
-    return " (%s = %s)" % (get_cell_name(vm, i), vm.top())
-
-def fmt_load_deref(vm, i, repr=repr):
-    return " (%s: %s)" % (get_cell_name(vm, i), vm.frame.cells[i].get())
-
-def fmt_free_op(vm, i, repr=repr):
-    return " (%s)" % get_cell_name(vm, i)
+def fmt_load_deref(vm, int_arg, repr=repr):
+    return " (%s)" % (vm.frame.cells[get_cell_name(vm,int_arg)].get())
 
 def fmt_call_function(vm, argc, repr=repr):
     """
@@ -89,11 +84,6 @@ class ByteOp24(ByteOpBase):
             "STORE_GLOBAL LOAD_ADDR STORE_FAST"
         ).split():
             self.stack_fmt[opname] = fmt_unary_op
-
-        # Note a number of these ops is overwritten by more custom
-        # format functions below
-        for opname in (self.vm.opc.opname[i] for i in self.vm.opc.hasfree):
-            self.stack_fmt[opname] = fmt_free_op
 
         self.stack_fmt["STORE_DEREF"] = fmt_store_deref
         self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
@@ -612,19 +602,18 @@ class ByteOp24(ByteOpBase):
         """
         self.vm.push(self.vm.frame.cells[i])
 
-    def LOAD_DEREF(self, i):
+    def LOAD_DEREF(self, name):
         """
         Loads the cell contained in slot i of the cell and free variable
         storage. Pushes a reference to the object the cell contains on the
         stack.
         """
-        self.vm.push(self.vm.frame.cells[i].get())
+        self.vm.push(self.vm.frame.cells[name].get())
 
     def STORE_DEREF(self, name):
         """
         Stores TOS into the cell contained in slot i of the cell and free variable storage.
         """
-        # FIXME: see comment under LOAD_DEREF
         self.vm.frame.cells[name].set(self.vm.pop())
 
     # End names
