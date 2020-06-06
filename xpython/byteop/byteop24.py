@@ -21,6 +21,7 @@ log = logging.getLogger(__name__)
 # Code with these names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
 
+
 def get_cell_name(vm, i):
     # From LOAD_CLOSURE:
     # The name of the variable is co_cellvars[i] if i is less
@@ -32,11 +33,14 @@ def get_cell_name(vm, i):
         var_idx = i - len(f_code.co_cellvars)
         return f_code.co_freevars[var_idx]
 
+
 def fmt_store_deref(vm, int_arg, repr=repr):
     return " (%s)" % (vm.top())
 
+
 def fmt_load_deref(vm, int_arg, repr=repr):
-    return " (%s)" % (vm.frame.cells[get_cell_name(vm,int_arg)].get())
+    return " (%s)" % (vm.frame.cells[get_cell_name(vm, int_arg)].get())
+
 
 def fmt_call_function(vm, argc, repr=repr):
     """
@@ -50,6 +54,7 @@ def fmt_call_function(vm, argc, repr=repr):
 
     # Nothing found.
     return ""
+
 
 def fmt_make_function(vm, arg=None, repr=repr):
     """
@@ -87,7 +92,6 @@ class ByteOp24(ByteOpBase):
 
         self.stack_fmt["STORE_DEREF"] = fmt_store_deref
         self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
-
 
     def fmt_unary_op(vm, arg=None):
         """
@@ -411,17 +415,18 @@ class ByteOp24(ByteOpBase):
     # Comparisons
 
     COMPARE_OPERATORS = [
-        operator.lt,
-        operator.le,
-        operator.eq,
-        operator.ne,
-        operator.gt,
-        operator.ge,
+        operator.lt,  # <
+        operator.le,  # <=
+        operator.eq,  # ==
+        operator.ne,  # !=
+        operator.gt,  # >
+        operator.ge,  # >=
         lambda x, y: x in y,
         lambda x, y: x not in y,
         lambda x, y: x is y,
         lambda x, y: x is not y,
-        lambda x, y: issubclass(x, Exception) and issubclass(x, y),
+        lambda x, y: issubclass(x, BaseException)
+        and issubclass(x, y),  # exception-match
     ]
 
     def COMPARE_OP(self, opname):

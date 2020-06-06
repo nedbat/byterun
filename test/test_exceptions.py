@@ -15,6 +15,9 @@ PY2 = not PYTHON3
 
 class TestExceptions(vmtest.VmTestCase):
 
+    def test_exception_match(self):
+        self.self_checking()
+
     def test_raise_exception(self):
         self.assert_ok("raise Exception('oops')", raises=Exception)
 
