@@ -250,6 +250,12 @@ class ByteOp24(ByteOpBase):
         optional parameters with None.
         """
         stmt, globs, locs = self.vm.popn(3)
+
+        # if `locals` or `globals` is None, use the frame equivalent.
+        if globs is None:
+            globs = self.vm.frame.f_globals
+        if locs is None:
+            locs = self.vm.frame.f_locals
         six.exec_(stmt, globs, locs)
 
     def POP_BLOCK(self):

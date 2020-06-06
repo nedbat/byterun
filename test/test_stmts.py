@@ -21,6 +21,9 @@ class TestStmts(vmtest.VmTestCase):
     def test_global(self):
         self.self_checking()
 
+    def test_exec(self):
+        self.self_checking()
+
 if __name__ == "__main__":
     # import unittest
     # unittest.main()

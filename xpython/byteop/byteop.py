@@ -40,26 +40,29 @@ BINARY_OPERATORS = {
     "OR": operator.or_,
 }
 
-INPLACE_OPERATORS = frozenset([
-    "ADD",
-    "AND",
-    "DIVIDE",
-    "FLOOR_DIVIDE",
-    "LSHIFT",
-    "MODULO",
-    "MULTIPLY",
-    "OR",
-    "POWER"
-    "RSHIFT",
-    "SUBTRACT",
-    "TRUE_DIVIDE",
-    "XOR",
-    # 3.5 on
-    "POWER",
-    "MATRIX_MULTIPLY"])
+INPLACE_OPERATORS = frozenset(
+    [
+        "ADD",
+        "AND",
+        "DIVIDE",
+        "FLOOR_DIVIDE",
+        "LSHIFT",
+        "MODULO",
+        "MULTIPLY",
+        "OR",
+        "POWER" "RSHIFT",
+        "SUBTRACT",
+        "TRUE_DIVIDE",
+        "XOR",
+        # 3.5 on
+        "POWER",
+        "MATRIX_MULTIPLY",
+    ]
+)
 
 if PYTHON_VERSION >= 3.5:
     BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
+
 
 def fmt_binary_op(vm, arg=None, repr=repr):
     """returns a string of the repr() for each of the the first two
@@ -68,11 +71,13 @@ def fmt_binary_op(vm, arg=None, repr=repr):
     """
     return " (%s, %s)" % (repr(vm.peek(2)), repr(vm.top()))
 
+
 def fmt_ternary_op(vm, arg=None, repr=repr):
     """returns string of the repr() for each of the first three
     elements of evaluation stack
     """
     return " (%s, %s, %s)" % (repr(vm.peek(3)), repr(vm.peek(2)), repr(vm.top()))
+
 
 def fmt_unary_op(vm, arg=None, repr=repr):
     """returns string of the repr() for the first element of
@@ -147,13 +152,31 @@ class ByteOpBase(object):
                 # Use the frame's locals(), not the interpreter's
                 self.vm.push(frame.f_globals)
                 return
+
+            # In Python 3.0 or greater, "exec()" is a builtin.
+            # In Python 2.7 it was an opcode EXEC_STMT and is not built in.
+            # Use string compare below so that we can run this code on 2.7 and earlier
+            elif func.__name__ == "exec":
+                if not 1 <= len(pos_args) <= 3:
+                    raise self.vm.PyVMError(
+                        "exec() builtin should have 1..3 positional arguments; got %d"
+                        % len(pos_args)
+                    )
+                assert 1 <= len(pos_args) <= 3
+                # Use the frame's locals(), not the interpreter's
+                if len(pos_args) < 2:
+                    pos_args.append(self.vm.frame.f_globals)
+                if len(pos_args) < 3:
+                    pos_args.append(self.vm.frame.f_locals)
             elif PYTHON_VERSION >= 3.0 and func == __build_class__:
                 assert (
                     len(pos_args) > 0
                 ), "__build_class__() should have at least one argument, an __init__() function."
                 init_fn = pos_args[0]
-                if (isinstance(init_fn, Function) or
-                    self.is_pypy or self.version != PYTHON_VERSION
+                if (
+                    isinstance(init_fn, Function)
+                    or self.is_pypy
+                    or self.version != PYTHON_VERSION
                 ) and PYTHON_VERSION >= 3.4:
                     # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
