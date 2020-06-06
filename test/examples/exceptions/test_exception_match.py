@@ -17,3 +17,19 @@ try:
     raise KeyboardInterrupt
 except KeyboardInterrupt:
     pass
+
+try:
+    assert 0, "msg"
+except AssertionError as e:
+    assert e.args[0] == "msg"
+else:
+    assert False,"AssertionError not raised by assert 0"
+
+# Bug in 2.7 was not setting traceback error, "e" == AssertError()
+# in byteop RAISE_VARARGS 1
+try:
+    assert False
+except AssertionError as e:
+    assert len(e.args) == 0
+else:
+    assert False, "AssertionError not raised by 'assert False'"

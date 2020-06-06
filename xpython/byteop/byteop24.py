@@ -700,11 +700,12 @@ class ByteOp24(ByteOpBase):
         """
         # NOTE: the dis docs quoted above are completely wrong about the order of the
         # operands on the stack!
-        exctype = val = tb = None
+        tb = None
         if argc == 0:
             exctype, val, tb = self.vm.last_exception
         elif argc == 1:
             exctype = self.vm.pop()
+            val = AssertionError()
         elif argc == 2:
             val = self.vm.pop()
             exctype = self.vm.pop()
