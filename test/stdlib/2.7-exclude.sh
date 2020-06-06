@@ -1,15 +1,10 @@
 SKIP_TESTS=(
-    # FIXME:
-    # raise VMError("Borked exception recording")
-    [test_atexit.py]=1
-
     # object() takes no parameters
     # We must have bolixed function args here
     [test_asyncore.py]=1
 
     [test_abc.py]=1 #
     [test_array.py]=1 #
-    [test_augassign.py]=1
     [test_ast.py]=1 #
 
     # AttributeError: 'AnyDBMTestCase' object has no attribute '_testMethodName'

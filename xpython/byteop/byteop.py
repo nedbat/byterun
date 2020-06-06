@@ -318,7 +318,15 @@ class ByteOpBase(object):
             x **= y
         elif op == "MULTIPLY":
             x *= y
-        elif op in ["DIVIDE", "FLOOR_DIVIDE"]:
+        elif op == "DIVIDE":
+            # Overwritten __div__ is not picked up by x //= y
+            # which seems to puck up FLOOR_DIVIDE
+            # See Python 2.7 test_augassign.py
+            if hasattr(x, "__idiv__"):
+                x = x.__idiv__(y)
+            else:
+                x //= y
+        elif op == "FLOOR_DIVIDE":
             x //= y
         elif op == "TRUE_DIVIDE":
             x /= y
