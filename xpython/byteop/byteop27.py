@@ -41,6 +41,7 @@ class ByteOp27(ByteOp26):
             pass
 
         func = getattr(method, self.method_func_access)
+
         if inspect.isfunction(func):
             func = self.convert_native_to_Function(self.vm.frame, func)
             method = types.MethodType(func, method.__self__)
@@ -93,7 +94,10 @@ class ByteOp27(ByteOp26):
         # converted to our Function type so we can interpret them.
         # Note though that built-in functions can't be traced.
         if self.version == PYTHON_VERSION and not inspect.isbuiltin(context_manager.__exit__):
-            exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
+            try:
+                exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
+            except:
+                pass
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)

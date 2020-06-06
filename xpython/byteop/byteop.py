@@ -156,11 +156,11 @@ class ByteOpBase(object):
             # In Python 3.0 or greater, "exec()" is a builtin.
             # In Python 2.7 it was an opcode EXEC_STMT and is not built in.
             # Use string compare below so that we can run this code on 2.7 and earlier
-            elif func.__name__ == "exec":
+            elif func.__name__ in ("exec", "eval"):
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
-                        "exec() builtin should have 1..3 positional arguments; got %d"
-                        % len(pos_args)
+                        "%s() builtin should have 1..3 positional arguments; got %d"
+                        % (func.__name__, len(pos_args))
                     )
                 assert 1 <= len(pos_args) <= 3
                 # Use the frame's locals(), not the interpreter's

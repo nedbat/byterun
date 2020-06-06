@@ -18,6 +18,9 @@ class TestData(vmtest.VmTestCase):
     def test_attributes(self):
         self.self_checking()
 
+    def test_eval(self):
+        self.self_checking()
+
     if PYTHON_VERSION >= 3.5:
 
         def test_map_unpack(self):
