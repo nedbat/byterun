@@ -266,6 +266,14 @@ class Method(object):
         self.im_self = obj
         self.im_class = _class
         self.im_func = func
+
+        if hasattr(func, "func_code"):
+            self.func_code = func.func_code
+        if hasattr(func, "__name__"):
+            self.__name__ = func.__name__
+        if hasattr(func, "__code__"):
+            self.__code__ = func.__code__
+
         # This causes failure
         # self.__name__ = obj.__name__
 

@@ -156,7 +156,9 @@ SKIP_TESTS=(
     # ?           +
     [test_re.py]=1
 
-    # xpython.vm.PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
+    # File "test_reprlib.py", line 368, in MyContainer
+    # @recursive_repr()
+    # AttributeError: 'Function' object has no attribute '__qualname__'
     [test_reprlib.py]=1
 
     [test_runpy.py]=1 # decompile takes too long?

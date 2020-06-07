@@ -18,12 +18,26 @@ COMPATABILITY_MATRIX = {
     2.7: (2.6, 2.5, 2.4),
     3.2: (),
 
+    # FIXME:
+    # 3.5, 3.4, 3.3 -> 3.{3,2}
+    # 3.2 -> 2.7
+    # File "examples/functions/test_closures.py", line 6, in <module>
+    # variables as we nest.
+    # File "examples/functions/test_closures.py", line 39, in <lambda>
+    # (lambda data, width=w: pack(width, data))
+    # File "examples/functions/test_closures.py", line 0, in pack
+    # TypeError: sequence item 0: expected str instance, bytes found
+
     # TODO: work on these. The list is not too large
     3.3: (3.2,),
     3.4:  (3.3,),
 
     3.5: (3.7, 3.6, 3.4),
     3.6: (3.5, 3.4, 3.3),
+
+    # 3.7 -> 3.5
+    # File "examples/functions/test_call_ex_kw.py", line 12, in <module>
+    # IndexError: pop from empty list
     3.7: (3.6, 3.4),
 }
 

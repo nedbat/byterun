@@ -34,7 +34,6 @@ SKIP_TESTS=(
 
     [test_bdb.py]=1
 
-    [test_compile.py]=1  # Code introspects on co_consts in a non-decompilable way
     [test_curses.py]=1  # Possibly fails on its own but not detected
     [test_cmd_line.py]=1 # Takes too long, maybe hangs, or looking for interactive input?
     [test_doctest.py]=1 # Fails on its own
@@ -47,7 +46,6 @@ SKIP_TESTS=(
     [test_lib2to3.py]=1 # test takes too long to run: 28 seconds
     [test_math.py]=1
     [test_memoryio.py]=1 # FIX
-    [test_modulefinder.py]=1 # FIX
     [test_multiprocessing.py]=1 # On uncompyle2, takes 24 secs
     [test_poll.py]=1  # test takes too long to run: 11 seconds
     [test_pwd.py]=1     # Takes too long

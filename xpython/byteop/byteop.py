@@ -141,7 +141,7 @@ class ByteOpBase(object):
                 )
             func = func.im_func
 
-        # FIXME: should we special casing in a function?
+        # FIXME: put this in a separate routine.
         if inspect.isbuiltin(func):
             log.debug("handling built-in function %s" % func.__name__)
             if func == globals:
@@ -152,7 +152,12 @@ class ByteOpBase(object):
                 # Use the frame's locals(), not the interpreter's
                 self.vm.push(frame.f_globals)
                 return
-
+            elif func == compile:
+                # Set dont_inherit parameter.
+                # FIXME: we should set other flags too based on the interpreted environment?
+                if len(pos_args) < 5 and "dont_inherit" not in named_args:
+                    named_args["dont_inherit"] = True
+                    pass
             # In Python 3.0 or greater, "exec()" is a builtin.
             # In Python 2.7 it was an opcode EXEC_STMT and is not built in.
             # Use string compare below so that we can run this code on 2.7 and earlier
