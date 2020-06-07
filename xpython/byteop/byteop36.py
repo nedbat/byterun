@@ -27,8 +27,10 @@ FSTRING_CONVERSION_MAP = {
     0: identity,
     1: str,
     2: repr,
-    3: ascii,
 }
+
+if PYTHON_VERSION > 2.7:
+    FSTRING_CONVERSION_MAP[3] = ascii
 
 # Code with these co_names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(

@@ -714,10 +714,17 @@ class ByteOp24(ByteOpBase):
             val = AssertionError()
         elif argc == 2:
             val = self.vm.pop()
+            # Investigate: right now we see this *only* in 2.6.
+            # Can it happen in other bytecode vesrions?
+            if self.version == 2.6:
+                val = AssertionError(val)
             exctype = self.vm.pop()
         elif argc == 3:
             tb = self.vm.pop()
             val = self.vm.pop()
+            # See comment above
+            if self.version == 2.6:
+                val = AssertionError(val)
             exctype = self.vm.pop()
 
         # There are a number of forms of "raise", normalize them somewhat.
