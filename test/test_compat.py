@@ -38,7 +38,7 @@ COMPATABILITY_MATRIX = {
     # 3.7 -> 3.5
     # File "examples/functions/test_call_ex_kw.py", line 12, in <module>
     # IndexError: pop from empty list
-    3.7: (3.6, 3.4),
+    3.7: (3.6, 3.4, 3.3, 3.2),
 }
 
 # In addition, PyPy and CPython *should* be inter compatible,

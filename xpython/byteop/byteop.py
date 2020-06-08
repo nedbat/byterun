@@ -163,19 +163,18 @@ class ByteOpBase(object):
             # Use string compare below so that we can run this code on 2.7 and earlier
             # Also, there can be other builtin "eval"s. Tk has one. See
             # 3.6.10 test_tcl.py
-            elif func.__name__ in ("exec", "eval"):
-                if func.__name__ == "exec" or func == eval:
-                    if not 1 <= len(pos_args) <= 3:
-                        raise self.vm.PyVMError(
-                            "%s() builtin should have 1..3 positional arguments; got %d"
-                            % (func.__name__, len(pos_args))
-                        )
-                    assert 1 <= len(pos_args) <= 3
-                    # Use the frame's locals(), not the interpreter's
-                    if len(pos_args) < 2:
-                        pos_args.append(self.vm.frame.f_globals)
-                    if len(pos_args) < 3:
-                        pos_args.append(self.vm.frame.f_locals)
+            elif func.__name__ == "exec" or func == eval:
+                if not 1 <= len(pos_args) <= 3:
+                    raise self.vm.PyVMError(
+                        "%s() builtin should have 1..3 positional arguments; got %d"
+                        % (func.__name__, len(pos_args))
+                    )
+                assert 1 <= len(pos_args) <= 3
+                # Use the frame's locals(), not the interpreter's
+                if len(pos_args) < 2:
+                    pos_args.append(self.vm.frame.f_globals)
+                if len(pos_args) < 3:
+                    pos_args.append(self.vm.frame.f_locals)
             elif PYTHON_VERSION >= 3.0 and func == __build_class__:
                 assert (
                     len(pos_args) > 0

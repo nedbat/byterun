@@ -105,9 +105,8 @@ SKIP_TESTS=(
     [test_imaplib.py]=1
     [test_inspect.py]=1 # Syntax error Investigate
 
-    # byteCode = byteint(co_code[opoffset])
     # IndexError: index out of range
-    [test_itertools.py]=1
+    [test_itertools.py]=1 # Takes a long time to run
 
     [test_kqueue.py]=1 # it fails on its own
 
@@ -122,6 +121,9 @@ SKIP_TESTS=(
     [test_lzma.py]=1 # fails on its own
 
     [test_mailbox.py]=1 # it fails on its own
+
+    # EOFError: EOF read where object expected
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
     [test_marshal.py]=1 #
 
     # TypeError: sequence item 0: expected str instance, int found
@@ -195,11 +197,15 @@ SKIP_TESTS=(
     [test_strtod.py]=1 # it fails on its own
     [test_struct.py]=1  # test assertion errors
     [test_subprocess.py]=1
-    [test_sys.py]=1 # Investigate confusing "and" with nested "if" when there is an "else
-    [test_sys_settrace.py]=1 # parse error
+
+    # AssertionError: 56 != 48 : wrong size for <class 'xpython.pyobj.Cell'>: got 56, expected 48
+    # Unavoidable: we compare internal cell size with our Cell size
+    [test_sys.py]=1 #
+
+    # We don't support sys.settrace()
+    [test_sys_settrace.py]=1
 
     [test_tarfile.py]=1 # it fails on its own
-    [test_tcl.py]=1 # Test assert failures
     [test_telnetlib.py]=1 # takes more than 15 seconds to run
     [test_thread.py]=1 # it fails on its own
     [test_threading.py]=1
@@ -240,6 +246,7 @@ SKIP_TESTS=(
     [test_winreg.py]=1 # it fails on its own
     [test_winsound.py]=1 # it fails on its own
 
+    # Our Cell vs internal cell
     [test_with.py]=1
 
     [test_xmlrpc.py]=1 # it fails on its own
