@@ -12,15 +12,6 @@ SKIP_TESTS=(
 
     [test_asynchat.py]=1 # Dies in a horrible mess
 
-    # File "x-python/xpython/pyobj.py", line 165, in __call__
-    # callargs = inspect.getcallargs(self._func, *args, **kwargs)
-    # File "lib/python2.7/inspect.py", line 947, in getcallargs
-    # assign(arg, value)
-    # File "lib/python2.7/inspect.py", line 934, in assign
-    # raise ValueError('too many values to unpack')
-    # ValueError: too many values to unpack
-    [test_audioop.py]=1
-
     # We get:
     #   Cannot create a consistent method resolution
     #   order (MRO) for bases TestCase, AifcTest, object
@@ -38,8 +29,10 @@ SKIP_TESTS=(
     [test_cmd_line.py]=1 # Takes too long, maybe hangs, or looking for interactive input?
     [test_doctest.py]=1 # Fails on its own
     [test_exceptions.py]=1
-    [test_format.py]=1 # Control flow "and" vs nested "if"
-    [test_grammar.py]=1     # Too many stmts. Handle large stmts
+
+    # Maximum recursion depth exceded
+    [test_format.py]=1 #
+
     [test_grp.py]=1     # test takes to long, works interactively though
     [test_io.py]=1 # Test takes too long to run
     [test_ioctl.py]=1 # Test takes too long to run

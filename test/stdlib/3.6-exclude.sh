@@ -2,7 +2,7 @@ SKIP_TESTS=(
     # PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
     [test_os.py]=1
 
-    # TypeError: mixedargs_sum() got an unexpected keyword argument 'k1'
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
     [test_keywordonlyarg.py]=1
 
     [test___all__.py]=1  # it fails on its own
@@ -42,7 +42,10 @@ SKIP_TESTS=(
     [test_codecmaps_tw.py]=1 # it fails on its own
     [test_codecs.py]=1
     [test_collections.py]= # it fails on its own
-    [test_compile.py]=1  # Code introspects on co_consts in a non-decompilable way
+
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
+    [test_compile.py]=1
+
     [test_concurrent_futures.py]=1 # Takes long
     [test_contextlib_async.py]=1 # Investigate
     [test_coroutines.py]=1 # parse error
@@ -68,24 +71,29 @@ SKIP_TESTS=(
 
     [test_enum.py]=1  #
 
-    # KeyError: 'PIP_CONFIG_FILE'
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
     [test_ensurepip.py]=1
 
     [test_faulthandler.py]=1 # test takes too long to run: 24 seconds
     [test_filecmp.py]=1   # parse error
     [test_file_eintr.py]=1   # parse error
-    [test_fileinput.py]=1 # doesn't terminate
+
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
+    [test_fileinput.py]=1
+
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
     [test_finalization.py]=1
     [test_float.py]=1 # it fails on its own
     [test_functools.py]=1 # it fails on its own
     [test_fstring.py]=1 # need to disambiguate leading fstrings from docstrings
-    [test___future__.py]=1 # syntax error: Investigate
 
     [test_gdb.py]=1 # it fails on its own
     [test_generators.py]=1 # FIXME: Invalid syntax: f2 = lambda : (yield from g())        if False:
     [test_genexps.py]=1 #
     [test_glob.py]=1 #
-    [test_grammar.py]=1 # parse error
+
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
+    [test_grammar.py]=1
 
     # AssertionError: f_back.cells: None
     [test_gzip.py]=1
@@ -180,14 +188,15 @@ SKIP_TESTS=(
     [test_ssl.py]=1 # it fails on its own
     [test_startfile.py]=1 # it fails on its own
     [test_statistics.py]=1 # it fails on its own
+
+    # AttributeError: 'traceback' object has no attribute '__traceback__'
     [test_string_literals.py]=1
-    [test_strftime.py]=1 # test assertion failures
+
     [test_strtod.py]=1 # it fails on its own
     [test_struct.py]=1  # test assertion errors
     [test_subprocess.py]=1
     [test_sys.py]=1 # Investigate confusing "and" with nested "if" when there is an "else
     [test_sys_settrace.py]=1 # parse error
-    [test_sysconfig.py]=1 # if confused for ifelse in "test_triplet_in_ext_suffix"
 
     [test_tarfile.py]=1 # it fails on its own
     [test_tcl.py]=1 # Test assert failures

@@ -40,7 +40,10 @@ class ByteOp27(ByteOp26):
                 raise self.vm.PyVMError("Can't find method function attribute; tried '__func__' and '_im_func'")
             pass
 
-        func = getattr(method, self.method_func_access)
+        try:
+            func = getattr(method, self.method_func_access)
+        except:
+            func = method
 
         if inspect.isfunction(func):
             func = self.convert_native_to_Function(self.vm.frame, func)
@@ -97,7 +100,7 @@ class ByteOp27(ByteOp26):
             try:
                 exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
             except:
-                pass
+                exit_method = context_manager.__exit__
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)

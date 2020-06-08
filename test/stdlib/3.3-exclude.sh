@@ -58,8 +58,6 @@ SKIP_TESTS=(
     [test_faulthandler.py]=1
     [test_fork1.py]=1 # test takes too long to run: 12 seconds
 
-    [test_grammar.py]=1
-
     [test_io.py]=1  # test takes too long to run: 34 seconds
 
     [test_lib2to3.py]=1 # test assert failures
