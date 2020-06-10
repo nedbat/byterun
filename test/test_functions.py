@@ -140,14 +140,14 @@ class TestFunctions(vmtest.VmTestCase):
         def test_closure_vars_from_static_parent(self):
             self.self_checking()
 
+        # Has function-call syntax that is only valid for 3.5+
+        if PYTHON_VERSION >= 3.5:
+            def test_call_ex_kw(self):
+                self.self_checking()
+
         if PYTHON_VERSION >= 3.6:
             print("Test not gone over yet for >= 3.6")
         else:
-
-            if PYTHON_VERSION > 3.5:
-                # Investigate for < 3.5
-                def test_call_ex_kw(self):
-                    self.self_checking()
 
             def test_a_closure(self):
                 self.assert_ok("""\

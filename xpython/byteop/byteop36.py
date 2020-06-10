@@ -55,7 +55,7 @@ def fmt_call_function_kw(vm, argc, repr=repr):
     """
     namedargs_tup = vm.top()
     func = vm.peek(argc + 2)
-    return " (keyrowrd: %s, function: %s)" % (namedargs_tup, func)
+    return " (keyword: %s, function: %s)" % (namedargs_tup, func)
 
 class ByteOp36(ByteOp35):
     def __init__(self, vm):
@@ -87,6 +87,31 @@ class ByteOp36(ByteOp35):
     ##############################################################################
 
     # Changed in 3.6
+
+    def BUILD_MAP_UNPACK_WITH_CALL(self, oparg):
+        """
+        This is similar to BUILD_MAP_UNPACK, but is used for f(**x, **y,
+        **z) call syntax. The lowest byte of oparg is the count of
+        mappings, the relative position of the corresponding callable
+        f is encoded in the second byte of oparg.
+        """
+        count = oparg
+        fn_pos = 0
+
+        elts = self.vm.popn(count)
+        if elts:
+            kwargs = {k: v for m in elts for k, v in m.items()}
+        else:
+            kwargs = None
+
+        posargs = self.vm.pop()
+        func = self.vm.pop(fn_pos)
+
+        # Put everything in the right order for CALL_FUNCTION_EX
+        self.vm.push(func)
+        self.vm.push(posargs)
+        if kwargs:
+            self.vm.push(kwargs)
 
     def CALL_FUNCTION_KW(self, argc):
         """

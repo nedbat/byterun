@@ -11,10 +11,22 @@ from xpython.byteop.byteop34 import ByteOp34
 del ByteOp24.STORE_MAP
 del ByteOp32.WITH_CLEANUP
 
+def fmt_build_map_unpack_with_call(vm, arg, repr=repr):
+    """returns string of the repr() for the first element of
+    the evaluation stack
+    """
+    # See corresponding comment in BUILD_MAP_UNPACK_WITH_CALL
+    if vm.version == 3.5:
+        fn_pos, count = divmod(arg, 256)
+        fn_pos = count + fn_pos
+    else:
+        fn_pos = arg + 1
+    return " (%s)" % (repr(vm.peek(fn_pos)))
 
 class ByteOp35(ByteOp34):
     def __init__(self, vm):
         super(ByteOp35, self).__init__(vm)
+        self.stack_fmt["BUILD_MAP_UNPACK_WITH_CALL"] = fmt_build_map_unpack_with_call
 
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)
@@ -199,18 +211,21 @@ class ByteOp35(ByteOp34):
         mappings, the relative position of the corresponding callable
         f is encoded in the second byte of oparg.
         """
+        # In 3.5 fn_pos may be always 1 which meant the stack
+        # entry after the mappings. In 3.6 this function-position
+        # encoding was dropped. But we'll follow the spec.
         fn_pos, count = divmod(oparg, 256)
+        fn_pos -= 1
+
         elts = self.vm.popn(count)
         if elts:
             kwargs = {k: v for m in elts for k, v in m.items()}
         else:
             kwargs = None
-        posargs = self.vm.pop()
         func = self.vm.pop(fn_pos)
 
-        # Put everything in the right order for CALL_FUNCTION_EX
+        # Put everything in the right order for CALL_FUNCTION_KW
         self.vm.push(func)
-        self.vm.push(posargs)
         if kwargs:
             self.vm.push(kwargs)
 

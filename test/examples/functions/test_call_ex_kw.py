@@ -1,6 +1,7 @@
 # This test progam was adapted from the uncompyle6 test suite.
 
-# Tests CALL_FUNCTION_KW among other things.
+# Tests BUILD_MAP_UNPACK_WITH_CALL, CALL_FUNCTION_KW in 3.5 and CALL_FUNCTION_EX in 3.6+ among
+# other things.
 
 """This program is self-checking!"""
 

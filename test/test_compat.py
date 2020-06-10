@@ -29,16 +29,22 @@ COMPATABILITY_MATRIX = {
     # TypeError: sequence item 0: expected str instance, bytes found
 
     # TODO: work on these. The list is not too large
+    # Fails on 3.4 with:
+    # File "examples/with/test_at_context_manager_complete.py", line 6, in <module>
+    # NameError: global name '_too_many' is not defined
     3.3: (3.2,),
-    3.4:  (3.3,),
 
-    3.5: (3.7, 3.6, 3.4),
-    3.6: (3.5, 3.4, 3.3),
+    # Extending to 3.5+ fails with
+    # AttributeError: 'module' object has no attribute 'CoroutineType'
+    # in examples/functions/test_generator_with_context_manager.py
+    3.4:  (3.3, 3,2),
 
-    # 3.7 -> 3.5
-    # File "examples/functions/test_call_ex_kw.py", line 12, in <module>
-    # IndexError: pop from empty list
-    3.7: (3.6, 3.4, 3.3, 3.2),
+    # Handling 3.6+ may change as we get async operators implemented,
+    # but for now we're good for what we have.
+    3.5: (3.7, 3.6, 3.4, 3.3, 3.2),
+    3.6: (3.7, 3.5, 3.4, 3.3, 3.2),
+
+    3.7: (3.6, 3.5, 3.4, 3.3, 3.2),
 }
 
 # In addition, PyPy and CPython *should* be inter compatible,
