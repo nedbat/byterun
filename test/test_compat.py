@@ -34,13 +34,9 @@ COMPATABILITY_MATRIX = {
     # NameError: global name '_too_many' is not defined
     3.3: (3.2,),
 
-    # Extending to 3.5+ fails with
-    # AttributeError: 'module' object has no attribute 'CoroutineType'
-    # in examples/functions/test_generator_with_context_manager.py
-    3.4:  (3.3, 3,2),
-
     # Handling 3.6+ may change as we get async operators implemented,
     # but for now we're good for what we have.
+    3.4: (3.7, 3.6, 3.5, 3.3, 3.2),
     3.5: (3.7, 3.6, 3.4, 3.3, 3.2),
     3.6: (3.7, 3.5, 3.4, 3.3, 3.2),
 
