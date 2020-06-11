@@ -6,6 +6,7 @@ import types
 from xpython.byteop.byteop24 import ByteOp24
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop34 import ByteOp34
+from xpython.pyobj import Generator
 
 # Gone in 3.5
 del ByteOp24.STORE_MAP
@@ -27,6 +28,18 @@ class ByteOp35(ByteOp34):
     def __init__(self, vm):
         super(ByteOp35, self).__init__(vm)
         self.stack_fmt["BUILD_MAP_UNPACK_WITH_CALL"] = fmt_build_map_unpack_with_call
+
+
+    def isgenerator(self, obj):
+        return (isinstance(obj, types.GeneratorType) or
+                isinstance(obj, Generator))
+
+    def iscoroutine(self, obj):
+        if hasattr(types, "CoroutineType"):
+            return isinstance(obj, types.CoroutineType)
+        else:
+            # FIXME: figure out what to do here.
+            return False
 
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)
@@ -55,7 +68,9 @@ class ByteOp35(ByteOp34):
         is. Otherwise, implements TOS = iter(TOS).
         """
         TOS = self.vm.top()
-        if isinstance(TOS, types.GeneratorType) or isinstance(TOS, types.CoroutineType):
+        # FIXME: if we are cross compiling types.CoroutineType might
+        # not be defined
+        if self.isgenerator(TOS) or self.iscoroutine(TOS):
             return
         TOS = self.vm.pop()
         self.vm.push(iter(TOS))
