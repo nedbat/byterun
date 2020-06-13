@@ -37,10 +37,6 @@
     $ git push   # get CI testing going early
     $ remake -c check-full
 
-# Update NEWS.md from master branch
-
-    $ git commit -m"Get ready for release $VERSION" .
-
 # Make packages and check
 
     $ ./admin-tools/make-dist.sh
