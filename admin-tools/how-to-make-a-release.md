@@ -46,11 +46,12 @@
 
 Todo: turn this into a script in `admin-tools`
 
-	$ mkdir /tmp/gittest; cd /tmp/gittest
+	$ mkdir /tmp/gittest; pushd /tmp/gittest
 	$ pyenv local 3.7.5
 	$ pip install -e git://github.com/rocky/x-python.git#egg=x-python
 	$ xpython -V # see that new version appears
 	$ pip uninstall x-python
+	$ popd
 
 # Release on Github
 

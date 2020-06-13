@@ -1,7 +1,7 @@
 1.3.3 2020-06-13 Fleeetwood66+
 ==============================
 
-Overall, improved cross-version bytecode interpreting.
+Overall, improved cross-version bytecode interpreting and some bug fixes.
 
 * Correct `BUILD_MAP_UNPACK` opcode handling.
 * Set namespace locals and globals to the proper namespace in builtin `eval()` like we do for `locals()` and `globals()` built-in functions
