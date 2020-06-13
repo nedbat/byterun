@@ -1,7 +1,131 @@
+2020-06-13  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, admin-tools/how-to-make-a-release.md,
+	xpython/version.py: Get ready for release 1.3.3
+
+2020-06-11  rocky <rocky@dusytfeet.com>
+
+	* : commit 7d229cd59b4eef6646c1a434baf8ae342c2023b3 Author: rocky
+	<rb@dustyfeet.com> Date:   Thu Jun 11 09:20:28 2020 -0400
+
+2020-06-11  rocky <rb@dustyfeet.com>
+
+	* test/test_compat.py: 3.4 compatability running 3.5+...  Allow testing against pyobj.Generator. Disable coroutine test in
+	GET_YIELD_FROM_ITER.
+
+2020-06-10  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/test_call_ex_kw.py, test/test_compat.py,
+	test/test_functions.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py: Fix BUILD_MAP_UNPACK and increase compat
+	matrix
+
+2020-06-08  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.6-exclude.sh, test/test_compat.py,
+	xpython/byteop/byteop.py: Update compatibilty...  If we use a later xdis, some of the problems with bytestrings goes
+	away.
+
+2020-06-07  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, test/stdlib/2.7-exclude.sh,
+	test/stdlib/3.3-exclude.sh, test/stdlib/3.6-exclude.sh,
+	xpython/byteop/byteop.py, xpython/byteop/byteop27.py: A number of
+	bug fixes...  Test for *the* builtin eval() since there can be others: Tk has its
+	own eval() Better recovery on converting bound methods Go over stdlib exclusions Accept next release of xdis
+
+2020-06-06  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/2.7-exclude.sh, test/stdlib/3.6-exclude.sh,
+	test/test_compat.py, xpython/byteop/byteop.py, xpython/pyobj.py: 
+	Fill in more Method fields...  update stdlib exclusions, and compatability matrix
+
+2020-06-06  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop24.py, xpython/byteop/byteop36.py: Python 2.7
+	execution tolerance
+
+2020-06-06  rocky <rb@dustyfeet.com>
+
+	* test/examples/expressions/test_eval.py,
+	test/stdlib/2.7-exclude.sh, xpython/byteop/byteop.py: Handle 2.7
+	__idiv__ in overwritten //= ...  and add test file from last commit.
+
+2020-06-06  rocky <rb@dustyfeet.com>
+
+	* test/test_data.py, xpython/byteop/byteop.py,
+	xpython/byteop/byteop27.py: Correct "eval()" local and global
+	params...  like we did for "exec()"
+
+2020-06-06  rocky <rb@dustyfeet.com>
+
+	* test/examples/stmts/test_exec.py, test/test_stmts.py,
+	xpython/byteop/byteop.py, xpython/byteop/byteop24.py: Correct up
+	EXEC_STMT and exec() builtin...  when there are globals and/or locals parameters are missing.
+
+2020-06-06  rocky <rb@dustyfeet.com>
+
+	* test/examples/exceptions/test_exception_match.py,
+	xpython/byteop/byteop24.py: Set exception value on 2.7-
+	RAISE_VARARGS 1
+
+2020-06-06  rocky <rb@dustyfeet.com>
+
+	* test/examples/exceptions/test_exception_match.py,
+	test/test_exceptions.py, xpython/byteop/byteop24.py: exception-match
+	uses BaseException not Exception
+
+2020-06-05  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop36.py: Format CALL_FUNCTION_KW for 3.6+
+
+2020-06-04  R. Bernstein <rocky@users.noreply.github.com>
+
+	* : Merge pull request #1 from rocky/free-cell-op Bang on closures, yet again
+
+2020-06-04  rocky <rb@dustyfeet.com>
+
+	* test/examples/functions/test_closures.py, xpython/builtins.py,
+	xpython/byteop/byteop24.py, xpython/pyobj.py, xpython/vm.py: WIP
+	trying a middle-ground approach
+
+2020-06-04  rocky <rocky@dusytfeet.com>
+
+	* test/test_functions.py, xpython/byteop/byteop24.py,
+	xpython/pyobj.py, xpython/vm.py: Initialize frame cells from
+	closure, not f_back...  See https://github.com/nedbat/byterun/issues/17 Thanks to @matthiaskramm noting and reporting the problem, and
+	@darius for providing a test case.
+
+2020-06-04  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Administrivia
+
+2020-06-04  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop24.py, xpython/pyobj.py, xpython/vm.py: Frame
+	cells need to be a list rather than a dict..  In contrast to local and global variables, names here can be
+	duplicated due to the various scopes that the names appear.  Therefore we model this more closely to the way CPython does, and
+	use a list.
+
+2020-06-03  rocky <rb@dustyfeet.com>
+
+	* test/examples/functions/test_wraps.py, test/test_functions.py: 
+	Split out test in prepration for freeops fixup
+
+2020-06-03  rocky <rb@dustyfeet.com>
+
+	* : commit 9ffba001895763b9b2a418779a646e22622b11ca Author: rocky
+	<rb@dustyfeet.com> Date:   Wed Jun 3 09:39:39 2020 -0400
+
 2020-06-03  rocky <rocky@dusytfeet.com>
 
 	* ChangeLog, NEWS.md, xpython/version.py: Get ready for release
 	1.3.2
+
+2020-06-03  rocky <rb@dustyfeet.com>
+
+	* xpython/byteop/byteop27.py: Work around built-in __exit__() and
+	__enter__()...  also add notes about funky SET_ADD and MAP_ADD opcodes
 
 2020-06-03  rocky <rocky@dusytfeet.com>
 

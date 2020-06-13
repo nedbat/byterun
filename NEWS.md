@@ -1,3 +1,15 @@
+1.3.3 2020-06-13 Fleeetwood66+
+==============================
+
+Overall, improved cross-version bytecode interpreting.
+
+* Correct `BUILD_MAP_UNPACK` opcode handling.
+* Set namespace locals and globals to the proper namespace in builtin `eval()` like we do for `locals()` and `globals()` built-in functions
+* Better built-in test for `eval()`. Note Tk has its own built-in `eval()`
+* Handle `__idiv__` in overwritten insdie `//=`
+* Improve argument format for `CALL_FUNCTION_KW` for 3.6+
+* Initialize frame cells from closure, not `f_back`  See https://github.com/nedbat/byterun/issues/17
+
 1.3.2 2020-06-03 Marilyn + 1
 ============================
 

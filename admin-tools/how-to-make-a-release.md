@@ -60,7 +60,7 @@ Todo: turn this into a script in `admin-tools`
 
 Goto https://github.com/rocky/x-python/releases/new
 
-Now check the tagged release.
+Now check the *tagged* release. (Checking the untagged release was previously done).
 
 Todo: turn this into a script in `admin-tools`
 
