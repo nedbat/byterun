@@ -8,6 +8,7 @@ from xpython.vm import (
 
 from xpython.vmtrace import (
     PyVMTraced,
+    pretty_event_flags,
     )
 
 from xpython.pyobj import (

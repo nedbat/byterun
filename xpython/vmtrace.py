@@ -25,6 +25,19 @@ PyVMEVENT_YIELD = 32       # tracing "yield"
 PyVMEVENT_FATAL = 64       # Final fatal error
 PyVMEVENT_STEP_OVER = 128  # tracing using step over - don't trace into calls
 
+PyVMEVENT_FLAG_NAMES = {
+    1: "instruction",
+    2: "line",
+    4: "call",
+    8: "return",
+    16: "exception",
+    32: "yield",
+    64: "fatal",
+    128: "step_over",
+}
+
+PyVMEVENT_FLAG_BITS = {name:bit for bit, name in PyVMEVENT_FLAG_NAMES.items()}
+
 # All flags except STEP_OVER which is a kind of negation
 PyVMEVENT_ALL = (
     PyVMEVENT_INSTRUCTION |
@@ -38,6 +51,23 @@ PyVMEVENT_ALL = (
 
 # All flags cleared
 PyVMEVENT_NONE = 0
+
+def pretty_event_flags(flags):
+    """Return pretty representation of trace event flags."""
+    names = []
+    result = "0x%08x" % flags
+    for i in range(32):
+        flag = 1 << i
+        if flags & flag:
+            names.append(PyVMEVENT_FLAG_NAMES.get(flag, hex(flag)))
+            flags ^= flag
+            if not flags:
+                break
+    else:
+        names.append(hex(flags))
+    names.reverse()
+    return "%s (%s)" % (result, " | ".join(names))
+
 
 class PyVMTraced(PyVM):
     def __init__(
