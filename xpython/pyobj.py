@@ -252,7 +252,7 @@ class Function(object):
             frame.generator = gen
             retval = gen
         else:
-            retval = self._vm.run_frame(frame)
+            retval = self._vm.eval_frame(frame)
         return retval
 
 
@@ -422,7 +422,7 @@ class Frame(object):
         self.version = version
 
         # These are sentinal or bogus values to start out.
-        # run_frame will adjust inst_index.
+        # eval_frame will adjust inst_index.
         self.inst_index = -1
         self.fallthrough = False
         self.last_op = None

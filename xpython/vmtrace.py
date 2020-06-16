@@ -91,7 +91,7 @@ class PyVMTraced(PyVM):
         # * add function breakpoints
 
     # FIXME: put callback in f_trace, and update it accordingly
-    def run_frame(self, frame):
+    def eval_frame(self, frame):
         """Run a frame until it returns (somehow).
 
         Exceptions are raised, the return value is returned.
@@ -172,7 +172,7 @@ class PyVMTraced(PyVM):
                 # As per https://docs.python.org/3/library/sys.html#sys.settrace
                 # None indicates turning off tracing in this scope.
                 # We could imagine a fancier code organization where we use
-                # run_frame() of PyVM instead of PyVMTrace, but save that for later.
+                # eval_frame() of PyVM instead of PyVMTrace, but save that for later.
                 frame.event_flags = 0
             elif callable(result):
                 pass

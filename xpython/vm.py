@@ -307,7 +307,7 @@ class PyVM(object):
         else:
             frame.fallthrough = True
 
-        val = self.run_frame(frame)
+        val = self.eval_frame(frame)
         frame.f_back = None
         return val
 
@@ -320,7 +320,7 @@ class PyVM(object):
         """run code using f_globals and f_locals in our VM"""
         frame = self.make_frame(code, f_globals=f_globals, f_locals=f_locals)
         try:
-            val = self.run_frame(frame)
+            val = self.eval_frame(frame)
         except Exception:
             # Until we get test/vmtest.py under control:
             if self.vmtest_testing:
@@ -597,7 +597,10 @@ class PyVM(object):
 
         return why
 
-    def run_frame(self, frame):
+    # Interpreter main loop
+    # This is analogous to CPython's _PyEval_EvalFramDefault() (in 3.x newer Python)
+    # or eval_frame() in older 2.x code.
+    def eval_frame(self, frame):
         """Run a frame until it returns (somehow).
 
         Exceptions are raised, the return value is returned.

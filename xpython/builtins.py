@@ -80,7 +80,7 @@ def build_class(opc, func, name, *bases, **kwds):
     )
 
     # rocky: cell is the return value of a function where?
-    cell = func._vm.run_frame(frame)
+    cell = func._vm.eval_frame(frame)
 
     # Add any class variables that may have been added in running class_body_code.
     # See test_attribute_access.py for a simple example that needs the update below.
