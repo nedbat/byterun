@@ -316,7 +316,7 @@ class PyVM(object):
     ##############################################
 
     # This is the main entry point
-    def run_code(self, code, f_globals=None, f_locals=None):
+    def run_code(self, code, f_globals=None, f_locals=None, toplevel=True):
         """run code using f_globals and f_locals in our VM"""
         frame = self.make_frame(code, f_globals=f_globals, f_locals=f_locals)
         try:
@@ -337,8 +337,9 @@ class PyVM(object):
             raise PyVMUncaughtException
 
         # Frame ran to normal completion... check some invariants
-        if self.frames:  # pragma: no cover
-            raise PyVMError("Frames left over!")
+        if toplevel:
+            if self.frames:  # pragma: no cover
+                raise PyVMError("Frames left over!")
         if self.frame and self.frame.stack:  # pragma: no cover
             raise PyVMError("Data left on stack! %r" % self.frame.stack)
 

@@ -158,18 +158,17 @@ class ByteOpBase(object):
                 if len(pos_args) < 5 and "dont_inherit" not in named_args:
                     named_args["dont_inherit"] = True
                     pass
-            # In Python 3.0 or greater, "exec()" is a builtin.
-            # In Python 2.7 it was an opcode EXEC_STMT and is not built in.
+            # In Python 3.0 or greater, "exec()" is a builtin.  In
+            # Python 2.7 it was an opcode EXEC_STMT and is not a
+            # built-in function.
             #
-            # I am not sure we can test for builtin-ness. There can be
-            # other builtin "eval"s. Tk has one. See 3.6.10
-            # test_tcl.py
+            # FIXME: a better test would be nice. There can be
+            # other builtin "exec"s. Tk has a built-in "eval". See 3.6.10
+            # test_tcl.py.
+            # If we drop the requirement of supporting 2.7 we can do the simpler
+            # and more reliable:
+            #   func == exec
             elif func.__name__ == "exec":
-                # FIXME: here we should check whether the first
-                # argument is bytecode or a string.  If it is a
-                # string, it then needs to get converted to bytecode
-                # and passed to eval_frame(). In doing this we get the
-                # namespace scoping correct inside the exec'd code.
 
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
@@ -178,9 +177,6 @@ class ByteOpBase(object):
                     )
                 n = len(pos_args)
                 assert 1 <= n <= 3
-                # We need to make sure that we get the intepreted
-                # program's `globals()`, is the corresponding
-                # interpreter's `globals()`.
 
                 # Note that in contrast to `eval()` handled below, if
                 # the `locals` parameter is not provided, the
@@ -190,10 +186,24 @@ class ByteOpBase(object):
                 if len(pos_args) == 1:
                     pos_args.append(self.vm.frame.f_globals)
 
+                if self.version == PYTHON_VERSION:
+                    source = pos_args[0]
+                    if isinstance(source, str):
+                        try:
+                            pos_args[0] = compile(
+                                source, "<string>", mode="exec", dont_inherit=True
+                            )
+                        except (TypeError, SyntaxError, ValueError):
+                            raise
+                    self.vm.push(self.vm.run_code(*pos_args, toplevel=False))
+                    return
+                else:
+                    log.warning(
+                        "Running built-in `exec()` because we are cross-version interpreting version %s from version %s"
+                        % (self.version, PYTHON_VERSION)
+                    )
+
             elif func == eval:
-                # FIXME: here we should check whether the first argument is bytecode or a string.
-                # If it is a string it then needs to get converted to bytecode and passed
-                # to eval_frame() so that we get the namespace scoping correct.
 
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
@@ -202,11 +212,30 @@ class ByteOpBase(object):
                     )
                 assert 1 <= len(pos_args) <= 3
                 # Use the frame's globals(), not the interpreter's
-                if len(pos_args) < 2:
+                n = len(pos_args)
+                if n < 2:
                     pos_args.append(self.vm.frame.f_globals)
                 # Likewise for locals()
-                if len(pos_args) < 3:
+                if n < 3:
                     pos_args.append(self.vm.frame.f_locals)
+                assert len(pos_args) == 3
+
+                if self.version == PYTHON_VERSION:
+                    source = pos_args[0]
+                    if isinstance(source, str):
+                        try:
+                            pos_args[0] = compile(
+                                source, "<string>", mode="eval", dont_inherit=True
+                            )
+                        except (TypeError, SyntaxError, ValueError):
+                            raise
+                    self.vm.push(self.vm.run_code(*pos_args, toplevel=False))
+                    return
+                else:
+                    log.warning(
+                        "Running built-in `eval()` because we are cross-version interpreting version %s from version %s"
+                        % (self.version, PYTHON_VERSION)
+                    )
 
             elif PYTHON_VERSION >= 3.0 and func == __build_class__:
                 assert (
@@ -234,7 +263,9 @@ class ByteOpBase(object):
             # Set __module__
             assert not named_args
             namespace = pos_args[2]
-            namespace["__module__"] = namespace.get("__name__", self.vm.frame.f_globals["__name__"])
+            namespace["__module__"] = namespace.get(
+                "__name__", self.vm.frame.f_globals["__name__"]
+            )
 
         if inspect.isfunction(func) and self.version == PYTHON_VERSION:
             # Try to convert to an interpreter function so we can interpret it.

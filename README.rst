@@ -176,11 +176,16 @@ Want to write a very small interpreter using CPython?
 
 This cheats in kind of a gross way, but this the kind of cheating goes
 on in *Byterun* in a more subtle way. As in the example above which
-relies on buil-in function ``exec`` to do all of the work, *Byterun*
+relies on built-in function ``exec`` to do all of the work, *Byterun*
 relies on various similar sorts of built-in functions to support
-opcode interpretation.  And some of those primitives have an effect in
-the interpreter namespace, just as the ``exec`` above does.  So the
-two namespaces then get intermingled.
+opcode interpretation. In fact, if the code you were *interpreting*
+was the above, *Byterun* would use its built-in function for running
+code inside the `exec` function call, so all of the bytecode that gets
+run inside code inside *code* would not seen for interpretation.
+
+Also, built-in functions like `exec`, and other built-in modules have
+an effect in the interpreter namespace.  So the two namespaces then
+get intermingled.
 
 One example of this that has been noted is for ``import``. See
 https://github.com/nedbat/byterun/issues/26.  But there are others
