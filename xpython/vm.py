@@ -340,8 +340,8 @@ class PyVM(object):
         if toplevel:
             if self.frames:  # pragma: no cover
                 raise PyVMError("Frames left over!")
-        if self.frame and self.frame.stack:  # pragma: no cover
-            raise PyVMError("Data left on stack! %r" % self.frame.stack)
+            if self.frame and self.frame.stack:  # pragma: no cover
+                raise PyVMError("Data left on stack! %r" % self.frame.stack)
 
         return val
 
