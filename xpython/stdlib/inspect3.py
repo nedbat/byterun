@@ -4,6 +4,7 @@
 import functools
 import types
 from inspect import isclass, ismethod
+from xdis import CO_GENERATOR, CO_COROUTINE
 
 from xdis import PYTHON_VERSION, COMPILER_FLAG_BIT
 
@@ -37,6 +38,24 @@ else:
         pass
 
     # Note: we don't want to import pyobj and Function since that imports us.
+
+def isgeneratorfunction(object):
+    """Return true if the object is a user-defined generator function.
+
+    Generator function objects provide the same attributes as functions.
+    See help(isfunction) for a list of attributes."""
+    return bool(isGenerator(object) and
+                 object.gi_code.co_flags & CO_GENERATOR)
+
+def iscoroutinefunction(object):
+    """Return true if the object is a coroutine function.
+
+    Coroutine functions are defined with "async def" syntax.
+    """
+    return bool((isFunction(object) or ismethod(object)) and
+                object.__code__.co_flags & CO_COROUTINE)
+
+
 
 # Not Python's 3.2 and before inspect.py
 class _empty:
@@ -107,6 +126,16 @@ def isFunction(obj):
         and hasattr(obj, "__module__")
         and type(obj).__module__ == "xpython.pyobj"
     )
+
+def isGenerator(obj):
+    return (
+        hasattr(obj, "__name__")
+        and type(obj).__name__ == "Generator"
+        and hasattr(obj, "gi_frame")
+        and hasattr(obj, "gi_code")
+        and hasattr(obj, "gi_running")
+    )
+
 
 
 # A replacement for builtint callable().

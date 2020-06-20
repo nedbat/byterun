@@ -148,7 +148,8 @@ class ByteOp36(ByteOp35):
           the code associated with the function (at TOS1)
         * the qualified name of the function (at TOS)
         """
-        name = self.vm.pop()
+        qualname = self.vm.pop()
+        name = qualname.split(".")[-1]
         code = self.vm.pop()
 
         slot = {
@@ -172,6 +173,7 @@ class ByteOp36(ByteOp35):
 
         fn_vm = Function(
             name=name,
+            qualname=qualname,
             code=code,
             globs=globs,
             argdefs=slot["defaults"],

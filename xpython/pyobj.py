@@ -502,6 +502,9 @@ class Generator(object):
         self.vm = vm
         self.started = False
         self.finished = False
+        self.gi_running = False
+        self.gi_code = g_frame.f_code
+        self.__name__ = g_frame.f_code.co_name
 
     def __iter__(self):
         return self
@@ -514,8 +517,10 @@ class Generator(object):
             raise TypeError("Can't send non-None value to a just-started generator")
         self.gi_frame.stack.append(value)
         self.started = True
+        self.running = True
         val = self.vm.resume_frame(self.gi_frame)
         if self.finished:
+            self.running = False
             raise StopIteration(val)
         return val
 

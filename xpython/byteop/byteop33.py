@@ -39,6 +39,9 @@ class ByteOp33(ByteOp32):
                 self.vm.jump(self.vm.frame.f_lasti - 1)
             return "yield"
 
+    # Python 3.3 docs describe a 3.4 MAKE_FUNCTION but seem to follow pre-3.3
+    # conventions (which go back to Python 2.x days).
+    # def MAKE_FUNCTION(self, argc):
 
 if __name__ == "__main__":
     x = ByteOp33(None)

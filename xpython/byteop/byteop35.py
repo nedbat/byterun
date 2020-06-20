@@ -2,11 +2,10 @@
 """
 from __future__ import print_function, division
 
-import types
 from xpython.byteop.byteop24 import ByteOp24
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop34 import ByteOp34
-from xpython.pyobj import Generator
+from xpython.stdlib.inspect3 import iscoroutinefunction, isgeneratorfunction
 
 # Gone in 3.5
 del ByteOp24.STORE_MAP
@@ -30,20 +29,35 @@ class ByteOp35(ByteOp34):
         self.stack_fmt["BUILD_MAP_UNPACK_WITH_CALL"] = fmt_build_map_unpack_with_call
 
 
-    def isgenerator(self, obj):
-        return (isinstance(obj, types.GeneratorType) or
-                isinstance(obj, Generator))
-
-    def iscoroutine(self, obj):
-        if hasattr(types, "CoroutineType"):
-            return isinstance(obj, types.CoroutineType)
-        else:
-            # FIXME: figure out what to do here.
-            return False
-
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)
         self.vm.push(container_fn(e for l in elts for e in l))
+
+    def get_awaitable_iter(self, o):
+        # This helper function returns an awaitable for `o`:
+        #    - `o` if `o` is a coroutine-object;
+        #    - otherwise, o.__await__()
+
+        from trepan.api import debug; debug()
+        if iscoroutinefunction(o) or isgeneratorfunction(o):
+            return o
+
+        if not hasattr(o, "__await__"):
+            raise TypeError("object %s can't be used in 'await' expression", o)
+
+        # FIXME: start here
+        raise self.vm.PyVMError("get_awaitable_iter() not fully implemented")
+        await_fn = None
+        result = self.call_function(await_fn, [o])
+
+        if not iscoroutinefunction(o):
+            raise TypeError(
+                "__await__() returned a coroutine (it must return an "
+                "iterator instead, see PEP 492)")
+        elif not hasattr(result, "__next__") or result.__next__ is None:
+            raise TypeError("__await__() returned non-iterator "
+                    "of type '%s'", type(result))
+        return result
 
     # Changed in 3.5
 
@@ -68,9 +82,7 @@ class ByteOp35(ByteOp34):
         is. Otherwise, implements TOS = iter(TOS).
         """
         TOS = self.vm.top()
-        # FIXME: if we are cross compiling types.CoroutineType might
-        # not be defined
-        if self.isgenerator(TOS) or self.iscoroutine(TOS):
+        if isgeneratorfunction(TOS) or iscoroutinefunction(TOS):
             return
         TOS = self.vm.pop()
         self.vm.push(iter(TOS))
@@ -87,15 +99,16 @@ class ByteOp35(ByteOp34):
         # # Adapted from PyPy 3.6 v. 7.3.1
         # from xpython.interpreter.generator import get_awaitable_iter
         # from xpython.interpreter.generator import Coroutine
-        # iterable = self.vm.pop()
-        # iter = get_awaitable_iter(self.space, iterable)
-        # if isinstance(iter, Coroutine):
-        #     if iter.get_delegate() is not None:
-        #         # 'w_iter' is a coroutine object that is being awaited,
-        #         # '.w_yielded_from' is the current awaitable being awaited on.
-        #         raise RuntimeError("coroutine is being awaited already")
+        iterable = self.vm.pop()
+        iter = self.get_awaitable_iter(iterable)
+        if iscoroutinefunction(iter):
+            # if iter.get_delegate() is not None:
+            #     # 'w_iter' is a coroutine object that is being awaited,
+            #     # '.w_yielded_from' is the current awaitable being awaited on.
+            #     raise RuntimeError("coroutine is being awaited already")
+            pass
+        self.vm.push(iter)
 
-        raise self.vm.PyVMError("GET_AWAITABLE not implemented yet")
 
     def GET_AITER(self):
         """
