@@ -23,6 +23,15 @@ class TestFunctions(vmtest.VmTestCase):
     def test_wraps(self):
         self.self_checking()
 
+    def test_partial_with_kwargs(self):
+        self.self_checking()
+
+    def test_recursion(self):
+        self.self_checking()
+
+    def test_partial(self):
+        self.self_checking()
+
     if 3.0 <= PYTHON_VERSION:
         def test_function_calls(self):
             self.self_checking()
@@ -50,18 +59,6 @@ class TestFunctions(vmtest.VmTestCase):
                 fn(3, c="Bye")
                 fn(4, d=["What?"])
                 fn(5, "b", "c")
-                """)
-
-        def test_recursion(self):
-            self.assert_ok("""\
-                def fact(n):
-                    if n <= 1:
-                        return 1
-                    else:
-                        return n * fact(n-1)
-                f6 = fact(6)
-                print(f6)
-                assert f6 == 720
                 """)
 
         def test_nested_names(self):
@@ -95,21 +92,6 @@ class TestFunctions(vmtest.VmTestCase):
                     print("args is %r, kwargs is %r" % (args, kwargs))
                 fn()
                 """)
-
-        def test_partial(self):
-            self.assert_ok("""\
-                from _functools import partial
-
-                def f(a,b):
-                    return a-b
-
-                f7 = partial(f, 7)
-                four = f7(3)
-                assert four == 4
-                """)
-
-        def test_partial_with_kwargs(self):
-            self.self_checking()
 
         def test_wraps(self):
             self.assert_ok("""\
