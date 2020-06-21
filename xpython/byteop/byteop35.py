@@ -11,6 +11,7 @@ from xpython.stdlib.inspect3 import iscoroutinefunction, isgeneratorfunction
 del ByteOp24.STORE_MAP
 del ByteOp32.WITH_CLEANUP
 
+
 def fmt_build_map_unpack_with_call(vm, arg, repr=repr):
     """returns string of the repr() for the first element of
     the evaluation stack
@@ -23,11 +24,11 @@ def fmt_build_map_unpack_with_call(vm, arg, repr=repr):
         fn_pos = arg + 1
     return " (%s)" % (repr(vm.peek(fn_pos)))
 
+
 class ByteOp35(ByteOp34):
     def __init__(self, vm):
         super(ByteOp35, self).__init__(vm)
         self.stack_fmt["BUILD_MAP_UNPACK_WITH_CALL"] = fmt_build_map_unpack_with_call
-
 
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)
@@ -38,9 +39,9 @@ class ByteOp35(ByteOp34):
         #    - `o` if `o` is a coroutine-object;
         #    - otherwise, o.__await__()
 
-        from trepan.api import debug; debug()
         if iscoroutinefunction(o) or isgeneratorfunction(o):
             return o
+        return o
 
         if not hasattr(o, "__await__"):
             raise TypeError("object %s can't be used in 'await' expression", o)
@@ -53,10 +54,12 @@ class ByteOp35(ByteOp34):
         if not iscoroutinefunction(o):
             raise TypeError(
                 "__await__() returned a coroutine (it must return an "
-                "iterator instead, see PEP 492)")
+                "iterator instead, see PEP 492)"
+            )
         elif not hasattr(result, "__next__") or result.__next__ is None:
-            raise TypeError("__await__() returned non-iterator "
-                    "of type '%s'", type(result))
+            raise TypeError(
+                "__await__() returned non-iterator " "of type '%s'", type(result)
+            )
         return result
 
     # Changed in 3.5
@@ -96,9 +99,7 @@ class ByteOp35(ByteOp34):
         with the CO_ITERABLE_COROUTINE flag, or resolves
         o.__await__.
         """
-        # # Adapted from PyPy 3.6 v. 7.3.1
-        # from xpython.interpreter.generator import get_awaitable_iter
-        # from xpython.interpreter.generator import Coroutine
+        raise self.vm.PyVMError("GET_AWAITABLE not implemented yet")
         iterable = self.vm.pop()
         iter = self.get_awaitable_iter(iterable)
         if iscoroutinefunction(iter):
@@ -108,7 +109,6 @@ class ByteOp35(ByteOp34):
             #     raise RuntimeError("coroutine is being awaited already")
             pass
         self.vm.push(iter)
-
 
     def GET_AITER(self):
         """
@@ -188,7 +188,11 @@ class ByteOp35(ByteOp34):
         """
         exit_result = self.vm.pop()
         exception = self.vm.pop()
-        if exit_result and type(exception) is type and issubclass(exception, BaseException):
+        if (
+            exit_result
+            and type(exception) is type
+            and issubclass(exception, BaseException)
+        ):
             # Pop the exception and replace with "silenced".
             self.vm.popn(1)
             self.vm.push("silenced")
@@ -288,4 +292,6 @@ class ByteOp35(ByteOp34):
         pos_args = self.vm.popn(len_pos)
         pos_args.extend(var_args)
         func = self.vm.pop()
-        self.call_function_with_args_resolved(func, pos_args=pos_args, named_args=keyword_args)
+        self.call_function_with_args_resolved(
+            func, pos_args=pos_args, named_args=keyword_args
+        )

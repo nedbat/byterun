@@ -7,7 +7,12 @@ import linecache
 import types
 from copy import copy
 from sys import stderr
-from xdis import CO_GENERATOR, iscode, PYTHON3, PYTHON_VERSION
+from xdis import CO_GENERATOR, CO_ITERABLE_COROUTINE, iscode, PYTHON3, PYTHON_VERSION
+if PYTHON_VERSION >= 3.4:
+    from xpython.stdlib.types34 import _AsyncGeneratorWrapper
+else:
+    class _AsyncGeneratorWrapper():
+        pass
 
 import xpython.stdlib.inspect3 as inspect3
 import xpython.stdlib.inspect2 as inspect2
@@ -152,7 +157,7 @@ class Function(object):
             self.__annotations__ = annotations
             self.__kwdefaults__ = kwdefaults
             if vm.version >= 3.4:
-                self.__qualname___ = qualname if qualname else self.__name__
+                self.__qualname__ = qualname if qualname else self.__name__
             else:
                 assert qualname is None
         else:
@@ -247,8 +252,16 @@ class Function(object):
         frame = self._vm.make_frame(
             self.func_code, callargs, self.func_globals, {}, self.__closure__
         )
-        if self.func_code.co_flags & CO_GENERATOR:
-            gen = Generator(frame, self._vm)
+        if self.__code__.co_flags & CO_GENERATOR:
+            qualname = self.__qualname__ if self._vm.version >= 3.4 else None
+            gen = Generator(
+                g_frame=frame, name=self.__name__, qualname=qualname, vm=self._vm
+            )
+            if self.__code__.co_flags & CO_ITERABLE_COROUTINE:
+                gen = _AsyncGeneratorWrapper(gen)
+                frame.generator = gen
+                return gen
+
             frame.generator = gen
             retval = gen
         else:
@@ -404,7 +417,7 @@ class Frame(object):
                     # print("XXX", f_code.co_freevars[i], closure[i].get())
                     # if f_code.co_freevars[i] == "c" and  closure[i].get() == 5:
                     #     from trepan.api import debug; debug()
-                    self.cells[var] = (closure[i])
+                    self.cells[var] = closure[i]
                 else:
                     # FIXME: this branch is probably wrong.
                     # Also check all calls of Frame and make_frame() in vm to ensure we pass a function's
@@ -497,14 +510,16 @@ def traceback_from_frame(frame):
 
 
 class Generator(object):
-    def __init__(self, g_frame, vm):
+    def __init__(self, g_frame, name, qualname, vm):
         self.gi_frame = g_frame
         self.vm = vm
+        self.name = vm
         self.started = False
         self.finished = False
         self.gi_running = False
         self.gi_code = g_frame.f_code
         self.__name__ = g_frame.f_code.co_name
+        self.__qualname__ = qualname if g_frame.version >= 3.4 else None
 
     def __iter__(self):
         return self
