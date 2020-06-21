@@ -261,7 +261,7 @@ History
 +++++++
 
 This is a fork of *Byterun.* which is a pure-Python implementation of
-a Python bytecode execution virtual machine.  Net Batchelder started
+a Python bytecode execution virtual machine.  Ned Batchelder started
 it (based on work from Paul Swartz) to get a better understanding of
 bytecodes so he could fix branch coverage bugs in coverage.py.
 
