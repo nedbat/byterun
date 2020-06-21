@@ -229,7 +229,7 @@ using Python 3.7 (largely), which is amazing give that 3.7's native
 byte code is 2 bytes per instruction while 2.4's is 1 or 3 bytes per
 instruction.
 
-The "largely" part is, as metioned above, because the interpreter has
+The "largely" part is, as mentioned above, because the interpreter has
 always made use of Python builtins and libraries, and for the most
 part these haven't changed very much. Often, since many of the
 underlying builtins are the same, the interpreter can (and does) make
