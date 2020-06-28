@@ -1,7 +1,77 @@
+2020-06-23  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py: Bump xdis version
+
+2020-06-21  rocky <rocky@dusytfeet.com>
+
+	* : commit da0196e84105544569668f733bd0f19559c9b9b4 Author: rocky
+	<rocky@dusytfeet.com> Date:   Sun Jun 21 00:08:41 2020 -0400
+
+2020-06-20  R. Bernstein <rocky@users.noreply.github.com>
+
+	* README.rst: Name typo
+
+2020-06-20  R. Bernstein <rocky@users.noreply.github.com>
+
+	* README.rst: spelling typo
+
+2020-06-20  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/byteop/byteop35.py, xpython/byteop/byteop36.py,
+	xpython/pyobj.py, xpython/stdlib/inspect3.py: Start GET_AWAITABLE
+	and correct qualname...  In 3.4+ qualname is set in MAKE_FUNCTION.  Fill in more of the generator fields.  More work is needed for async generators.
+
+2020-06-20  rocky <rb@dustyfeet.com>
+
+	* test/examples/functions/test_closures.py, test/test_functions.py: 
+	More tests converted and expanded coverage
+
+2020-06-20  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/test_partial.py,
+	test/examples/functions/test_recursion.py, test/test_functions.py: 
+	Convert a couple of existing test cases...  to newer test framework
+
+2020-06-18  rocky <rb@dustyfeet.com>
+
+	* xpython/vm.py: It's okay to leave data on stack if not toplevel
+
+2020-06-17  rocky <rb@dustyfeet.com>
+
+	* README.rst: Add download stats
+
+2020-06-17  rocky <rocky@dusytfeet.com>
+
+	* README.rst, xpython/byteop/byteop.py, xpython/vm.py: Use compile()
+	in implementing eval() and exec()...  when possible. Fall back to the built-in when cross-version
+	interpreting.
+
+2020-06-16  rocky <rocky@dusytfeet.com>
+
+	* xpython/builtins.py, xpython/byteop/byteop.py, xpython/pyobj.py,
+	xpython/vm.py, xpython/vmtrace.py: exec messing up & run_frame() ->
+	eval_frame()...  Note that to do exec/eval properly we need to run eval_frame()
+	(formerly run_frame).  Set the `__module__` attribute properly on 3-arg type().
+
+2020-06-15  rocky <rocky@dusytfeet.com>
+
+	* xpython/__init__.py, xpython/vmtrace.py: Add event flag names and
+	pretty_event_flags()
+
 2020-06-13  rocky <rocky@dusytfeet.com>
 
-	* __pkginfo__.py, admin-tools/how-to-make-a-release.md,
-	xpython/version.py: Get ready for release 1.3.3
+	* NEWS.md, admin-tools/how-to-make-a-release.md: Administrivia
+
+2020-06-13  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Administrivia
+
+2020-06-13  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, NEWS.md, __pkginfo__.py,
+	admin-tools/how-to-make-a-release.md, xpython/version.py: Get ready
+	for release 1.3.3
 
 2020-06-11  rocky <rocky@dusytfeet.com>
 
