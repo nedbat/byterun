@@ -39,14 +39,14 @@
 
 # Make packages and check
 
-    $ ./admin-tools/make-dist.sh
+    $ remake -c dist
 	$ twine check dist/x[-_]python-$VERSION*
 
 # Check package on github
 
 Todo: turn this into a script in `admin-tools`
 
-	$ mkdir /tmp/gittest; pushd /tmp/gittest
+	$ [[ ! -d /tmp/gittest ]] && mkdir /tmp/gittest; pushd /tmp/gittest
 	$ pyenv local 3.7.5
 	$ pip install -e git://github.com/rocky/x-python.git#egg=x-python
 	$ xpython -V # see that new version appears
