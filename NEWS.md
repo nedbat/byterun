@@ -4,10 +4,10 @@
 Small changes.
 
 * `run_eval()` renamed to `eval_frame()` to better match the way CPython does it
-* `exec()`, and `eval()` builtins go through `compile` and `eval_frame()` they get interpreted
+* `exec()`, and `eval()` builtins go through `compile` and `eval_frame()` so they get interpreted
 * It is okay when `exec()` and `eval()` which call `eval_frame()` leave data on the stack (?)
-* `__module__` property properly on `eval_frame()`
-* `pretty_event_flags()` will show vmtracing event flags nicley. This helps [trepan-xpy](https://pypi.org/project/trepanxpy/)
+* `__module__` property set properly on `eval_frame()`
+* `pretty_event_flags()` will show VM tracing event flags nicley. This helps [trepan-xpy](https://pypi.org/project/trepanxpy/)
 * `__qualname__` and `__name__` are set differently and properly in `MAKE_FUNCTION` in 3.4+
 * More tests and expanded coverage
 * Work progress in getting 3.6+ `GET_AWAITABLE` done, but more work is needed.
