@@ -3,13 +3,20 @@ This can be used in a debugger or profiler.
 """
 
 import six
-from xdis import PYTHON_VERSION, IS_PYPY
+from xdis import PYTHON_VERSION, IS_PYPY, codeType2Portable
+
+# We will add a new "DEBUG" opcode
+from xdis.opcodes.base import def_op
+
+BREAKPOINT_OP = 8
+
 from xpython.vm import (
     byteint,
     format_instruction,
     PyVM,
     PyVMError,
 )
+
 from xpython.pyobj import traceback_from_frame
 
 import logging
@@ -83,12 +90,34 @@ class PyVMTraced(PyVM):
                          format_instruction_func=format_instruction_func)
         self.event_flags = event_flags
         self.callback = callback
+        # Add a new opcode to allow us high-speed breakpoints
+        def_op(self.opc.l, "BRKPT", BREAKPOINT_OP, 0, 0)
 
-        # TODO:
-        # * add events of interest
-        # * add offset breakpoints
-        # * add line number breakopints
-        # * add function breakpoints
+
+    def add_breakpoint(self, frame, offset):
+        """Adds a breakpoint at `offset` of `frame`. This is done by modifying the bytecode opcode
+        at the given offset by replacing it with a pseudo-op BRKPT instruction. The old opcode is
+        squirrled a way though.
+        """
+        # Convert code to something we can change, then
+        # Convert its bytecode ytes to a list, update the list and replace this back in the code.
+        code = codeType2Portable(frame.f_code, self.version)
+        frame.brkpt[offset] = code.co_code[offset]
+        bytecode = list(code.co_code)
+        bytecode[offset] = BREAKPOINT_OP
+        code.co_code = bytes(bytecode)
+        frame.f_code = code
+
+    def remove_breakpoint(self, frame, offset):
+        """removes a breakpoint at `offset` of `frame`. This is done by restoring the opcode that
+        was previously smashed using `add_breakpoint()`
+        """
+        # Convert code to something we can change, then
+        # Convert its bytecode ytes to a list, update the list and replace this back in the code.
+        code = frame.f_code
+        bytecode = list(code.co_code)
+        bytecode[offset] = frame.brkpt[offset]
+        code.co_code = bytes(bytecode)
 
     # FIXME: put callback in f_trace, and update it accordingly
     def eval_frame(self, frame):
@@ -116,7 +145,7 @@ class PyVMTraced(PyVM):
             frame.fallthrough = (
                 False  # Don't increment before fetching next instruction
             )
-            byteCode = None
+            byte_code = None
             last_i = frame.f_back.f_lasti if frame.f_back else -1
             self.push_frame(frame)
             if frame.f_trace and (frame.event_flags & PyVMEVENT_CALL) :
@@ -125,16 +154,17 @@ class PyVMTraced(PyVM):
                     # return and yield
                     frame.event_flags &= ~(PyVMEVENT_RETURN | PyVMEVENT_YIELD)
                 else:
-                    result = frame.f_trace("call", last_i, "CALL", byteCode, frame.f_lineno, None, [], self)
+                    result = frame.f_trace("call", last_i, "CALL", byte_code, frame.f_lineno, None, [], self)
                 pass
         else:
-            byteCode = byteint(frame.f_code.co_code[frame.f_lasti])
+            byte_code = byteint(frame.f_code.co_code[frame.f_lasti])
             self.push_frame(frame)
             if frame.f_trace and frame.event_flags & PyVMEVENT_YIELD:
                 result = frame.f_trace("yield", frame.f_lasti, "YIELD_VALUE", self.opc.YIELD_VALUE, frame.f_lineno, None, [], self)
                 pass
-            # byteCode == opcode["YIELD_VALUE"]?
+            # byte_code == opcode["YIELD_VALUE"]?
 
+        # FIXME: DRY with BRKPT op code
         if result:
             if result == "finish":
                 frame.f_trace = None
@@ -148,23 +178,23 @@ class PyVMTraced(PyVM):
         opoffset = 0
         while True:
             (
-                byteName,
-                byteCode,
+                byte_name,
+                byte_code,
                 intArg,
                 arguments,
                 opoffset,
                 line_number,
-            ) = self.parse_byte_and_args(byteCode)
+            ) = self.parse_byte_and_args(byte_code)
 
             if log.isEnabledFor(logging.INFO):
-                self.log(byteName, intArg, arguments, opoffset, line_number)
+                self.log(byte_name, intArg, arguments, opoffset, line_number)
 
             if frame.f_trace and line_number is not None and frame.event_flags & (
                 PyVMEVENT_LINE | PyVMEVENT_INSTRUCTION
             ):
-                result = frame.f_trace("line", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
+                result = frame.f_trace("line", opoffset, byte_name, byte_code, line_number, intArg, arguments, self)
             elif frame.f_trace and frame.event_flags & PyVMEVENT_INSTRUCTION:
-                result = frame.f_trace("instruction", opoffset, byteName, byteCode, line_number, intArg, arguments, self)
+                result = frame.f_trace("instruction", opoffset, byte_name, byte_code, line_number, intArg, arguments, self)
             else:
                 result = True
 
@@ -178,18 +208,19 @@ class PyVMTraced(PyVM):
                 pass
             elif isinstance(result, str):
                 if result == "skip":
+                    # Don't run instruction
                     continue
                 elif result == "return":
+                    # Immediate return with value
                     why = result
                     break
                 elif result == "finish":
+                    # Continue execution without tracing
                     frame.f_trace = None
-                    why = result
-                    break
 
             # When unwinding the block stack, we need to keep track of why we
             # are doing it.
-            why = self.dispatch(byteName, intArg, arguments, opoffset, line_number)
+            why = self.dispatch(byte_name, intArg, arguments, opoffset, line_number)
 
             if why == "exception":
                 # Deal with exceptions encountered while executing the op.
@@ -197,7 +228,7 @@ class PyVMTraced(PyVM):
                     self.last_traceback = traceback_from_frame(self.frame)
                     self.in_exception_processing = True
 
-            if why == "reraise":
+            elif why == "reraise":
                 why = "exception"
 
             if why != "yield":
@@ -216,10 +247,10 @@ class PyVMTraced(PyVM):
         if why == "exception":
             if callback and frame and (not frame or frame.event_flags & PyVMEVENT_EXCEPTION):
                 frame.f_trace(
-                    "exception", opoffset, byteName, byteCode, line_number, None, self.last_exception, self
+                    "exception", opoffset, byte_name, byte_code, line_number, None, self.last_exception, self
                 )
             elif callback and (not frame or frame.event_flags & PyVMEVENT_RETURN):
-                callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
+                callback("return", opoffset, byte_name, byte_code, line_number, None, self.return_value, self)
             pass
 
         self.pop_frame()
@@ -235,6 +266,40 @@ class PyVMTraced(PyVM):
 
         self.in_exception_processing = False
         if callback and frame.event_flags & PyVMEVENT_RETURN:
-            callback("return", opoffset, byteName, byteCode, line_number, None, self.return_value, self)
+            callback("return", opoffset, byte_name, byte_code, line_number, None, self.return_value, self)
 
         return self.return_value
+
+if __name__ == "__main__":
+
+    def sample_callback_hook(
+            event,
+            offset,
+            byte_name,
+            byte_code,
+            line_number,
+            int_arg,
+            event_arg,
+            vm,
+    ):
+        print("CALLBACK", event, offset, byte_name, byte_code, line_number, int_arg, event_arg)
+
+    # Simplest of tests
+    def five():
+        return 5
+
+    # Test with a conditional in it
+    a, b = 10, 3
+
+    def mymax():
+        return a if a > b else b
+
+    logging.basicConfig(level=logging.DEBUG)
+    vm = PyVMTraced(sample_callback_hook)
+    frame = vm.make_frame(five.__code__)
+    vm.add_breakpoint(frame, 0)
+    print("five() is", vm.eval_frame(frame))
+    frame.f_lasti = -1 # Reset where we were
+    vm.remove_breakpoint(frame, 0)
+    print("five() is now", vm.eval_frame(frame))
+    print(vm.run_code(mymax.__code__, f_globals=globals(), f_locals=locals()))

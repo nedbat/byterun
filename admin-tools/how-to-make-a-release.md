@@ -71,7 +71,6 @@ Todo: turn this into a script in `admin-tools`
 
 # Get on PyPI
 
-	$ twine upload dist/x[-_]python-${VERSION}-py3.7.egg  # Older versions don't support Markdown
 	$ twine upload dist/x[-_]python-${VERSION}*
 
 Check on https://pypi.org/project/x-python/

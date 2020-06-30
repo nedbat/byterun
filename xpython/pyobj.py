@@ -379,6 +379,11 @@ class Frame(object):
         self.stack = []
         self.f_trace = None
 
+        # brkpt is a mapping bytecode offset to the opcode value that was
+        # smasshed by overwriting it with the pseudo opcode BRKPT.
+        # After a breakpoint is serviced, this opcode needs to be run.
+        self.brkpt = {}
+
         if f_back and f_back.f_globals is f_globals:
             # If we share the globals, we share the builtins.
             self.f_builtins = f_back.f_builtins
@@ -543,14 +548,14 @@ class Generator(object):
 
 
 if __name__ == "__main__":
-    # frame = Frame(
-    #     traceback_from_frame.__code__,
-    #     globals(),
-    #     locals(),
-    #     None,
-    #     PYTHON_VERSION
-    # )
-    # print(frame)
+    frame = Frame(
+        traceback_from_frame.__code__,
+        globals(),
+        locals(),
+        None,
+        PYTHON_VERSION
+    )
+    print(frame)
 
     class Foo(object):
         "Class Foo docstring"

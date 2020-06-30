@@ -31,10 +31,13 @@ Going the other way, I have hooked in `trepan3k
 have a pdb/gdb like debugger also with the ability to step bytecode
 instructions.
 
-I may also experiment with faster ways to support trace callbacks such
-as those used in a debugger. In particular I may add a ``BREAKPOINT``
-instruction to support fast breakpoints and breakpointing on a
-particular instruction that doesn't happen to be on a line boundary.
+To experiment with faster ways to support trace callbacks such as
+those used in a debugger. In particular added an instruction to
+support fast breakpoints and breakpointing on a particular instruction
+that doesn't happen to be on a line boundary. I believe this could
+could and should be ported back to CPython and there would be benefit.
+(Python 3.8 supports the ability to save additional frame information which
+is where the original opcode is stored. It just needs the `BRKPT` opcode)
 
 Although this is far in the future, suppose you to add a race
 detector? It might be easier to prototype it in Python here. (This

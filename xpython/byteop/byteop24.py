@@ -8,6 +8,7 @@ from __future__ import print_function, division
 import operator
 import logging
 import six
+
 from xpython.byteop.byteop import (
     ByteOpBase,
     fmt_binary_op,
@@ -15,6 +16,7 @@ from xpython.byteop.byteop import (
     fmt_unary_op,
 )
 from xpython.pyobj import Function  # , traceback_from_frame
+from xpython.vmtrace import PyVMEVENT_RETURN, PyVMEVENT_YIELD
 
 log = logging.getLogger(__name__)
 
@@ -98,6 +100,44 @@ class ByteOp24(ByteOpBase):
         returns string of the first two elements of stack
         """
         return " (%s)" % vm.peek(1)
+
+    def BRKPT(self):
+        """Psuedo opcode: breakpoint. We added this. TODO: call callback, then run
+        instruction that should have gotten run.
+        """
+        vm = self.vm
+        frame = vm.frame
+        last_i = frame.f_lasti
+        orig_opcode = frame.brkpt[last_i]
+        orig_opname = vm.opc.opname[orig_opcode]
+        log.info("Breakpoint at offset %d instruction %s" % (last_i, orig_opname))
+        (
+            byte_name,
+            byte_code,
+            int_arg,
+            arguments,
+            opoffset,
+        line_number,
+        ) = vm.parse_byte_and_args(orig_opcode, replay=True)
+
+        if vm.callback:
+            result = vm.callback("breakpoint", last_i, byte_name, byte_code, line_number, None, [], vm)
+
+            # FIXME: DRY with vmtrace code
+            if result:
+                if result == "finish":
+                    frame.f_trace = None
+                    frame.event_flags = PyVMEVENT_RETURN | PyVMEVENT_YIELD
+                elif result == "return":
+                    # Immediate return with value
+                    return self.return_value
+                elif result == "skip":
+                    # Don't run instruction
+                    return result
+
+        if log.isEnabledFor(logging.INFO):
+            vm.log(byte_name, int_arg, arguments, opoffset, line_number)
+        return vm.dispatch(byte_name, int_arg, arguments, opoffset, line_number)
 
     ############################################################################
     # Order of function here is the same as in:

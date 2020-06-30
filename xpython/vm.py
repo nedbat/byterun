@@ -72,7 +72,7 @@ def format_instruction(
     for example in MAKE_FUNCTION, and CALL_FUNCTION.
     """
     code = frame.f_code if frame else None
-    byteCode = opc.opmap.get(byte_name, 0)
+    byte_code = opc.opmap.get(byte_name, 0)
 
     if vm and byte_name in vm.byteop.stack_fmt:
         stack_args = vm.byteop.stack_fmt[byte_name](vm, int_arg)
@@ -88,7 +88,7 @@ def format_instruction(
         argrepr = opc.opcode_arg_fmt[byte_name](int_arg)
     elif int_arg is None:
         argrepr = ""
-    elif byteCode in opc.COMPARE_OPS:
+    elif byte_code in opc.COMPARE_OPS:
         argrepr = opc.cmp_op[int_arg]
     elif isinstance(arguments, list) and arguments:
         argrepr = arguments[0]
@@ -358,10 +358,12 @@ class PyVM(object):
             tb, value, exctype = self.popn(3)
             self.last_exception = exctype, value, tb
 
-    def parse_byte_and_args(self, byteCode):
-
+    def parse_byte_and_args(self, byte_code, replay=False):
         """ Parse 1 - 3 bytes of bytecode into
-        an instruction and optionally arguments."""
+        an instruction and optionally arguments.
+
+        Argument replay is used to handle breakpoints.
+        """
 
         f = self.frame
         f_code = f.f_code
@@ -378,7 +380,8 @@ class PyVM(object):
 
         while True:
             if f.fallthrough:
-                f.f_lasti = next_offset(byteCode, self.opc, f.f_lasti)
+                if not replay:
+                    f.f_lasti = next_offset(byte_code, self.opc, f.f_lasti)
             else:
                 # Jump instructions must set this False.
                 f.fallthrough = True
@@ -386,17 +389,18 @@ class PyVM(object):
             line_number = self.frame.linestarts.get(offset, None)
             if line_number is not None:
                 f.f_lineno = line_number
-            byteCode = byteint(co_code[offset])
-            byte_name = self.opc.opname[byteCode]
+            if not replay:
+                byte_code = byteint(co_code[offset])
+            byte_name = self.opc.opname[byte_code]
             arg_offset = offset + 1
             arg = None
 
-            if op_has_argument(byteCode, self.opc):
+            if op_has_argument(byte_code, self.opc):
                 if self.version >= 3.6:
                     int_arg = code2num(co_code, arg_offset) | extended_arg
                     # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
                     arg_offset += 1
-                    if byteCode == self.opc.EXTENDED_ARG:
+                    if byte_code == self.opc.EXTENDED_ARG:
                         extended_arg = int_arg << 8
                         continue
                     else:
@@ -408,39 +412,39 @@ class PyVM(object):
                         + extended_arg
                     )
                     arg_offset += 2
-                    if byteCode == self.opc.EXTENDED_ARG:
+                    if byte_code == self.opc.EXTENDED_ARG:
                         extended_arg = int_arg * 65536
                         continue
                     else:
                         extended_arg = 0
 
-                if byteCode in self.opc.CONST_OPS:
+                if byte_code in self.opc.CONST_OPS:
                     arg = f_code.co_consts[int_arg]
-                elif byteCode in self.opc.FREE_OPS:
+                elif byte_code in self.opc.FREE_OPS:
                     if int_arg < len(f_code.co_cellvars):
                         arg = f_code.co_cellvars[int_arg]
                     else:
                         var_idx = int_arg - len(f.f_code.co_cellvars)
                         arg = f_code.co_freevars[var_idx]
-                elif byteCode in self.opc.NAME_OPS:
+                elif byte_code in self.opc.NAME_OPS:
                     arg = f_code.co_names[int_arg]
-                elif byteCode in self.opc.JREL_OPS:
+                elif byte_code in self.opc.JREL_OPS:
                     # Many relative jumps are conditional,
                     # so setting f.fallthrough is wrong.
                     arg = arg_offset + int_arg
-                elif byteCode in self.opc.JABS_OPS:
+                elif byte_code in self.opc.JABS_OPS:
                     # We probably could set fallthough, since many (all?)
                     # of these are unconditional, but we'll make the jump do
                     # the work of setting.
                     arg = int_arg
-                elif byteCode in self.opc.LOCAL_OPS:
+                elif byte_code in self.opc.LOCAL_OPS:
                     arg = f_code.co_varnames[int_arg]
                 else:
                     arg = int_arg
                 arguments = [arg]
             break
 
-        return byte_name, byteCode, int_arg, arguments, offset, line_number
+        return byte_name, byte_code, int_arg, arguments, offset, line_number
 
     def log(self, byte_name, int_arg, arguments, offset, line_number):
         """ Log arguments, block stack, and data stack for each opcode."""
@@ -613,10 +617,10 @@ class PyVM(object):
             frame.f_lasti = 0
             # Don't increment before fetching next instruction.
             frame.fallthrough = False
-            byteCode = None
+            byte_code = None
         else:
-            byteCode = byteint(self.f_code.co_code[frame.f_lasti])
-            # byteCode == opcode["YIELD_VALUE"]?
+            byte_code = byteint(self.f_code.co_code[frame.f_lasti])
+            # byte_code == opcode["YIELD_VALUE"]?
 
         self.push_frame(frame)
         offset = 0
@@ -624,12 +628,12 @@ class PyVM(object):
 
             (
                 byte_name,
-                byteCode,
+                byte_code,
                 int_arg,
                 arguments,
                 offset,
                 line_number,
-            ) = self.parse_byte_and_args(byteCode)
+            ) = self.parse_byte_and_args(byte_code)
             if log.isEnabledFor(logging.INFO):
                 self.log(byte_name, int_arg, arguments, offset, line_number)
 
@@ -663,7 +667,7 @@ class PyVM(object):
                         self.last_traceback = traceback_from_frame(frame)
                     self.in_exception_processing = True
 
-            if why == "reraise":
+            elif why == "reraise":
                 why = "exception"
 
             if why != "yield":
