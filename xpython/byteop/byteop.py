@@ -188,7 +188,7 @@ class ByteOpBase(object):
 
                 if self.version == PYTHON_VERSION:
                     source = pos_args[0]
-                    if isinstance(source, str):
+                    if isinstance(source, str) or isinstance(source, bytes):
                         try:
                             pos_args[0] = compile(
                                 source, "<string>", mode="exec", dont_inherit=True
