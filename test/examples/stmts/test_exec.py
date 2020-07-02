@@ -13,3 +13,11 @@ if z != 2:
 del z
 
 exec('z=1+1')
+
+# Make sure we can exec bytes as well as strings.
+import sys
+if sys.version_info[:2] >= (2, 5):
+    if sys.version_info[:2] >= (3, 0):
+        exec(bytes('# coding: cp949\na = "\xaa\xa7"\n', encoding="cp949"))
+    else:
+        exec(bytes('# coding: cp949\na = "\xaa\xa7"\n'))
