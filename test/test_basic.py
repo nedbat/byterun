@@ -41,6 +41,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_callback(self):
         self.self_checking()
 
+    def test_calling_methods_wrong(self):
+        self.self_checking()
+
     def test_generator_expression(self):
         self.do_one()
 
@@ -148,17 +151,6 @@ class TestBasic(vmtest.VmTestCase):
                 print(thing1.x, thing2.x)
                 print(thing1.meth(4), thing2.meth(5))
                 """)
-
-        def test_calling_methods_wrong(self):
-            self.assert_ok("""\
-                class Thing(object):
-                    def __init__(self, x):
-                        self.x = x
-                    def meth(self, y):
-                        return self.x * y
-                thing1 = Thing(2)
-                print(Thing.meth(14))
-                """, raises=TypeError)
 
         def test_calling_subclass_methods(self):
             self.assert_ok("""\

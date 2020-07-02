@@ -97,10 +97,12 @@ class PyVMTraced(PyVM):
     def add_breakpoint(self, frame, offset):
         """Adds a breakpoint at `offset` of `frame`. This is done by modifying the bytecode opcode
         at the given offset by replacing it with a pseudo-op BRKPT instruction. The old opcode is
-        squirrled a way though.
+        squirreled a way though.
         """
+        # FIXME: to be more useful we need to work on a code object, and modified code objects
+        # then get replaced when creating frames.
         # Convert code to something we can change, then
-        # Convert its bytecode ytes to a list, update the list and replace this back in the code.
+        # Convert its bytecode bytes to a list, update the list and replace this back in the code.
         code = codeType2Portable(frame.f_code, self.version)
         frame.brkpt[offset] = code.co_code[offset]
         bytecode = list(code.co_code)

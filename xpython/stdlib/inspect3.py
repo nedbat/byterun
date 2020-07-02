@@ -32,12 +32,46 @@ if PYTHON_VERSION >= 3.3:
         )
     pass
 else:
-    class Parameter(object):
-        # For interpreting Python 3.x from Python 2.x
-        # To be filled in...
-        pass
+    from xpython.stdlib.inspectfor32 import FullArgSpec, Parameter, Signature
 
     # Note: we don't want to import pyobj and Function since that imports us.
+    def _missing_arguments(f_name, argnames, pos, values):
+        names = [repr(name) for name in argnames if name not in values]
+        missing = len(names)
+        if missing == 1:
+            s = names[0]
+        elif missing == 2:
+            s = "{} and {}".format(*names)
+        else:
+            tail = ", {} and {}".format(*names[-2:])
+            del names[-2:]
+            s = ", ".join(names) + tail
+        raise TypeError("%s() missing %i required %s argument%s: %s" %
+                        (f_name, missing,
+                          "positional" if pos else "keyword-only",
+                          "" if missing == 1 else "s", s))
+    def _too_many(f_name, args, kwonly, varargs, defcount, given, values):
+        atleast = len(args) - defcount
+        kwonly_given = len([arg for arg in kwonly if arg in values])
+        if varargs:
+            plural = atleast != 1
+            sig = "at least %d" % (atleast,)
+        elif defcount:
+            plural = True
+            sig = "from %d to %d" % (atleast, len(args))
+        else:
+            plural = len(args) != 1
+            sig = str(len(args))
+        kwonly_sig = ""
+        if kwonly_given:
+            msg = " positional argument%s (and %d keyword-only argument%s)"
+            kwonly_sig = (msg % ("s" if given != 1 else "", kwonly_given,
+                                 "s" if kwonly_given != 1 else ""))
+        raise TypeError("%s() takes %s positional argument%s but %d%s %s given" %
+                (f_name, sig, "s" if plural else "", given, kwonly_sig,
+                 "was" if given == 1 and not kwonly_given else "were"))
+
+    pass
 
 def isgeneratorfunction(object):
     """Return true if the object is a user-defined generator function.
@@ -97,6 +131,7 @@ class MyParameter(Parameter):
                 raise ValueError(msg)
         self._default = default
         self._annotation = annotation
+        self.empty = _empty
 
         if name is _empty:
             raise ValueError('name is a required attribute for Parameter')
@@ -282,7 +317,7 @@ def getfullargspec(func):
         sig = _signature_from_callable(
             func, follow_wrapper_chains=False, skip_bound_arg=False, sigcls=Signature
         )
-    except Exception as ex:
+    except Exception:
         # Most of the times 'signature' will raise ValueError.
         # But, it can also raise AttributeError, and, maybe something
         # else. So to be fully backwards compatible, we catch all
@@ -615,7 +650,7 @@ def _signature_from_callable(
                     skip_bound_arg=skip_bound_arg,
                     sigcls=sigcls,
                 )
-            except ValueError as ex:
+            except ValueError:
                 msg = "no signature found for %r" % obj
                 raise ValueError(msg) # from ex
 
