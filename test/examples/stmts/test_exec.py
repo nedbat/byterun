@@ -21,3 +21,8 @@ if sys.version_info[:2] >= (2, 5):
         exec(bytes('# coding: cp949\na = "\xaa\xa7"\n', encoding="cp949"))
     else:
         exec(bytes('# coding: cp949\na = "\xaa\xa7"\n'))
+
+# And one eval test...
+if not ((3, 0) <= sys.version_info[:2] <= (3, 2)):
+    code = u'u"\xc2\xa4"\n'
+    assert eval(code) == u'\xc2\xa4'

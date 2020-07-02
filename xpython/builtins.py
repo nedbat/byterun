@@ -90,7 +90,19 @@ def build_class(opc, func, name, *bases, **kwds):
     # but needs a builtin cell object. make_cell() can do this.
     if "__classcell__" in namespace and metaclass == type:
         namespace["__classcell__"] = make_cell(namespace["__classcell__"].get())
-    cls = metaclass(name, bases, namespace)
+
+    try:
+        cls = metaclass(name, bases, namespace)
+    except TypeError:
+        # For mysterious reasons the above can raise a:
+        #  __init__() takes *n* positional arguments but *n+1* were given.
+        # In particular for:
+        #     class G(Generic[T]):
+        #        pass
+        import types
+        cls = types.new_class(name, bases, kwds, exec_body=lambda ns: namespace)
+        pass
+
     if isinstance(cell, Cell):
         cell.set(cls)
     return cls
