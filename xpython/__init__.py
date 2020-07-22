@@ -1,5 +1,17 @@
 __docformat__ = "restructuredtext"
 
+from xpython.byteop import (
+    get_byteop,
+    )
+
+from xpython.pyobj import (
+    Function,
+    Method,
+    Cell,
+    Traceback,
+    traceback_from_frame,
+    Generator
+    )
 from xpython.vm import (
     PyVM,
     PyVMError,
@@ -11,15 +23,7 @@ from xpython.vmtrace import (
     pretty_event_flags,
     )
 
-from xpython.pyobj import (
-    Function,
-    Method,
-    Cell,
-    Traceback,
-    traceback_from_frame,
-    Generator
-    )
+from xpython.version import VERSION
 
-from xpython.byteop import (
-    get_byteop,
-    )
+# This ensures VERSION will appear in pydoc
+__version__ = VERSION
