@@ -243,6 +243,16 @@ class Function(object):
             # It will require a *lot* more code from inspect.py to be added:
             # classes Signature, Parameter, etc.
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
+
+            # The problem with the above is that we are testing with self._func
+            # the function may have changed dynamically.
+            # See 3.7.7. test_keywordonlyarg.py
+
+            # To catch dynamic changes, we'll run a second check
+            if self.version >= 3.0:
+                inspect3.getcallargs(self, *args, **kwargs)
+            else:
+                inspect2.getcallargs(self, *args, **kwargs)
         else:
             if self.version >= 3.0:
                 callargs = inspect3.getcallargs(self, *args, **kwargs)
