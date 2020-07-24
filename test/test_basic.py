@@ -26,8 +26,20 @@ class TestBasic(vmtest.VmTestCase):
     def test_bound_method_on_falsy_objects(self):
         self.self_checking()
 
+    def test_callback(self):
+        self.self_checking()
+
+    def test_calling_methods_wrong(self):
+        self.self_checking()
+
+    def test_comparisons(self):
+        self.self_checking()
+
     def test_comprehensions(self):
         self.self_checking()
+
+    def test_generator_expression(self):
+        self.do_one()
 
     def test_inplace_operators(self):
         self.self_checking()
@@ -38,14 +50,8 @@ class TestBasic(vmtest.VmTestCase):
     def test_slice_stmts(self):
         self.self_checking()
 
-    def test_callback(self):
+    def test_subscripting(self):
         self.self_checking()
-
-    def test_calling_methods_wrong(self):
-        self.self_checking()
-
-    def test_generator_expression(self):
-        self.do_one()
 
     if PYTHON_VERSION in (3.6, 3.7):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
@@ -76,22 +82,6 @@ class TestBasic(vmtest.VmTestCase):
 
         def test_building_stuff(self):
             self.do_one()
-
-        def test_subscripting(self):
-            self.assert_ok("""\
-                l = list(range(10))
-                print("%s %s %s" % (l[0], l[3], l[9]))
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                l[5] = 17
-                print(l)
-                """)
-            self.assert_ok("""\
-                l = list(range(10))
-                del l[5]
-                print(l)
-                """)
 
         def test_strange_sequence_ops(self):
             # from stdlib: test/test_augassign.py
@@ -291,35 +281,6 @@ class TestBasic(vmtest.VmTestCase):
                     assert g['a'] == 11
                     """)
 
-        def test_jump_if_true_or_pop(self):
-            self.assert_ok("""\
-                def f(a, b):
-                    return a or b
-                assert f(17, 0) == 17
-                assert f(0, 23) == 23
-                assert f(0, "") == ""
-                """)
-
-        def test_jump_if_false_or_pop(self):
-            self.assert_ok("""\
-                def f(a, b):
-                    return not(a and b)
-                assert f(17, 0) is True
-                assert f(0, 23) is True
-                assert f(0, "") is True
-                assert f(17, 23) is False
-                """)
-
-        def test_pop_jump_if_true(self):
-            self.assert_ok("""\
-                def f(a):
-                    if not a:
-                        return 'foo'
-                    else:
-                        return 'bar'
-                assert f(0) == 'foo'
-                assert f(1) == 'bar'
-                """)
 
         def test_multiple_classes(self):
             # Making classes used to mix together all the class-scoped values
@@ -411,31 +372,6 @@ class TestBasic(vmtest.VmTestCase):
                 print("done")
                 """)
 
-
-    class TestComparisons(vmtest.VmTestCase):
-        def test_in(self):
-            self.assert_ok("""\
-                assert "x" in "xyz"
-                assert "x" not in "abc"
-                assert "x" in ("x", "y", "z")
-                assert "x" not in ("a", "b", "c")
-                """)
-
-        def test_less(self):
-            self.assert_ok("""\
-                assert 1 < 3
-                assert 1 <= 2 and 1 <= 1
-                assert "a" < "b"
-                assert "a" <= "b" and "a" <= "a"
-                """)
-
-        def test_greater(self):
-            self.assert_ok("""\
-                assert 3 > 1
-                assert 3 >= 1 and 3 >= 3
-                assert "z" > "a"
-                assert "z" >= "a" and "z" >= "z"
-                """)
 
 if __name__ == "__main__":
     # import unittest

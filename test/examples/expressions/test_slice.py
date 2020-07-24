@@ -1,4 +1,5 @@
 # Test slice expressions
+# This originally from byterun was adapted from test_base.py
 """This program is self-checking!"""
 
 assert "hello, world"[3:8] == "lo, w"

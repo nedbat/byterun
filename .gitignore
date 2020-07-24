@@ -4,6 +4,7 @@
 .coverage
 .tox
 /*~
+.mypy_cache
 /.python-version
 /activate
 /build

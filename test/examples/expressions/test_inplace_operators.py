@@ -1,4 +1,5 @@
 # Inplace operator tests
+# This originally from byterun was adapted from test_base.py
 """This program is self-checking!"""
 
 x, y = 2, 3

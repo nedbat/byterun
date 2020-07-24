@@ -137,7 +137,7 @@ class ByteOp32(ByteOp27):
         """Cleans up the stack when a `with` statement block exits. TOS is the
         context manager's `__exit__()` bound method.
 
-        Below TOS are 1 3 values indicating how/why the finally clause
+        Below TOS are 1-3 values indicating how/why the finally clause
         was entered:
 
         * SECOND = None
