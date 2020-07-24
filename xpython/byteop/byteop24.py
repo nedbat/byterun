@@ -15,7 +15,7 @@ from xpython.byteop.byteop import (
     fmt_ternary_op,
     fmt_unary_op,
 )
-from xpython.pyobj import Function  # , traceback_from_frame
+from xpython.pyobj import Function, traceback_from_frame
 from xpython.vmtrace import PyVMEVENT_RETURN, PyVMEVENT_YIELD
 
 log = logging.getLogger(__name__)
@@ -584,7 +584,10 @@ class ByteOp24(ByteOpBase):
         elif name in f.f_builtins:
             val = f.f_builtins[name]
         else:
-            raise NameError("global name '%s' is not defined" % name)
+            self.vm.last_traceback = traceback_from_frame(self.vm.frame)
+            tb  = traceback_from_frame(self.vm.frame)
+            self.vm.last_exception = (NameError, NameError("name '%s' is not defined" % name), tb)
+            return "exception"
         self.vm.push(val)
 
     def SETUP_LOOP(self, jump_offset):

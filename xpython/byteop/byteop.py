@@ -299,7 +299,7 @@ class ByteOpBase(object):
         pos_args.extend(var_args)
 
         func = self.vm.pop()
-        self.call_function_with_args_resolved(func, pos_args, named_args)
+        return self.call_function_with_args_resolved(func, pos_args, named_args)
 
     def convert_native_to_Function(self, frame, func):
         assert inspect.isfunction(func) or isinstance(func, Function)
