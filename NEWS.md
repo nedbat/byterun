@@ -1,3 +1,15 @@
+1.3.5 2020-07-24
+================
+
+Note: a lot of stdlib tests have become broken. This is probably ood because it reflects that we are honestly interpreting more and
+not running interpreter code as builtin Python functions (e.g. eval and exec used to work this way.)
+
+* Start interpreter assisted breakpoints.
+* Fill out interpreter inspect more
+* exec <bytes> is the same as exec <str>
+* make version pydoc frendly
+* propagate interpreter-caught exceptions more properly
+
 1.3.4 2020-06-28
 ================
 

@@ -1,3 +1,81 @@
+2020-07-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/version.py: Get ready for release 1.3.5
+
+2020-07-24  rocky <rocky@dusytfeet.com>
+
+	* test/stdlib/3.6-exclude.sh, test/stdlib/3.7-exclude.sh,
+	xpython/byteop/byteop24.py: More stdlib excludes.  As we get more accurate, more things fall apart.  Much needed "IMPORT" namespace separation
+
+2020-07-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/byteop/byteop24.py: Propsgate
+	errors more often
+
+2020-07-24  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py: Catch dynamic kwonly default changes See 3.7.7. test_keywordonlyarg.py
+
+2020-07-24  rocky <rocky@dusytfeet.com>
+
+	* .gitignore, setup.py,
+	test/examples/expressions/test_comparisons.py,
+	test/examples/expressions/test_comprehensions.py,
+	test/examples/expressions/test_inplace_operators.py,
+	test/examples/expressions/test_slice.py,
+	test/examples/expressions/test_subscripting.py, test/test_basic.py,
+	xpython/byteop/byteop32.py: Convert more tests. Add origin comment
+	in tests
+
+2020-07-22  rocky <rb@dustyfeet.com>
+
+	* xpython/__init__.py: make VERSION pydoc friendly
+
+2020-07-02  rocky <rocky@dusytfeet.com>
+
+	* test/examples/stmts/test_exec.py, xpython/builtins.py,
+	xpython/byteop/byteop.py: Two bugfixes eval() and metaclass...  eval needs to accept unicode on 2.7. metaclass for creating a new
+	class sometimes messes up `__init__()`'s signature.
+
+2020-07-02  rocky <rocky@dusytfeet.com>
+
+	* test/examples/stmts/test_exec.py: Add bytes test
+
+2020-07-02  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop.py: exec <bytes> is the same as exec <str>
+
+2020-07-01  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/test_calling_methods_wrong.py,
+	test/test_basic.py, xpython/stdlib/inspect3.py,
+	xpython/stdlib/inspectfor32.py, xpython/vmtrace.py: Fill out
+	interpreter inspect more...  This is most needed in cross-version interpretation, but it is also
+	needed within a single Python version because interpreter types are
+	not the same thing as the built-in types.  More work is needed here, but this makes some progress.  Note: a lot of stdlib tests have become broken. This is probably
+	good because it reflects that we are honestly interpreting more and
+	not running interpreter code as builtin Python functions (e.g. eval
+	and exec used to work this way.)
+
+2020-06-30  rocky <rocky@dusytfeet.com>
+
+	* README.rst, admin-tools/how-to-make-a-release.md,
+	xpython/byteop/byteop24.py, xpython/pyobj.py, xpython/vm.py,
+	xpython/vmtrace.py: Start interpreter assisted breakpoints
+
+2020-06-28  rocky <rocky@dusytfeet.com>
+
+	* NEWS.md: NEWS.md tweaks
+
+2020-06-28  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Administrivia
+
+2020-06-28  rocky <rocky@dusytfeet.com>
+
+	* ChangeLog, Makefile, NEWS.md, __pkginfo__.py, xpython/version.py: 
+	Get ready for release 1.3.4
+
 2020-06-23  rocky <rocky@dusytfeet.com>
 
 	* __pkginfo__.py: Bump xdis version
