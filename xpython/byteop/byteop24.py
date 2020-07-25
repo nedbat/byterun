@@ -584,10 +584,7 @@ class ByteOp24(ByteOpBase):
         elif name in f.f_builtins:
             val = f.f_builtins[name]
         else:
-            self.vm.last_traceback = traceback_from_frame(self.vm.frame)
-            tb  = traceback_from_frame(self.vm.frame)
-            self.vm.last_exception = (NameError, NameError("name '%s' is not defined" % name), tb)
-            return "exception"
+            raise NameError("global name '%s' is not defined" % name)
         self.vm.push(val)
 
     def SETUP_LOOP(self, jump_offset):
@@ -801,7 +798,12 @@ class ByteOp24(ByteOpBase):
         off the stack, calls the callable object with those arguments,
         and pushes the return value returned by the callable object.
         """
-        return self.call_function(argc, var_args=[], keyword_args={})
+        try:
+            return self.call_function(argc, var_args=[], keyword_args={})
+        except TypeError as exc:
+            tb = self.vm.last_traceback = traceback_from_frame(self.vm.frame)
+            self.vm.last_exception = (TypeError, exc.args, tb)
+            return "exception"
 
     def CALL_FUNCTION_VAR(self, argc):
         """

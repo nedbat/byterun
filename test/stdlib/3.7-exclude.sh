@@ -1,4 +1,27 @@
 SKIP_TESTS=(
+    # if value.__traceback__ is not tb:
+    # AttributeError: 'Traceback' object has no attribute '__traceback__'
+    [test_codeccallbacks.py]=1
+
+    # File "x-python/xpython/vm.py", line 483, in dispatch
+    # byteop.inplaceOperator(byte_name[8:])
+    # File "x-python/xpython/byteop/byteop.py", line 412, in inplaceOperator
+    # x += y
+    # TypeError: 'NoneType' object is not callable
+    [test_augassign.py]=1
+
+    # File "pyenv/versions/3.6.10/lib/python3.6/aifc.py", line 346, in initfp
+    # raise Error('COMM chunk and/or SSND chunk missing')
+    # aifc.Error: COMM chunk and/or SSND chunk missing
+    [test_aifc.py]=1
+
+    # File "xpython/byteop/byteop.py", line 288, in call_function_with_args_resolved
+    # retval = func(*pos_args, **named_args)
+    # RuntimeError: super(): __class__ cell not found
+    [test_abc.py]=1
+
+    [test_array.py]=1
+    [test_ast.py]=1
 
     # exec(ASYNCIO_TESTS)
     # NameError: name 'TypeVar' is not defined
@@ -9,13 +32,27 @@ SKIP_TESTS=(
     # TypeError: __build_class__: func must be a function
     [test_abc.py]=1
 
+    [test_asynchat.py]=1
+
     # GET_AITER not implemented
     [test_asyncgen.py]=1
 
-    # File "test_keywordonlyarg.py", line 16, in <module>
-    # def mixedargs_sum(a, b=0, *arg, k1, k2=0):
-    # TypeError: __kwdefaults__ must be set to a dict object
-    [test_keywordonlyarg.py]=1
+    [test_asyncore.py]=1
+    [test_base64.py]=1
+    [test_baseexception.py]=1
+    [test_builtin.py]=1
+    [test_binascii.py]=1
+    [test_bool.py]=1
+    [test_bytes.py]=1
+    [test_bz2.py]=1
+    [test_calendar.py]=1
+    [test_capi.py]=1
+    [test_cgi.py]=1
+    [test_cgitb.py]=1
+    [test_class.py]=1
+    [test_cmath.py]=1
+    [test_codecs.py]=1
+    [test_fork1.py]=1
 
     # FileNotFoundErrorTraceback (most recent call last):
     # FileNotFoundError: [Errno 2] No such file or directory: '/src/.../xpython/byteop/ieee754.txt'

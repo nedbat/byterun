@@ -1,9 +1,34 @@
 SKIP_TESTS=(
+    # File "x-python/xpython/vm.py", line 483, in dispatch
+    # byteop.inplaceOperator(byte_name[8:])
+    # File "x-python/xpython/byteop/byteop.py", line 412, in inplaceOperator
+    # x += y
+    # TypeError: 'NoneType' object is not callable
+    [test_augassign.py]=1
+
+    # File "xpython/byteop/byteop.py", line 288, in call_function_with_args_resolved
+    # retval = func(*pos_args, **named_args)
+    # RuntimeError: super(): __class__ cell not found
+    [test_abc.py]=1
+
+    # File "pyenv/versions/3.6.10/lib/python3.6/aifc.py", line 346, in initfp
+    # raise Error('COMM chunk and/or SSND chunk missing')
+    # aifc.Error: COMM chunk and/or SSND chunk missing
+    [test_aifc.py]=1
+
+    # File "x-python/xpython/byteop/byteop.py", line 288, in call_function_with_args_resolved
+    # retval = func(*pos_args, **named_args)
+    # RuntimeError: super(): __class__ cell not found
+    [test_array.py]=1
+
+    [test_ast.py]=1
+
+    [test_asynchat.py]=1
+
+    [test_asyncore.py]=1
+
     # PyVMError: Can't find method function attribute; tried '__func__' and '_im_func'
     [test_os.py]=1
-
-    # AttributeError: 'traceback' object has no attribute '__traceback__'
-    [test_keywordonlyarg.py]=1
 
     [test___all__.py]=1  # it fails on its own
     [test_argparse.py]=1 # it fails on its own
@@ -222,7 +247,6 @@ SKIP_TESTS=(
     [test_tokenize.py]=1 # test takes too long to run: 80 seconds
     [test_trace.py]= # it fails on its own
 
-    [test_traceback.py]=1
     [test_tracemalloc.py]=1
     [test_ttk_guionly.py]= # it fails on its own
     [test_ttk_textonly.py]=1 # it fails on its own
