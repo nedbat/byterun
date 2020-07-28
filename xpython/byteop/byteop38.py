@@ -93,3 +93,18 @@ class ByteOp38(ByteOp37):
 
         """
         raise self.vm.PyVMError("POP not implemented yet")
+
+    # Changed from 2.4: Map value is TOS and map key is TOS1. Before, those were reversed.
+    def MAP_ADD(self, count):
+        """Calls dict.setitem(TOS1[-count], TOS1, TOS). Used to implement dict
+        comprehensions.
+
+        For all of the SET_ADD, LIST_APPEND and MAP_ADD instructions,
+        while the added value or key/value pair is popped off, the
+        container object remains on the stack so that it is available
+        for further iterations of the loop.
+        """
+        # FIXME: the below seems fishy.
+        key, val = self.vm.popn(2)
+        the_map = self.vm.peek(count)
+        the_map[key] = val

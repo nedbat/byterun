@@ -42,7 +42,7 @@ class TestBasic(vmtest.VmTestCase):
         self.self_checking()
 
     def test_generator_expression(self):
-        self.do_one()
+        self.self_checking()
 
     def test_inplace_operators(self):
         self.self_checking()
