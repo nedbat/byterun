@@ -26,6 +26,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_bound_method_on_falsy_objects(self):
         self.self_checking()
 
+    def test_building_stuff(self):
+        self.self_checking()
+
     def test_callback(self):
         self.self_checking()
 
@@ -53,7 +56,7 @@ class TestBasic(vmtest.VmTestCase):
     def test_subscripting(self):
         self.self_checking()
 
-    if PYTHON_VERSION in (3.6, 3.7):
+    if PYTHON_VERSION in (3.6, 3.7, 3.8):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
 
@@ -79,9 +82,6 @@ class TestBasic(vmtest.VmTestCase):
                     assert x == (8.0/3.0) and y == 3
                     assert isinstance(x, float)
                     """)
-
-        def test_building_stuff(self):
-            self.do_one()
 
         def test_strange_sequence_ops(self):
             # from stdlib: test/test_augassign.py
