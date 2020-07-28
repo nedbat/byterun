@@ -38,7 +38,7 @@ LINE_STR = "-" * 25
 class VmTestCase(unittest.TestCase):
 
     def do_one(self):
-        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7):
+        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8):
             self.version = PYTHON_VERSION
         else:
             assert PYTHON_VERSION == 2.7
@@ -50,7 +50,7 @@ class VmTestCase(unittest.TestCase):
 
     def self_checking(self):
         """Use this for a program that has asserts to check its validity"""
-        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7):
+        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8):
             self.version = PYTHON_VERSION
         else:
             assert PYTHON_VERSION == 2.7

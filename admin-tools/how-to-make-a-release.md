@@ -50,7 +50,7 @@ Todo: turn this into a script in `admin-tools`
 	$ pyenv local 3.7.5
 	$ pip install -e git://github.com/rocky/x-python.git#egg=x-python
 	$ xpython -V # see that new version appears
-	$ pip uninstall x-python
+	$ pip uninstall x-pythons
 	$ popd
 
 # Release on Github

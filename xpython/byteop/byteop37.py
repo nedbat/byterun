@@ -2,7 +2,6 @@
 """
 from __future__ import print_function, division
 
-import types
 from xpython.byteop.byteop36 import ByteOp36
 
 # Gone in 3.7
