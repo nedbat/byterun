@@ -13,7 +13,7 @@ You can use this to:
 * Have one Python program that runs multiple versions of Python bytecode.
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
-The ability to run Python bytecode as far back as 2.4 from Python 3.7
+The ability to run Python bytecode as far back as 2.4 from Python 3.8
 I find pretty neat. (Even more could easily be added).
 
 Also, The sandboxed environment in a debugger I find
@@ -163,9 +163,11 @@ Want even more status and control? See `trepan-xpy <https://github.com/rocky/tre
 Status:
 +++++++
 
-Currently bytecode from Python versions 3.7 - 3.2, and 2.7 - 2.4 are
-supported. Extending to 3.8 and beyond is on hold until there is more
-interest, I get help, I need or there is or funding.
+Currently bytecode from Python versions 3.8 - 3.2, and 2.7 - 2.4 are
+supported. The most recent versions of Python don't have all opcodes
+implemented. Doing that and extending to 3.9 and beyond is on hold
+until there is more interest, I get help, I need or there is or
+funding.
 
 *Byterun*, from which this was based on, is awesome. But it cheats in
 subtle ways.
