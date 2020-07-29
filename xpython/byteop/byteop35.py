@@ -115,18 +115,18 @@ class ByteOp35(ByteOp34):
         Implements TOS = get_awaitable(TOS.__aiter__()). See GET_AWAITABLE
         for details about get_awaitable
         """
-        raise self.vm.PyVMError("GET_AITER not implemented yet")
-        # TOS = self.vm.pop()
-        # self.vm.push(get_awaitable(TOS.__aiter__()))
+        # raise self.vm.PyVMError("GET_AITER not implemented yet")
+        anext_fn = getattr(self.vm.pop(), "__aiter__")
+        return self.call_function(anext_fn, [])
 
     def GET_ANEXT(self):
         """
         Implements PUSH(get_awaitable(TOS.__anext__())). See GET_AWAITABLE
         for details about get_awaitable
         """
-        raise self.vm.PyVMError("GET_ANEXT not implemented yet")
-        # TOS = self.vm.pop()
-        # self.vm.push(get_awaitable(TOS.__anext()))
+        # raise self.vm.PyVMError("GET_ANEXT not implemented yet")
+        anext_fn = getattr(self.vm.pop(), "__anext__")
+        return self.call_function(anext_fn, [])
 
     def BEFORE_ASYNC_WITH(self):
         raise self.vm.PyVMError("BEFORE_ASYNC_WITH not implemented yet")

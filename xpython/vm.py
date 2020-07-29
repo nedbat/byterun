@@ -47,16 +47,37 @@ class PyVMError(Exception):
 
     pass
 
-
 class PyVMRuntimeError(Exception):
     """RuntimeError in operation of PyVM."""
-
     pass
 
 
 class PyVMUncaughtException(Exception):
     """Uncaught RuntimeError in operation of PyVM."""
+    def __init__(self, name, args, traceback=None):
+        self.__name__ =  name
+        self.traceback = traceback
+        self.args = args
 
+    def __getattr__(self, name):
+        if name == "__traceback__":
+            return self.traceback
+        else:
+            return super().__getattr__(name)
+
+    def __getitem__(self, i):
+        assert 0 <= i <= 2, "Exception index should be in range 0..2 was %d" % i
+        if i == 0:
+            return self.__name__
+        elif i == 1:
+            return self.args
+        else:
+            return self.traceback
+
+    @classmethod
+    def from_tuple(cls, exception):
+        assert len(exception) == 3, "Expecting exception tuple to have 3 args: type, args, traceback"
+        return cls(*exception)
     pass
 
 
@@ -328,13 +349,15 @@ class PyVM(object):
             if self.last_traceback:
                 self.last_traceback.print_tb()
                 print("%s" % self.last_exception[0].__name__, end="")
-                tail = (
-                    (": %s" % "\n".join(self.last_exception[1].args))
-                    if self.last_exception[1].args
-                    else ""
-                )
+                le1 = self.last_exception[1]
+                tail = ""
+                if le1:
+                    if hasattr(le1, "args"):
+                        tail = "\n".join(le1.args)
+                    else:
+                        from trepan.api import debug; debug()
                 print(tail)
-            raise PyVMUncaughtException
+            raise
 
         # Frame ran to normal completion... check some invariants
         if toplevel:
@@ -687,7 +710,9 @@ class PyVM(object):
             if last_exception and last_exception[0]:
                 if isinstance(last_exception[2], Traceback):
                     if not self.frame:
-                        raise PyVMUncaughtException(last_exception)
+                        if isinstance(last_exception, tuple):
+                            self.last_exception = PyVMUncaughtException.from_tuple(last_exception)
+                        raise self.last_exception
                 else:
                     six.reraise(*self.last_exception)
             else:

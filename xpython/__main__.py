@@ -64,8 +64,6 @@ def main(module, verbose, command_to_run, path, args):
         sys.exit(1)
         pass
     except execfile.NoSourceError as e:
-        if verbose > 1:
-            raise
         print(e)
         sys.exit(2)
         pass
@@ -79,6 +77,7 @@ def main(module, verbose, command_to_run, path, args):
         # Program ran sys.exit();
         # Respect that.
         raise
+
 
 if __name__ == "__main__":
     main(auto_envvar_prefix="XPYTHON")
