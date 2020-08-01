@@ -8,6 +8,10 @@ from __future__ import print_function, division
 import operator
 import logging
 import six
+from xdis import PYTHON_VERSION
+
+if PYTHON_VERSION > 2.7:
+    import importlib
 
 from xpython.byteop.byteop import (
     ByteOpBase,
@@ -494,7 +498,11 @@ class ByteOp24(ByteOpBase):
         """
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
-        self.vm.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
+
+        if PYTHON_VERSION > 2.7:
+            self.vm.push(importlib.__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
+        else:
+            self.vm.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
 
     def IMPORT_FROM(self, name):
         """

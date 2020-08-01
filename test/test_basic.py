@@ -47,6 +47,9 @@ class TestBasic(vmtest.VmTestCase):
     def test_inplace_operators(self):
         self.self_checking()
 
+    def test_import(self):
+        self.self_checking()
+
     def test_slice(self):
         self.self_checking()
 
@@ -118,16 +121,6 @@ class TestBasic(vmtest.VmTestCase):
                     l
                 f()
                 """, raises=NameError)
-
-        def test_import(self):
-            self.assert_ok("""\
-                import math
-                print(math.pi, math.e)
-                from math import sqrt
-                print(sqrt(2))
-                from math import *
-                print(sin(2))
-                """)
 
         def test_classes(self):
             self.assert_ok("""\

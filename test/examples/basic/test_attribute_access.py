@@ -1,5 +1,6 @@
 # In addition to testing attributes, this
 # is a simple class test.
+# Adapted from the a test in byterun's test_basic.py.
 
 """This program is self-checking!"""
 
