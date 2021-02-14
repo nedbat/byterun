@@ -4,7 +4,7 @@ from distutils.core import setup
 
 from setuptools import find_packages
 from __pkginfo__ import (
-    VERSION,
+    __version__,
     author,
     author_email,
     classifiers,
@@ -18,7 +18,7 @@ from __pkginfo__ import (
 
 setup(
     name="x-python",
-    version=VERSION,
+    version=__version__,
     author=author,
     author_email=author_email,
     classifiers=classifiers,
@@ -27,7 +27,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/x-rst",
     packages=find_packages(),
-    py_modules = py_modules,
+    py_modules=py_modules,
     install_requires=install_requires,
-    url=url
+    url=url,
 )
