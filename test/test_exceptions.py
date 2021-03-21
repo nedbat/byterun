@@ -2,21 +2,25 @@
 
 from __future__ import print_function
 import unittest
+
 try:
     import vmtest
 except ImportError:
     from . import vmtest
 
-import six
-
 from xdis import PYTHON_VERSION, PYTHON3
+
 PY2 = not PYTHON3
 
 
 class TestExceptions(vmtest.VmTestCase):
 
-    def test_exception_match(self):
-        self.self_checking()
+    if PYTHON_VERSION >= 3.8:
+        print("Test not gone over yet for >= 3.8")
+    else:
+
+        def test_exception_match(self):
+            self.self_checking()
 
     def test_raise_exception(self):
         self.assert_ok("raise Exception('oops')", raises=Exception)
@@ -30,62 +34,73 @@ class TestExceptions(vmtest.VmTestCase):
 
         def test_catching_exceptions(self):
             # Catch the exception precisely
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 try:
                     [][1]
                     print("Shouldn't be here...")
                 except IndexError:
                     print("caught it!")
-                """)
+                """
+            )
             # Catch the exception by a parent class
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 try:
                     [][1]
                     print("Shouldn't be here...")
                 except Exception:
                     print("caught it!")
-                """)
+                """
+            )
             # Catch all exceptions
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 try:
                     [][1]
                     print("Shouldn't be here...")
                 except:
                     print("caught it!")
-                """)
+                """
+            )
 
         if PY2:
+
             def test_raise_exception_2args(self):
                 self.assert_ok("raise ValueError, 'bad'", raises=ValueError)
 
             def test_raise_exception_3args(self):
-                self.assert_ok("""\
+                self.assert_ok(
+                    """\
                     from sys import exc_info
                     try:
                         raise Exception
                     except:
                         _, _, tb = exc_info()
                     raise ValueError, "message", tb
-                    """, raises=ValueError)
+                    """,
+                    raises=ValueError,
+                )
 
         def test_raise_and_catch_exception(self):
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 try:
                     raise ValueError("oops")
                 except ValueError as e:
                     print("Caught: %s" % e)
                 print("All done")
-                """)
+                """
+            )
 
         if PYTHON3:
+
             def test_raise_exception_from(self):
-                self.assert_ok(
-                    "raise ValueError from NameError",
-                    raises=ValueError
-                )
+                self.assert_ok("raise ValueError from NameError", raises=ValueError)
 
         def test_raise_and_catch_exception_in_function(self):
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 def fn():
                     raise ValueError("oops")
 
@@ -94,27 +109,34 @@ class TestExceptions(vmtest.VmTestCase):
                 except ValueError as e:
                     print("Caught: %s" % e)
                 print("done")
-                """)
+                """
+            )
 
         def test_global_name_error(self):
             self.assert_ok("fooey", raises=NameError)
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 try:
                     fooey
                     print("Yes fooey?")
                 except NameError:
                     print("No fooey")
-                """)
+                """
+            )
 
             def test_local_name_error(self):
-                self.assert_ok("""\
+                self.assert_ok(
+                    """\
                     def fn():
                         fooey
                     fn()
-                    """, raises=NameError)
+                    """,
+                    raises=NameError,
+                )
 
         def test_catch_local_name_error(self):
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 def fn():
                     try:
                         fooey
@@ -122,7 +144,8 @@ class TestExceptions(vmtest.VmTestCase):
                     except NameError:
                         print("No fooey")
                 fn()
-                """)
+                """
+            )
 
         # def test_reraise(self):
         #     self.assert_ok("""\
@@ -137,7 +160,8 @@ class TestExceptions(vmtest.VmTestCase):
         #         """, raises=NameError)
 
         def test_reraise_explicit_exception(self):
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 def fn():
                     try:
                         raise ValueError("ouch")
@@ -145,10 +169,13 @@ class TestExceptions(vmtest.VmTestCase):
                         print("Caught %s" % e)
                         raise
                 fn()
-                """, raises=ValueError)
+                """,
+                raises=ValueError,
+            )
 
         def test_finally_while_throwing(self):
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 def fn():
                     try:
                         print("About to..")
@@ -157,10 +184,13 @@ class TestExceptions(vmtest.VmTestCase):
                         print("Finally")
                 fn()
                 print("Done")
-                """, raises=ValueError)
+                """,
+                raises=ValueError,
+            )
 
         def test_coverage_issue_92(self):
-            self.assert_ok("""\
+            self.assert_ok(
+                """\
                 l = []
                 for i in range(3):
                     try:
@@ -171,7 +201,9 @@ class TestExceptions(vmtest.VmTestCase):
                 l.append('r')
                 print(l)
                 assert l == [0, 'f', 'e', 1, 'f', 'e', 2, 'f', 'e', 'r']
-                """)
+                """
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
