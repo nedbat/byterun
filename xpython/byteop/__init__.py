@@ -3,6 +3,7 @@
 # a lot and we are interested in supporting (some) historical versions
 # of Python.
 
+
 def get_byteop(vm, python_version, is_pypy):
     """Get Python byteop for given integer Python version, e.g. 2.7, 3.2, 3.5..., and the
     platform is_pypy. vm.VMError will be raised if we can't find a suitable version.
@@ -87,6 +88,10 @@ def get_byteop(vm, python_version, is_pypy):
                 from xpython.byteop.byteop38 import ByteOp38
 
                 byteop = ByteOp38(vm)
+            elif int_vers == 39:
+                from xpython.byteop.byteop39 import ByteOp39
+
+                byteop = ByteOp39(vm)
             else:
                 raise vm.VMEerror("Version %s not supported" % python_version)
             pass

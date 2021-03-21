@@ -53,8 +53,12 @@ def exec_code_object(
     format_instruction=format_instruction,
 ):
     if callback:
-        vm = PyVMTraced(callback, python_version, is_pypy,
-                        format_instruction_func=format_instruction)
+        vm = PyVMTraced(
+            callback,
+            python_version,
+            is_pypy,
+            format_instruction_func=format_instruction,
+        )
         try:
             vm.run_code(code, f_globals=env)
         except PyVMUncaughtException:
@@ -78,11 +82,11 @@ def get_supported_versions(is_pypy, is_bytecode):
         mess = (
             "PYPY 2.7, 3.2, 3.5 and 3.6"
             if is_pypy
-            else "CPython 2.4 .. 2.7, 3.2 .. 3.7"
+            else "CPython 2.4 .. 2.7, 3.2 .. 3.9"
         )
     else:
         supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
-        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.7"
+        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.9"
     return supported_versions, mess
 
 
@@ -150,7 +154,7 @@ def run_python_module(modulename, args):
 
 
 def run_python_file(
-        filename, args, package=None, callback=None, format_instruction=format_instruction
+    filename, args, package=None, callback=None, format_instruction=format_instruction
 ):
     """Run a python file as if it were the main program on the command line.
 
@@ -287,8 +291,13 @@ def run_python_string(
         python_version = PYTHON_VERSION
 
         # Execute the source string.
-        exec_code_object(code, main_mod.__dict__, python_version, IS_PYPY, callback,
-                         format_instruction=format_instruction,
+        exec_code_object(
+            code,
+            main_mod.__dict__,
+            python_version,
+            IS_PYPY,
+            callback,
+            format_instruction=format_instruction,
         )
 
     finally:

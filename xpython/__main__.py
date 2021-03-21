@@ -6,25 +6,34 @@ import sys
 
 from xpython import execfile
 from xpython.vm import PyVMRuntimeError
-from xpython.version import VERSION
+from xpython.version import __version__
 from xdis import PYTHON_VERSION, IS_PYPY
+
 
 def version_message():
     platform = "PyPy " if IS_PYPY else "C"
-    mess = "%s running from %sPython %s" % (
-        VERSION, platform, PYTHON_VERSION
-    )
+    mess = "%s running from %sPython %s" % (__version__, platform, PYTHON_VERSION)
     return mess
+
 
 @click.command()
 @click.version_option(version_message(), "-V", "--version")
-@click.option("-m", "--module", default=False,
-              help="PATH is a module name, not a Python main program")
-@click.option("-v", "--verbose", count=True,
-              help="verbosity level in tracing.\n"
-              "Can be supplied multiple times to increase verbosity.")
-@click.option("-c", "--command-to-run",
-              help="program passed in as a string", required=False)
+@click.option(
+    "-m",
+    "--module",
+    default=False,
+    help="PATH is a module name, not a Python main program",
+)
+@click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="verbosity level in tracing.\n"
+    "Can be supplied multiple times to increase verbosity.",
+)
+@click.option(
+    "-c", "--command-to-run", help="program passed in as a string", required=False
+)
 @click.argument("path", nargs=1, type=click.Path(readable=True), required=False)
 @click.argument("args", nargs=-1)
 def main(module, verbose, command_to_run, path, args):

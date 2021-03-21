@@ -29,7 +29,7 @@ PYTHON_VERSION = sys.version_info[0] + (sys.version_info[1] / 10.0)
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
-mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if IS_PYPY else "CPython 2.7, 3.2 .. 3.7"
+mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if IS_PYPY else "CPython 2.7, 3.2 .. 3.9"
 
 if PYTHON_VERSION not in supported_versions:
     python = "PyPy " if IS_PYPY else "C"
@@ -57,6 +57,7 @@ classifiers = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
 ]
 
 # Get/set VERSION and long_description from files
