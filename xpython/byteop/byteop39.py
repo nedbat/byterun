@@ -54,13 +54,25 @@ class ByteOp39(ByteOp38):
     def LIST_TO_TUPLE(self):
         pass
 
-    def IS_OP(self):
+    def IS_OP(self, invert: int):
+        """Performs is comparison, or is not if invert is 1."""
+        TOS1, TOS = self.vm.popn(2)
+        if invert:
+            self.vm.push(TOS1 is TOS)
+        else:
+            self.vm.push(TOS1 is not TOS)
         pass
 
     def JUMP_IF_NOT_EXC_MATCH(self):
         pass
 
-    def CONTAINS_OP(self):
+    def CONTAINS_OP(self, invert: int):
+        """Performs in comparison, or not in if invert is 1."""
+        TOS1, TOS = self.vm.popn(2)
+        if invert:
+            self.vm.push(TOS1 not in TOS)
+        else:
+            self.vm.push(TOS1 in TOS)
         pass
 
     # Calls list.extend(TOS1[-i], TOS). Used to build lists.

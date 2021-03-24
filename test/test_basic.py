@@ -59,7 +59,7 @@ class TestBasic(vmtest.VmTestCase):
     def test_subscripting(self):
         self.self_checking()
 
-    if PYTHON_VERSION in (3.6, 3.7, 3.8):
+    if PYTHON_VERSION in (3.6, 3.7, 3.8, 3.9):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
 
