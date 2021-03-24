@@ -13,6 +13,7 @@ del ByteOp24.CONTINUE_LOOP
 del ByteOp24.SETUP_LOOP
 del ByteOp24.SETUP_EXCEPT
 
+
 class ByteOp38(ByteOp37):
     def __init__(self, vm):
         super(ByteOp38, self).__init__(vm)
@@ -32,7 +33,6 @@ class ByteOp38(ByteOp37):
     #   `name` (a str) below because the lookup on co_names[namei] has
     #   already been performed in parse_byte_and_args().
     ##############################################################################
-
 
     def BEGIN_FINALLY(self):
         """Pushes NULL onto the stack for using it in END_FINALLY, POP_FINALLY, WITH_CLEANUP_START and WITH_CLEANUP_FINISH. Starts the finally block.
@@ -69,7 +69,7 @@ class ByteOp38(ByteOp37):
         """
         raise self.vm.PyVMError("END_FINALLY not implemented yet")
 
-    def CALL_FINALLY(self):
+    def CALL_FINALLY(self, delta):
         """Pushes the address of the next instruction onto the stack and
         increments bytecode counter by delta. Used for calling the
         finally block as a “subroutine
