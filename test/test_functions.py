@@ -50,63 +50,59 @@ class TestFunctions(vmtest.VmTestCase):
             def test_yield_from_tuple(self):
                 self.self_checking()
 
-    if PYTHON_VERSION >= 3.6:
-        print("Test not gone over yet for >= 3.6")
-    else:
+    def test_functions(self):
+        self.assert_ok(
+            """\
+            def fn(a, b=17, c="Hello", d=[]):
+                d.append(99)
+                print(a, b, c, d)
+            fn(1)
+            fn(2, 3)
+            fn(3, c="Bye")
+            fn(4, d=["What?"])
+            fn(5, "b", "c")
+            """
+        )
 
-        def test_functions(self):
-            self.assert_ok(
-                """\
-                def fn(a, b=17, c="Hello", d=[]):
-                    d.append(99)
-                    print(a, b, c, d)
-                fn(1)
-                fn(2, 3)
-                fn(3, c="Bye")
-                fn(4, d=["What?"])
-                fn(5, "b", "c")
-                """
-            )
-
-        def test_nested_names(self):
-            self.assert_ok(
-                """\
-                def one():
-                    x = 1
-                    def two():
-                        x = 2
-                        print(x)
-                    two()
+    def test_nested_names(self):
+        self.assert_ok(
+            """\
+            def one():
+                x = 1
+                def two():
+                    x = 2
                     print(x)
-                one()
-                """
-            )
+                two()
+                print(x)
+            one()
+            """
+        )
 
-        def test_defining_functions_with_args_kwargs(self):
-            self.do_one()
+    def test_defining_functions_with_args_kwargs(self):
+        self.do_one()
 
-        def test_defining_functions_with_empty_args_kwargs(self):
-            self.assert_ok(
-                """\
-                def fn(*args):
-                    print("args is %r" % (args,))
-                fn()
-                """
-            )
-            self.assert_ok(
-                """\
-                def fn(**kwargs):
-                    print("kwargs is %r" % (kwargs,))
-                fn()
-                """
-            )
-            self.assert_ok(
-                """\
-                def fn(*args, **kwargs):
-                    print("args is %r, kwargs is %r" % (args, kwargs))
-                fn()
-                """
-            )
+    def test_defining_functions_with_empty_args_kwargs(self):
+        self.assert_ok(
+            """\
+            def fn(*args):
+                print("args is %r" % (args,))
+            fn()
+            """
+        )
+        self.assert_ok(
+            """\
+            def fn(**kwargs):
+                print("kwargs is %r" % (kwargs,))
+            fn()
+            """
+        )
+        self.assert_ok(
+            """\
+            def fn(*args, **kwargs):
+                print("args is %r, kwargs is %r" % (args, kwargs))
+            fn()
+            """
+        )
 
 
 class TestClosures(vmtest.VmTestCase):
