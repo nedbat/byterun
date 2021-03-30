@@ -58,9 +58,9 @@ class ByteOp39(ByteOp38):
         """Performs is comparison, or is not if invert is 1."""
         TOS1, TOS = self.vm.popn(2)
         if invert:
-            self.vm.push(TOS1 is TOS)
-        else:
             self.vm.push(TOS1 is not TOS)
+        else:
+            self.vm.push(TOS1 is TOS)
         pass
 
     def JUMP_IF_NOT_EXC_MATCH(self):
@@ -75,15 +75,15 @@ class ByteOp39(ByteOp38):
             self.vm.push(TOS1 in TOS)
         pass
 
-    # Calls list.extend(TOS1[-i], TOS). Used to build lists.
     def LIST_EXTEND(self, i):
-        # NOT QUITE RIGHT
+        """Calls list.extend(TOS1[-i], TOS). Used to build lists."""
         TOS1, TOS = self.vm.popn(2)
         if len(TOS1):
             list.extend(TOS1[-i], TOS)
         else:
             # assert i == 0
-            TOS1 = [TOS]
+            TOS1 = list(TOS)
+        self.vm.push(TOS1)
 
     def SET_UPDATE(self):
         pass
