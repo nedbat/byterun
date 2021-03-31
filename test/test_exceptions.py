@@ -22,6 +22,11 @@ class TestExceptions(vmtest.VmTestCase):
         def test_exception_match(self):
             self.self_checking()
 
+    if PYTHON_VERSION < 3.9:
+
+        def test_catching_exceptions(self):
+            self.self_checking()
+
     def test_raise_exception(self):
         self.assert_ok("raise Exception('oops')", raises=Exception)
 
@@ -31,39 +36,6 @@ class TestExceptions(vmtest.VmTestCase):
     if PYTHON_VERSION >= 3.6:
         print("Test not gone over yet for >= 3.6")
     else:
-
-        def test_catching_exceptions(self):
-            # Catch the exception precisely
-            self.assert_ok(
-                """\
-                try:
-                    [][1]
-                    print("Shouldn't be here...")
-                except IndexError:
-                    print("caught it!")
-                """
-            )
-            # Catch the exception by a parent class
-            self.assert_ok(
-                """\
-                try:
-                    [][1]
-                    print("Shouldn't be here...")
-                except Exception:
-                    print("caught it!")
-                """
-            )
-            # Catch all exceptions
-            self.assert_ok(
-                """\
-                try:
-                    [][1]
-                    print("Shouldn't be here...")
-                except:
-                    print("caught it!")
-                """
-            )
-
         if PY2:
 
             def test_raise_exception_2args(self):

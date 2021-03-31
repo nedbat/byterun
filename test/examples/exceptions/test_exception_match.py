@@ -1,4 +1,4 @@
-# Tests COMPARE_OP execption_match
+# Tests COMPARE_OP exception_match
 
 # Adapted from 2.7.18 test_grammar.py
 
@@ -23,7 +23,7 @@ try:
 except AssertionError as e:
     assert e.args[0] == "msg"
 else:
-    assert False,"AssertionError not raised by assert 0"
+    assert False, "AssertionError not raised by assert 0"
 
 # Bug in 2.7 was not setting traceback error, "e" == AssertError()
 # in byteop RAISE_VARARGS 1
