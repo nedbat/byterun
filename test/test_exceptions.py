@@ -33,6 +33,9 @@ class TestExceptions(vmtest.VmTestCase):
     def test_raise_exception_class(self):
         self.assert_ok("raise ValueError", raises=ValueError)
 
+    def test_coverage_issue_92(self):
+        self.assert_ok("raise ValueError", raises=ValueError)
+
     if PYTHON_VERSION >= 3.6:
         print("Test not gone over yet for >= 3.6")
     else:
@@ -158,22 +161,6 @@ class TestExceptions(vmtest.VmTestCase):
                 print("Done")
                 """,
                 raises=ValueError,
-            )
-
-        def test_coverage_issue_92(self):
-            self.assert_ok(
-                """\
-                l = []
-                for i in range(3):
-                    try:
-                        l.append(i)
-                    finally:
-                        l.append('f')
-                    l.append('e')
-                l.append('r')
-                print(l)
-                assert l == [0, 'f', 'e', 1, 'f', 'e', 2, 'f', 'e', 'r']
-                """
             )
 
 
