@@ -4,6 +4,7 @@
 # This file should define a variable __version__ which we use as the
 # debugger version number.
 
+# fmt: off
 __version__="1.3.5.dev0"  # noqa
 
 # The below has extra commas for POSIX shell's taste, but that's okay
