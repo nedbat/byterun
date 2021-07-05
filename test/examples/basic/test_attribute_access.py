@@ -4,10 +4,14 @@
 
 """This program is self-checking!"""
 
+
 class Thing(object):
     z = 17
+
     def __init__(self):
         self.x = 23
+
+
 t = Thing()
 
 assert Thing.z == 17

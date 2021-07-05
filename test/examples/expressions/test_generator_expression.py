@@ -9,10 +9,15 @@ assert x == "0-1-2-3-4"
 # broken:
 
 from textwrap import fill
-x = set(['test_str'])
+
+x = set(["test_str"])
 width = 70
 indent = 4
-blanks = ' ' * indent
-res = fill(' '.join(str(elt) for elt in sorted(x)), width,
-            initial_indent=blanks, subsequent_indent=blanks)
+blanks = " " * indent
+res = fill(
+    " ".join(str(elt) for elt in sorted(x)),
+    width,
+    initial_indent=blanks,
+    subsequent_indent=blanks,
+)
 assert res == (" " * indent) + "test_str"

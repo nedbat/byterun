@@ -11,7 +11,6 @@ except ImportError:
 
 
 class TestStmts(vmtest.VmTestCase):
-
     def test_for_loop(self):
         self.self_checking()
 
@@ -23,6 +22,7 @@ class TestStmts(vmtest.VmTestCase):
 
     def test_exec(self):
         self.self_checking()
+
 
 if __name__ == "__main__":
     # import unittest

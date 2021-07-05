@@ -2,19 +2,19 @@
 l = list(range(6))
 
 l[2:5] = ["x"]
-assert l == [0, 1, 'x', 5]
+assert l == [0, 1, "x", 5]
 
 l = list(range(7))
 l[:5] = ["x"]
-assert l == ['x', 5, 6]
+assert l == ["x", 5, 6]
 
 l = list(range(6))
 l[2:] = ["x"]
-assert l == [0, 1, 'x']
+assert l == [0, 1, "x"]
 
 l = list(range(6))
 l[:] = ["x"]
-assert l == ['x']
+assert l == ["x"]
 
 # Test slice deletion
 

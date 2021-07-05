@@ -17,7 +17,6 @@ from xdis import PYTHON_VERSION
 COMPATABILITY_MATRIX = {
     2.7: (2.6, 2.5, 2.4),
     3.2: (),
-
     # FIXME:
     # 3.5, 3.4, 3.3 -> 3.{3,2}
     # 3.2 -> 2.7
@@ -27,19 +26,16 @@ COMPATABILITY_MATRIX = {
     # (lambda data, width=w: pack(width, data))
     # File "examples/functions/test_closures.py", line 0, in pack
     # TypeError: sequence item 0: expected str instance, bytes found
-
     # TODO: work on these. The list is not too large
     # Fails on 3.4 with:
     # File "examples/with/test_at_context_manager_complete.py", line 6, in <module>
     # NameError: global name '_too_many' is not defined
     3.3: (3.2,),
-
     # Handling 3.6+ may change as we get async operators implemented,
     # but for now we're good for what we have.
     3.4: (3.7, 3.6, 3.5, 3.3, 3.2),
     3.5: (3.7, 3.6, 3.4, 3.3, 3.2),
     3.6: (3.7, 3.5, 3.4, 3.3, 3.2),
-
     3.7: (3.6, 3.5, 3.4, 3.3, 3.2),
 }
 
@@ -54,12 +50,16 @@ COMPATABILITY_MATRIX = {
 #    be use duck typing.
 
 STARS = "*" * 10
+
+
 class TestCompat(vmtest.VmTestCase):
 
     if not os.environ.get("SKIP_COMPAT", False):
+
         def test_cross_version_compatablity(self):
             compatible_versions = COMPATABILITY_MATRIX.get(PYTHON_VERSION, ())
             import logging
+
             logging.basicConfig(level=logging.WARN)
             for version in compatible_versions:
                 print("%s%s%s" % (STARS, version, STARS))
@@ -68,8 +68,10 @@ class TestCompat(vmtest.VmTestCase):
                     # print(bytecode_file, version)
                     self.assert_runs_ok(bytecode_file, arg_type="bytecode-file")
 
+
 if __name__ == "__main__":
     import unittest
+
     unittest.main()
 
     # t = TestCompat("test_cross_version_compatablity")

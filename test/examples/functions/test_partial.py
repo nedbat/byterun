@@ -3,8 +3,10 @@
 
 from _functools import partial
 
-def f(a,b):
-    return a-b
+
+def f(a, b):
+    return a - b
+
 
 f7 = partial(f, 7)
 four = f7(3)

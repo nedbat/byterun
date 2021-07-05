@@ -72,9 +72,15 @@ class VmTestCase(unittest.TestCase):
         """Run `code` in our VM and in real Python: they behave the same."""
 
         if arg_type == "bytecode-file":
-            self.version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(
-                path_or_code
-            )
+            (
+                self.version,
+                timestamp,
+                magic_int,
+                code,
+                pypy,
+                source_size,
+                sip_hash,
+            ) = load_module(path_or_code)
         else:
             self.version = PYTHON_VERSION
             if arg_type == "source":
@@ -153,9 +159,15 @@ class VmTestCase(unittest.TestCase):
         """Run `code` in our VM."""
 
         if arg_type == "bytecode-file":
-            self.version, timestamp, magic_int, code, pypy, source_size, sip_hash = load_module(
-                path_or_code
-            )
+            (
+                self.version,
+                timestamp,
+                magic_int,
+                code,
+                pypy,
+                source_size,
+                sip_hash,
+            ) = load_module(path_or_code)
         else:
             self.version = PYTHON_VERSION
             if arg_type == "source":

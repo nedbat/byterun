@@ -1,6 +1,6 @@
 # from stdlib: test/test_augassign.py
-x = [1,2]
-x += [3,4]
+x = [1, 2]
+x += [3, 4]
 x *= 2
 
 assert x == [1, 2, 3, 4, 1, 2, 3, 4]

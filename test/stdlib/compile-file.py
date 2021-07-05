@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """byte compiles a Python program after version 2.2 or so. Also see compile_file_1x.py"""
 import sys
+
 if len(sys.argv) != 2:
     print("Usage: compile-file.py *python-file*")
     sys.exit(1)
 source = sys.argv[1]
 
-assert source.endswith('.py')
+assert source.endswith(".py")
 basename = source[:-3]
 
 # We do this crazy way to support Python 2.6 which
@@ -18,6 +19,7 @@ PY_VERSION = sys.version_info[0] + (sys.version_info[1] / 10.0)
 bytecode = "%s.pyc" % (basename)
 
 import py_compile
+
 print("compiling %s to %s" % (source, bytecode))
 py_compile.compile(source, bytecode, source)
 # import os

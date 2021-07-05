@@ -21,13 +21,17 @@ assert "z" >= "a" and "z" >= "z"
 # test JUMP_IF_TRUE_OR_POP
 def f(a, b):
     return a or b
+
+
 assert f(17, 0) == 17
 assert f(0, 23) == 23
 assert f(0, "") == ""
 
 # test jUMP_IF_FALSE_OR_POP
 def f1(a, b):
-    return not(a and b)
+    return not (a and b)
+
+
 assert f1(17, 0) is True
 assert f1(0, 23) is True
 assert f1(0, "") is True
@@ -36,8 +40,10 @@ assert f1(17, 23) is False
 # test POP_JUMP_IF_TRUE:
 def f2(a):
     if not a:
-        return 'foo'
+        return "foo"
     else:
-        return 'bar'
-assert f2(0) == 'foo'
-assert f2(1) == 'bar'
+        return "bar"
+
+
+assert f2(0) == "foo"
+assert f2(1) == "bar"

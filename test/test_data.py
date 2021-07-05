@@ -11,7 +11,6 @@ from xdis import PYTHON_VERSION
 
 
 class TestData(vmtest.VmTestCase):
-
     def test_constant(self):
         self.do_one()
 

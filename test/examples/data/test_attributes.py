@@ -10,7 +10,7 @@
 
 """This program is self-checking!"""
 
-l = lambda: 1   # Just to have an object...
+l = lambda: 1  # Just to have an object...
 l.foo = 17
 assert hasattr(l, "foo")
 assert l.foo == 17

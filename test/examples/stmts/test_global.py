@@ -8,12 +8,14 @@
 """This program is self-checking!"""
 
 global xyz
-xyz=2106
+xyz = 2106
+
 
 def abc():
     global xyz
-    xyz+=1
+    xyz += 1
     assert xyz == 2107, "Midst failed"
+
 
 assert xyz == 2106, "Pre failed"
 abc()

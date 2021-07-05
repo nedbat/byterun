@@ -3,6 +3,7 @@
 # Compare with test_raise_in_context_manager.py
 """This program is self-checking!"""
 
+
 class SuppressingContext(object):
     def __enter__(self):
         l.append("i")

@@ -8,7 +8,7 @@
 
 """This program is self-checking!"""
 
-digest_cons = lambda d=b'': 5
+digest_cons = lambda d=b"": 5
 
 # Handle single keyword-only arg
 x = lambda *, d=0: d
