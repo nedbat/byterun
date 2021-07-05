@@ -8,7 +8,7 @@ from xpython.byteop.byteop27 import ByteOp27
 from xpython.byteop.byteop24 import ByteOp24
 from xpython.pyobj import Function
 
-# FIXME: investigate does "del" removing and attribute here
+# FIXME: investigate does "del" remove an attribute here?
 # have an effect on what another module sees as ByteOp27's attributes?
 
 # Gone since 3.0
