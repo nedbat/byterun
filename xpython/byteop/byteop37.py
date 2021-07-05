@@ -13,6 +13,7 @@ del ByteOp36.STORE_ANNOTATION
 # del ByteOp36.SETUP_WITH
 # del ByteOp36.SETUP_ASYNC_WITH
 
+
 class ByteOp37(ByteOp36):
     def __init__(self, vm):
         super(ByteOp37, self).__init__(vm)

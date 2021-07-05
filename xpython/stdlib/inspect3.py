@@ -46,10 +46,17 @@ else:
             tail = ", {} and {}".format(*names[-2:])
             del names[-2:]
             s = ", ".join(names) + tail
-        raise TypeError("%s() missing %i required %s argument%s: %s" %
-                        (f_name, missing,
-                          "positional" if pos else "keyword-only",
-                          "" if missing == 1 else "s", s))
+        raise TypeError(
+            "%s() missing %i required %s argument%s: %s"
+            % (
+                f_name,
+                missing,
+                "positional" if pos else "keyword-only",
+                "" if missing == 1 else "s",
+                s,
+            )
+        )
+
     def _too_many(f_name, args, kwonly, varargs, defcount, given, values):
         atleast = len(args) - defcount
         kwonly_given = len([arg for arg in kwonly if arg in values])
@@ -65,39 +72,54 @@ else:
         kwonly_sig = ""
         if kwonly_given:
             msg = " positional argument%s (and %d keyword-only argument%s)"
-            kwonly_sig = (msg % ("s" if given != 1 else "", kwonly_given,
-                                 "s" if kwonly_given != 1 else ""))
-        raise TypeError("%s() takes %s positional argument%s but %d%s %s given" %
-                (f_name, sig, "s" if plural else "", given, kwonly_sig,
-                 "was" if given == 1 and not kwonly_given else "were"))
+            kwonly_sig = msg % (
+                "s" if given != 1 else "",
+                kwonly_given,
+                "s" if kwonly_given != 1 else "",
+            )
+        raise TypeError(
+            "%s() takes %s positional argument%s but %d%s %s given"
+            % (
+                f_name,
+                sig,
+                "s" if plural else "",
+                given,
+                kwonly_sig,
+                "was" if given == 1 and not kwonly_given else "were",
+            )
+        )
 
     pass
+
 
 def isgeneratorfunction(object):
     """Return true if the object is a user-defined generator function.
 
     Generator function objects provide the same attributes as functions.
     See help(isfunction) for a list of attributes."""
-    return bool(isGenerator(object) and
-                 object.gi_code.co_flags & CO_GENERATOR)
+    return bool(isGenerator(object) and object.gi_code.co_flags & CO_GENERATOR)
+
 
 def iscoroutinefunction(object):
     """Return true if the object is a coroutine function.
 
     Coroutine functions are defined with "async def" syntax.
     """
-    return bool((isFunction(object) or ismethod(object)) and
-                object.__code__.co_flags & CO_COROUTINE)
-
+    return bool(
+        (isFunction(object) or ismethod(object))
+        and object.__code__.co_flags & CO_COROUTINE
+    )
 
 
 # Not Python's 3.2 and before inspect.py
 class _empty:
     """Marker object for Signature.empty and Parameter.empty."""
+
     pass
 
+
 class MyParameter(Parameter):
-    '''Represents a parameter in a function signature.
+    """Represents a parameter in a function signature.
 
     Has the following public attributes:
 
@@ -116,35 +138,38 @@ class MyParameter(Parameter):
         Possible values: `Parameter.POSITIONAL_ONLY`,
         `Parameter.POSITIONAL_OR_KEYWORD`, `Parameter.VAR_POSITIONAL`,
         `Parameter.KEYWORD_ONLY`, `Parameter.VAR_KEYWORD`.
-    '''
+    """
 
     def __init__(self, name, kind, default=_empty, annotation=_empty):
 
-        if kind not in (POSITIONAL_ONLY, POSITIONAL_OR_KEYWORD,
-                        VAR_POSITIONAL, KEYWORD_ONLY, VAR_KEYWORD):
+        if kind not in (
+            POSITIONAL_ONLY,
+            POSITIONAL_OR_KEYWORD,
+            VAR_POSITIONAL,
+            KEYWORD_ONLY,
+            VAR_KEYWORD,
+        ):
             raise ValueError("invalid value for 'Parameter.kind' attribute")
         self._kind = kind
 
         if default is not _empty:
             if kind in (VAR_POSITIONAL, VAR_KEYWORD):
-                msg = '{} parameters cannot have default values'.format(kind)
+                msg = "{} parameters cannot have default values".format(kind)
                 raise ValueError(msg)
         self._default = default
         self._annotation = annotation
         self.empty = _empty
 
         if name is _empty:
-            raise ValueError('name is a required attribute for Parameter')
+            raise ValueError("name is a required attribute for Parameter")
 
         if not isinstance(name, str):
             raise TypeError("name must be a str, not a {!r}".format(name))
 
-
         if not (name.isidentifier() or name == ".0"):
-            raise ValueError('{!r} is not a valid parameter name'.format(name))
+            raise ValueError("{!r} is not a valid parameter name".format(name))
 
         self._name = name
-
 
 
 # from _ParameterKind without the enum that doesn't work on older Pythons
@@ -154,6 +179,7 @@ VAR_POSITIONAL = 2
 KEYWORD_ONLY = 3
 VAR_KEYWORD = 4
 
+
 def isFunction(obj):
     return (
         hasattr(obj, "__name__")
@@ -161,6 +187,7 @@ def isFunction(obj):
         and hasattr(obj, "__module__")
         and type(obj).__module__ == "xpython.pyobj"
     )
+
 
 def isGenerator(obj):
     return (
@@ -170,7 +197,6 @@ def isGenerator(obj):
         and hasattr(obj, "gi_code")
         and hasattr(obj, "gi_running")
     )
-
 
 
 # A replacement for builtint callable().
@@ -322,7 +348,7 @@ def getfullargspec(func):
         # But, it can also raise AttributeError, and, maybe something
         # else. So to be fully backwards compatible, we catch all
         # possible exceptions here, and reraise a TypeError.
-        raise TypeError("unsupported callable") # from ex
+        raise TypeError("unsupported callable")  # from ex
 
     args = []
     varargs = None
@@ -381,7 +407,7 @@ def _signature_from_function(cls, func):
         else:
             # If it's not a pure Python function, and not a duck type
             # of pure function:
-            raise TypeError('%r is not a Python function' % func)
+            raise TypeError("%r is not a Python function" % func)
 
     # parameter_class = cls._parameter_cls
     # if parameter_class != InspectParameter:
@@ -396,7 +422,7 @@ def _signature_from_function(cls, func):
         keyword_only_count = func_code.co_kwonlyargcount
     else:
         keyword_only_count = 0
-    keyword_only = arg_names[pos_count:(pos_count + keyword_only_count)]
+    keyword_only = arg_names[pos_count : (pos_count + keyword_only_count)]
     if hasattr(func_code, "__annotations__"):
         annotations = func.__annotations__
     else:
@@ -418,22 +444,27 @@ def _signature_from_function(cls, func):
     non_default_count = pos_count - pos_default_count
     for name in positional[:non_default_count]:
         annotation = annotations.get(name, _empty)
-        parameters.append(MyParameter(name, annotation=annotation,
-                                    kind=POSITIONAL_OR_KEYWORD))
+        parameters.append(
+            MyParameter(name, annotation=annotation, kind=POSITIONAL_OR_KEYWORD)
+        )
 
     # ... w/ defaults.
     for offset, name in enumerate(positional[non_default_count:]):
         annotation = annotations.get(name, _empty)
-        parameters.append(MyParameter(name, annotation=annotation,
-                                    kind=POSITIONAL_OR_KEYWORD,
-                                    default=defaults[offset]))
+        parameters.append(
+            MyParameter(
+                name,
+                annotation=annotation,
+                kind=POSITIONAL_OR_KEYWORD,
+                default=defaults[offset],
+            )
+        )
 
     # *args
     if func_code.co_flags & COMPILER_FLAG_BIT["VARARGS"]:
         name = arg_names[pos_count + keyword_only_count]
         annotation = annotations.get(name, _empty)
-        parameters.append(MyParameter(name, annotation=annotation,
-                                      kind=VAR_POSITIONAL))
+        parameters.append(MyParameter(name, annotation=annotation, kind=VAR_POSITIONAL))
 
     # Keyword-only parameters.
     for name in keyword_only:
@@ -442,9 +473,9 @@ def _signature_from_function(cls, func):
             default = kwdefaults.get(name, _empty)
 
         annotation = annotations.get(name, _empty)
-        parameters.append(MyParameter(name, annotation=annotation,
-                                    kind=KEYWORD_ONLY,
-                                    default=default))
+        parameters.append(
+            MyParameter(name, annotation=annotation, kind=KEYWORD_ONLY, default=default)
+        )
     # **kwargs
     if func_code.co_flags & COMPILER_FLAG_BIT["VARKEYWORDS"]:
         index = pos_count + keyword_only_count
@@ -453,14 +484,15 @@ def _signature_from_function(cls, func):
 
         name = arg_names[index]
         annotation = annotations.get(name, _empty)
-        parameters.append(MyParameter(name, annotation=annotation,
-                                      kind=VAR_KEYWORD))
+        parameters.append(MyParameter(name, annotation=annotation, kind=VAR_KEYWORD))
 
     # Is 'func' is a pure Python function - don't validate the
     # parameters list (for correct order and defaults), it should be OK.
-    return cls(parameters,
-               return_annotation=annotations.get('return', _empty),
-               __validate_parameters__=is_duck_function)
+    return cls(
+        parameters,
+        return_annotation=annotations.get("return", _empty),
+        __validate_parameters__=is_duck_function,
+    )
 
 
 def _signature_from_callable(
@@ -632,9 +664,7 @@ def _signature_from_callable(
                     # Return a signature of 'object' builtin.
                     return signature(object)
                 else:
-                    raise ValueError(
-                        "no signature found for builtin type %r" % obj
-                    )
+                    raise ValueError("no signature found for builtin type %r" % obj)
 
     elif not isinstance(obj, _NonUserDefinedCallables):
         # An object with __call__
@@ -652,7 +682,7 @@ def _signature_from_callable(
                 )
             except ValueError:
                 msg = "no signature found for %r" % obj
-                raise ValueError(msg) # from ex
+                raise ValueError(msg)  # from ex
 
     if sig is not None:
         # For classes and objects we skip the first parameter of their
@@ -669,8 +699,9 @@ def _signature_from_callable(
 
     raise ValueError("callable %r is not supported by signature" % obj)
 
+
 def _main():
-    """ Logic for inspecting an object given at command line """
+    """Logic for inspecting an object given at command line"""
     import argparse
     import importlib
 

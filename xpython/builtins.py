@@ -100,6 +100,7 @@ def build_class(opc, func, name, *bases, **kwds):
         #     class G(Generic[T]):
         #        pass
         import types
+
         cls = types.new_class(name, bases, kwds, exec_body=lambda ns: namespace)
         pass
 

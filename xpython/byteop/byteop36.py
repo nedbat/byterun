@@ -19,23 +19,21 @@ del ByteOp24.CALL_FUNCTION_VAR_KW
 MAKE_FUNCTION_SLOT_NAMES = ("closure", "annotations", "kwdefaults", "defaults")
 MAKE_FUNCTION_SLOTS = len(MAKE_FUNCTION_SLOT_NAMES)
 
+
 def identity(x):
     return x
 
 
-FSTRING_CONVERSION_MAP = {
-    0: identity,
-    1: str,
-    2: repr,
-}
+FSTRING_CONVERSION_MAP = {0: identity, 1: str, 2: repr}
 
 if PYTHON_VERSION > 2.7:
     FSTRING_CONVERSION_MAP[3] = ascii
 
 # Code with these co_names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(
-    ("<setcomp>", "<dictcomp>", "<genexpr>", "<listcomp>",)
+    ("<setcomp>", "<dictcomp>", "<genexpr>", "<listcomp>")
 )
+
 
 def fmt_call_function(vm, argc, repr=repr):
     """
@@ -49,6 +47,7 @@ def fmt_call_function(vm, argc, repr=repr):
     # Nothing found.
     return ""
 
+
 def fmt_call_function_kw(vm, argc, repr=repr):
     """
     returns the name of the function from the code object in the stack
@@ -56,6 +55,7 @@ def fmt_call_function_kw(vm, argc, repr=repr):
     namedargs_tup = vm.top()
     func = vm.peek(argc + 2)
     return " (keyword: %s, function: %s)" % (namedargs_tup, func)
+
 
 class ByteOp36(ByteOp35):
     def __init__(self, vm):
@@ -159,7 +159,9 @@ class ByteOp36(ByteOp35):
             "closure": tuple(),
         }
         assert 0 <= argc < (1 << MAKE_FUNCTION_SLOTS)
-        have_param = list(reversed([True if 1 << i & argc else False for i in range(4)]))
+        have_param = list(
+            reversed([True if 1 << i & argc else False for i in range(4)])
+        )
         for i in range(MAKE_FUNCTION_SLOTS):
             if have_param[i]:
                 slot[MAKE_FUNCTION_SLOT_NAMES[i]] = self.vm.pop()
@@ -168,7 +170,11 @@ class ByteOp36(ByteOp35):
 
         globs = self.vm.frame.f_globals
 
-        if not inspect.iscode(code) and hasattr(code, "to_native") and self.version == PYTHON_VERSION:
+        if (
+            not inspect.iscode(code)
+            and hasattr(code, "to_native")
+            and self.version == PYTHON_VERSION
+        ):
             code = code.to_native()
 
         fn_vm = Function(
@@ -221,7 +227,7 @@ class ByteOp36(ByteOp35):
         if flags & 0x04 == 0x04:
             format_spec = self.vm.pop()
         else:
-            format_spec = ''
+            format_spec = ""
 
         value = self.vm.pop()
         attr_flags = flags & 0x03

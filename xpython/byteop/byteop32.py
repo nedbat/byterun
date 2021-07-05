@@ -24,6 +24,7 @@ del ByteOp24.RAISE_VARARGS
 # Gone since 3.2
 del ByteOp24.DUP_TOPX
 
+
 def fmt_make_function(vm, arg=None, repr=repr):
     """
     returns the name of the function from the code object in the stack

@@ -12,11 +12,18 @@ from xpython.byteop.byteop26 import ByteOp26
 del ByteOp24.JUMP_IF_FALSE
 del ByteOp24.JUMP_IF_TRUE
 
+
 def fmt_set_add(vm, arg, repr=repr):
     return " set.add(%s, %s)" % (repr(vm.peek(arg)), repr(vm.top()))
 
+
 def fmt_map_add(vm, arg, repr=repr):
-    return " dict.setitem(%s, %s, %s)" % (repr(vm.peek(arg)), repr(vm.top()), repr(vm.peek(2)))
+    return " dict.setitem(%s, %s, %s)" % (
+        repr(vm.peek(arg)),
+        repr(vm.top()),
+        repr(vm.peek(2)),
+    )
+
 
 class ByteOp27(ByteOp26):
     def __init__(self, vm):
@@ -37,7 +44,9 @@ class ByteOp27(ByteOp26):
                     break
                 pass
             else:
-                raise self.vm.PyVMError("Can't find method function attribute; tried '__func__' and '_im_func'")
+                raise self.vm.PyVMError(
+                    "Can't find method function attribute; tried '__func__' and '_im_func'"
+                )
             pass
 
         try:
@@ -96,15 +105,21 @@ class ByteOp27(ByteOp26):
         # Make sure __enter__ and __exit__ functions in context_manager are
         # converted to our Function type so we can interpret them.
         # Note though that built-in functions can't be traced.
-        if self.version == PYTHON_VERSION and not inspect.isbuiltin(context_manager.__exit__):
+        if self.version == PYTHON_VERSION and not inspect.isbuiltin(
+            context_manager.__exit__
+        ):
             try:
-                exit_method = self.convert_method_native_func(self.vm.frame, context_manager.__exit__)
+                exit_method = self.convert_method_native_func(
+                    self.vm.frame, context_manager.__exit__
+                )
             except:
                 exit_method = context_manager.__exit__
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)
-        if self.version == PYTHON_VERSION and not inspect.isbuiltin(context_manager.__enter__):
+        if self.version == PYTHON_VERSION and not inspect.isbuiltin(
+            context_manager.__enter__
+        ):
             self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
         finally_block = context_manager.__enter__()
         if self.version < 3.0:

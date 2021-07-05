@@ -9,6 +9,7 @@ from xpython.byteop.byteoppypy import ByteOpPyPy
 # del ByteOp25.JUMP_IF_FALSE
 # del ByteOp25.JUMP_IF_TRUE
 
+
 class ByteOp26PyPy(ByteOp26, ByteOpPyPy):
     def __init__(self, vm):
         super(ByteOp26PyPy, self).__init__(vm)

@@ -35,8 +35,7 @@ class ByteOp38(ByteOp37):
     ##############################################################################
 
     def BEGIN_FINALLY(self):
-        """Pushes NULL onto the stack for using it in END_FINALLY, POP_FINALLY, WITH_CLEANUP_START and WITH_CLEANUP_FINISH. Starts the finally block.
-        """
+        """Pushes NULL onto the stack for using it in END_FINALLY, POP_FINALLY, WITH_CLEANUP_START and WITH_CLEANUP_FINISH. Starts the finally block."""
         raise self.vm.PyVMError("BEGIN_FINALLY not implemented yet")
 
     def END_ASYNC_FOR(self):

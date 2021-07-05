@@ -173,7 +173,7 @@ class ByteOpBase(object):
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
                         "exec() builtin should have 1..3 positional arguments; got %d"
-                        % (len(pos_args,))
+                        % (len(pos_args))
                     )
                 n = len(pos_args)
                 assert 1 <= n <= 3
@@ -208,7 +208,7 @@ class ByteOpBase(object):
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
                         "eval() builtin should have 1..3 positional arguments; got %d"
-                        % (len(pos_args,))
+                        % (len(pos_args))
                     )
                 assert 1 <= len(pos_args) <= 3
                 # Use the frame's globals(), not the interpreter's
@@ -303,10 +303,7 @@ class ByteOpBase(object):
 
     def convert_native_to_Function(self, frame, func):
         assert inspect.isfunction(func) or isinstance(func, Function)
-        slots = {
-            "kwdefaults": {},
-            "annotations": {},
-        }
+        slots = {"kwdefaults": {}, "annotations": {}}
         if self.vm.version >= 3.0:
             slots["globs"] = frame.f_globals
             arg2attr = {

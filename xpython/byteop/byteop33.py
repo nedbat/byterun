@@ -43,5 +43,6 @@ class ByteOp33(ByteOp32):
     # conventions (which go back to Python 2.x days).
     # def MAKE_FUNCTION(self, argc):
 
+
 if __name__ == "__main__":
     x = ByteOp33(None)

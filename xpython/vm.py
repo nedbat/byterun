@@ -47,15 +47,18 @@ class PyVMError(Exception):
 
     pass
 
+
 class PyVMRuntimeError(Exception):
     """RuntimeError in operation of PyVM."""
+
     pass
 
 
 class PyVMUncaughtException(Exception):
     """Uncaught RuntimeError in operation of PyVM."""
+
     def __init__(self, name, args, traceback=None):
-        self.__name__ =  name
+        self.__name__ = name
         self.traceback = traceback
         self.args = args
 
@@ -76,8 +79,11 @@ class PyVMUncaughtException(Exception):
 
     @classmethod
     def from_tuple(cls, exception):
-        assert len(exception) == 3, "Expecting exception tuple to have 3 args: type, args, traceback"
+        assert (
+            len(exception) == 3
+        ), "Expecting exception tuple to have 3 args: type, args, traceback"
         return cls(*exception)
+
     pass
 
 
@@ -121,7 +127,7 @@ def format_instruction(
         if line_number is None
         else LINE_NUMBER_WIDTH_FMT % line_number
     )
-    mess = "%s%3d: %s%s %s" % (line_str, offset, byte_name, stack_args, argrepr,)
+    mess = "%s%3d: %s%s %s" % (line_str, offset, byte_name, stack_args, argrepr)
     if extra_debug and frame:
         mess += " %s in %s:%s" % (code.co_name, code.co_filename, frame.f_lineno)
     return mess
@@ -355,7 +361,9 @@ class PyVM(object):
                     if hasattr(le1, "args"):
                         tail = "\n".join(le1.args)
                     else:
-                        from trepan.api import debug; debug()
+                        from trepan.api import debug
+
+                        debug()
                 print(tail)
             raise
 
@@ -382,7 +390,7 @@ class PyVM(object):
             self.last_exception = exctype, value, tb
 
     def parse_byte_and_args(self, byte_code, replay=False):
-        """ Parse 1 - 3 bytes of bytecode into
+        """Parse 1 - 3 bytes of bytecode into
         an instruction and optionally arguments.
 
         Argument replay is used to handle breakpoints.
@@ -470,7 +478,7 @@ class PyVM(object):
         return byte_name, byte_code, int_arg, arguments, offset, line_number
 
     def log(self, byte_name, int_arg, arguments, offset, line_number):
-        """ Log arguments, block stack, and data stack for each opcode."""
+        """Log arguments, block stack, and data stack for each opcode."""
         op = self.format_instruction(
             self.frame,
             self.opc,
@@ -491,7 +499,7 @@ class PyVM(object):
         log.info("%s%s" % (indent, op))
 
     def dispatch(self, byte_name, int_arg, arguments, offset, line_number):
-        """ Dispatch by byte_name to the corresponding methods.
+        """Dispatch by byte_name to the corresponding methods.
         Exceptions are caught and set on the virtual machine."""
 
         why = None
@@ -561,7 +569,7 @@ class PyVM(object):
         return why
 
     def manage_block_stack(self, why):
-        """ Manage a frame's block stack.
+        """Manage a frame's block stack.
         Manipulate the block stack and data stack for looping,
         exception handling, or returning."""
         assert why != "yield"
@@ -711,7 +719,9 @@ class PyVM(object):
                 if isinstance(last_exception[2], Traceback):
                     if not self.frame:
                         if isinstance(last_exception, tuple):
-                            self.last_exception = PyVMUncaughtException.from_tuple(last_exception)
+                            self.last_exception = PyVMUncaughtException.from_tuple(
+                                last_exception
+                            )
                         raise self.last_exception
                 else:
                     six.reraise(*self.last_exception)

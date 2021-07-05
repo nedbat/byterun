@@ -5,6 +5,7 @@ Note: this is subclassed so later versions may use operations from here.
 """
 from xpython.byteop.byteop25 import ByteOp25
 
+
 class ByteOp26(ByteOp25):
     def __init__(self, vm):
         super(ByteOp26, self).__init__(vm)

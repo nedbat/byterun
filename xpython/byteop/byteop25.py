@@ -7,6 +7,7 @@ from __future__ import print_function, division
 
 from xpython.byteop.byteop24 import ByteOp24
 
+
 class ByteOp25(ByteOp24):
     def __init__(self, vm):
         super(ByteOp25, self).__init__(vm)

@@ -25,7 +25,7 @@ from xpython.vmtrace import PyVMEVENT_RETURN, PyVMEVENT_YIELD
 log = logging.getLogger(__name__)
 
 # Code with these names have an implicit .0 in them
-COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>",))
+COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>"))
 
 
 def get_cell_name(vm, i):
@@ -121,11 +121,13 @@ class ByteOp24(ByteOpBase):
             int_arg,
             arguments,
             opoffset,
-        line_number,
+            line_number,
         ) = vm.parse_byte_and_args(orig_opcode, replay=True)
 
         if vm.callback:
-            result = vm.callback("breakpoint", last_i, byte_name, byte_code, line_number, None, [], vm)
+            result = vm.callback(
+                "breakpoint", last_i, byte_name, byte_code, line_number, None, [], vm
+            )
 
             # FIXME: DRY with vmtrace code
             if result:
@@ -263,8 +265,7 @@ class ByteOp24(ByteOpBase):
         self.vm.push(self.vm.frame.f_locals)
 
     def RETURN_VALUE(self):
-        """Returns with TOS to the caller of the function.
-        """
+        """Returns with TOS to the caller of the function."""
         self.vm.return_value = self.vm.pop()
         if self.vm.frame.generator:
             self.vm.frame.generator.finished = True
@@ -500,9 +501,15 @@ class ByteOp24(ByteOpBase):
         frame = self.vm.frame
 
         if PYTHON_VERSION > 2.7:
-            self.vm.push(importlib.__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
+            self.vm.push(
+                importlib.__import__(
+                    name, frame.f_globals, frame.f_locals, fromlist, level
+                )
+            )
         else:
-            self.vm.push(__import__(name, frame.f_globals, frame.f_locals, fromlist, level))
+            self.vm.push(
+                __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+            )
 
     def IMPORT_FROM(self, name):
         """

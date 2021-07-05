@@ -260,8 +260,7 @@ def run_python_file(
 def run_python_string(
     source, args, package=None, callback=None, format_instruction=format_instruction
 ):
-    """Run a python string as if it were the main program on the command line.
-    """
+    """Run a python string as if it were the main program on the command line."""
     # Create a module to serve as __main__
     old_main_mod = sys.modules["__main__"]
     main_mod = imp.new_module("__main__")

@@ -8,11 +8,14 @@ import types
 from copy import copy
 from sys import stderr
 from xdis import CO_GENERATOR, CO_ITERABLE_COROUTINE, iscode, PYTHON3, PYTHON_VERSION
+
 if PYTHON_VERSION >= 3.4:
     from xpython.stdlib.types34 import _AsyncGeneratorWrapper
 else:
-    class _AsyncGeneratorWrapper():
+
+    class _AsyncGeneratorWrapper:
         pass
+
 
 import xpython.stdlib.inspect3 as inspect3
 import xpython.stdlib.inspect2 as inspect2
@@ -48,7 +51,7 @@ except:
 
 # Code with these names have an implicit .0 in them
 COMPREHENSION_FN_NAMES = frozenset(
-    ("<setcomp>", "<dictcomp>", "<listcomp>", "<genexpr>",)
+    ("<setcomp>", "<dictcomp>", "<listcomp>", "<genexpr>")
 )
 
 
@@ -144,10 +147,7 @@ class Function(object):
 
         self.func_globals = globs
         self.func_locals = vm.frame.f_locals
-        self.__dict__ = {
-            "version": vm.version,
-            "_vm": vm,
-        }
+        self.__dict__ = {"version": vm.version, "_vm": vm}
 
         self.__doc__ = (
             code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
@@ -190,9 +190,7 @@ class Function(object):
         # The intent in providing native functions is for use in type
         # testing, mostly. The functios should not be run, since that defeats our
         # ability to trace functions.
-        kw = {
-            "argdefs": self.func_defaults,
-        }
+        kw = {"argdefs": self.func_defaults}
         if closure:
             kw["closure"] = tuple(make_cell(0) for _ in closure)
 
@@ -559,11 +557,7 @@ class Generator(object):
 
 if __name__ == "__main__":
     frame = Frame(
-        traceback_from_frame.__code__,
-        globals(),
-        locals(),
-        None,
-        PYTHON_VERSION
+        traceback_from_frame.__code__, globals(), locals(), None, PYTHON_VERSION
     )
     print(frame)
 
