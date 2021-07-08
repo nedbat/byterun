@@ -36,7 +36,7 @@ class ByteOp38(ByteOp37):
 
     def BEGIN_FINALLY(self):
         """Pushes NULL onto the stack for using it in END_FINALLY, POP_FINALLY, WITH_CLEANUP_START and WITH_CLEANUP_FINISH. Starts the finally block."""
-        raise self.vm.PyVMError("BEGIN_FINALLY not implemented yet")
+        self.vm.push(None)
 
     def END_ASYNC_FOR(self):
         """Terminates an `async for1 loop. Handles an exception raised when
@@ -64,9 +64,26 @@ class ByteOp38(ByteOp37):
           the last three popped values are used to restore the
           exception state. An exception handler block is removed from
           the block stack.
-
         """
-        raise self.vm.PyVMError("END_FINALLY not implemented yet")
+        v = self.vm.pop()
+        if v is None:
+            why = None
+        elif isinstance(v, int):
+            # from trepan.api import debug; debug()
+            self.vm.jump(v)
+        elif issubclass(v, BaseException):
+            # from trepan.api import debug; debug()
+            exctype = v
+            val = self.vm.pop()
+            tb = self.vm.pop()
+            self.vm.last_exception = (exctype, val, tb)
+
+            raise self.vm.PyVMError("END_FINALLY not finished yet")
+            # FIXME: pop 3 more values
+            why = "reraise"
+        else:  # pragma: no cover
+            raise self.vm.PyVMError("Confused END_FINALLY")
+        return why
 
     def CALL_FINALLY(self, delta):
         """Pushes the address of the next instruction onto the stack and
@@ -76,7 +93,7 @@ class ByteOp38(ByteOp37):
 
         raise self.vm.PyVMError("CALL_FINALLY not implemented yet")
 
-    def POP_FINALLY(self):
+    def POP_FINALLY(self, preserve_tos):
         """Cleans up the value stack and the block stack. If preserve_tos is
         not 0 TOS first is popped from the stack and pushed on the stack after
         performing other stack operations:
@@ -91,7 +108,22 @@ class ByteOp38(ByteOp37):
         continue and return in the finally block.
 
         """
-        raise self.vm.PyVMError("POP not implemented yet")
+        v = self.vm.pop()
+        if v is None:
+            why = None
+        elif issubclass(v, BaseException):
+            # from trepan.api import debug; debug()
+            exctype = v
+            val = self.vm.pop()
+            tb = self.vm.pop()
+            self.vm.last_exception = (exctype, val, tb)
+
+            # FIXME: pop 3 more values
+            why = "reraise"
+            raise self.vm.PyVMError("POP_FINALLY not finished yet")
+        else:  # pragma: no cover
+            raise self.vm.PyVMError("Confused POP_FINALLY")
+        return why
 
     # Changed from 2.4: Map value is TOS and map key is TOS1. Before, those were reversed.
     def MAP_ADD(self, count):

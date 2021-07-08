@@ -69,7 +69,7 @@ class TestBasic(vmtest.VmTestCase):
 
         if PY2:
 
-            def test_inplace_division(self):
+            def test_inplace_division2(self):
                 self.assert_ok(
                     """\
                     x, y = 24, 3
@@ -84,8 +84,7 @@ class TestBasic(vmtest.VmTestCase):
 
         elif PYTHON3:
 
-            def test_inplace_division(self):
-                self.self_checking()
+            def test_inplace_division3(self):
                 self.assert_ok(
                     """\
                     x, y = 24, 3
