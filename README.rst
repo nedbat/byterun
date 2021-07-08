@@ -13,7 +13,7 @@ You can use this to:
 * Have one Python program that runs multiple versions of Python bytecode.
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
-The ability to run Python bytecode as far back as 2.4 from Python 3.8
+The ability to run Python bytecode as far back as 2.4 from Python 3.9
 I find pretty neat. (Even more could easily be added).
 
 Also, The sandboxed environment in a debugger I find
