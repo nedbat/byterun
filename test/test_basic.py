@@ -63,7 +63,7 @@ class TestBasic(vmtest.VmTestCase):
     def test_subscripting(self):
         self.self_checking()
 
-    if PYTHON_VERSION in (3.7, 3.8, 3.9):
+    if PYTHON_VERSION in (3.9,):
         print("Test not gone over yet for %s" % PYTHON_VERSION)
     else:
 
@@ -85,6 +85,7 @@ class TestBasic(vmtest.VmTestCase):
         elif PYTHON3:
 
             def test_inplace_division(self):
+                self.self_checking()
                 self.assert_ok(
                     """\
                     x, y = 24, 3
