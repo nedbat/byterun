@@ -88,10 +88,11 @@ class ByteOp38(ByteOp37):
     def CALL_FINALLY(self, delta):
         """Pushes the address of the next instruction onto the stack and
         increments bytecode counter by delta. Used for calling the
-        finally block as a “subroutine
+        finally block as a "subroutine".
         """
-
-        raise self.vm.PyVMError("CALL_FINALLY not implemented yet")
+        # Is it f_lasti or the one after that
+        self.vm.push(vm.frame.f_lasti)
+        self.vm.jump(delta)
 
     def POP_FINALLY(self, preserve_tos):
         """Cleans up the value stack and the block stack. If preserve_tos is
