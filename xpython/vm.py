@@ -557,6 +557,7 @@ class PyVM(object):
                                 offset,
                                 line_number,
                                 False,
+                                self,
                             )
                         )
                     )

@@ -85,11 +85,21 @@ class ByteOp39(ByteOp38):
             TOS1 = list(TOS)
         self.vm.push(TOS1)
 
-    def SET_UPDATE(self):
+    def SET_UPDATE(self, i):
+        """Calls set.update(TOS1[-i], TOS). Used to build sets."""
         pass
 
-    def DICT_MERGE(self):
-        pass
+    def DICT_MERGE(self, i):
+        """Like DICT_UPDATE but raises an exception for duplicate keys."""
+        TOS = self.vm.pop()
+        destination = self.vm.peek(i)
+        dups = set(destination.keys()) & set(TOS.keys())
+        if bool(dups):
+            raise RuntimeError("Duplicate keys '%s' in DICT_MERGE" % dups)
+        destination.update(TOS)
 
-    def DICT_UPDATE(self):
-        pass
+    def DICT_UPDATE(self, i):
+        """Calls dict.update(TOS1[-i], TOS). Used to build dicts."""
+        TOS = self.vm.pop()
+        destination = self.vm.peek(i)
+        destination.update(TOS)

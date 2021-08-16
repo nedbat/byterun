@@ -91,7 +91,7 @@ class ByteOp38(ByteOp37):
         finally block as a "subroutine".
         """
         # Is it f_lasti or the one after that
-        self.vm.push(vm.frame.f_lasti)
+        self.vm.push(self.vm.frame.f_lasti)
         self.vm.jump(delta)
 
     def POP_FINALLY(self, preserve_tos):
