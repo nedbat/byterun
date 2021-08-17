@@ -39,7 +39,7 @@ def fmt_call_function(vm, argc, repr=repr):
     """
     returns the name of the function from the code object in the stack
     """
-    TOS = vm.peek(argc + 1)
+    TOS = vm.access(argc)
     for attr in ("co_name", "func_name", "__name__"):
         if hasattr(TOS, attr):
             return " (%s)" % getattr(TOS, attr)
@@ -53,7 +53,7 @@ def fmt_call_function_kw(vm, argc, repr=repr):
     returns the name of the function from the code object in the stack
     """
     namedargs_tup = vm.top()
-    func = vm.peek(argc + 2)
+    func = vm.access(argc + 1)
     return " (keyword: %s, function: %s)" % (namedargs_tup, func)
 
 
@@ -224,6 +224,7 @@ class ByteOp36(ByteOp35):
         Formatting is performed using PyObject_Format(). The result is
         pushed on the stack.
         """
+        assert isinstance(flags, int)
         if flags & 0x04 == 0x04:
             format_spec = self.vm.pop()
         else:
@@ -265,6 +266,7 @@ class ByteOp36(ByteOp35):
         callable object with those arguments, and pushes the return
         value returned by the callable object.
         """
+        assert isinstance(flags, int)
         namedargs = self.vm.pop() if flags & 1 else {}
         posargs = self.vm.pop()
         func = self.vm.pop()
@@ -286,6 +288,7 @@ class ByteOp36(ByteOp35):
         values are consumed from the stack. The top element on the
         stack contains a tuple of keys.
         """
+        assert isinstance(count, int) and count >= 0
         values = self.vm.popn(count)
         self.vm.push("".join(values))
 
@@ -295,6 +298,7 @@ class ByteOp36(ByteOp35):
         call syntax. The stack item at position count + 1 should be the
         corresponding callable f.
         """
+        assert isinstance(count, int) and count >= 0
         parameter_tuples = self.vm.popn(count)
         parameters = [
             parameter for sublist in parameter_tuples for parameter in sublist

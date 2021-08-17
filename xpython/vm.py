@@ -183,9 +183,16 @@ class PyVM(object):
     ##############################################
     # Frame operations. First the frame stack....
     ##############################################
-    def top(self):
-        """Return the value at the top of the stack, with no changes."""
-        return self.frame.stack[-1]
+    def access(self, i=0):
+        """return object at position i.
+        Default to the top of the stack, but `i` can be a count from the top
+        instead.
+        """
+        return self.frame.stack[-1 - i]
+
+    def peek(self, n):
+        """Get a value `n` entries down in the stack, without changing the stack."""
+        return self.frame.stack[-n]
 
     def pop(self, i=0):
         """Pop a value from the stack.
@@ -195,10 +202,6 @@ class PyVM(object):
 
         """
         return self.frame.stack.pop(-1 - i)
-
-    def push(self, *vals):
-        """Push values onto the value stack."""
-        self.frame.stack.extend(vals)
 
     def popn(self, n):
         """Pop a number of values from the value stack.
@@ -213,20 +216,24 @@ class PyVM(object):
         else:
             return []
 
-    def peek(self, n):
-        """Get a value `n` entries down in the stack, without changing the stack."""
-        return self.frame.stack[-n]
+    def push(self, *vals):
+        """Push values onto the value stack."""
+        self.frame.stack.extend(vals)
+
+    def top(self):
+        """Return the value at the top of the stack, with no changes."""
+        return self.frame.stack[-1]
 
     # end of frame stack operations
     # onto frame block operations..
+
+    def pop_block(self):
+        return self.frame.block_stack.pop()
 
     def push_block(self, type, handler=None, level=None):
         if level is None:
             level = len(self.frame.stack)
         self.frame.block_stack.append(Block(type, handler, level))
-
-    def pop_block(self):
-        return self.frame.block_stack.pop()
 
     def top_block(self):
         return self.frame.block_stack[-1]
