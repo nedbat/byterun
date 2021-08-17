@@ -43,15 +43,19 @@ class ByteOp39(ByteOp38):
     ##############################################################################
 
     def RERAISE(self):
+        # FIXME
         pass
 
     def WITH_EXCEPT_START(self):
+        # FIXME
         pass
 
     def LOAD_ASSERTION_ERROR(self):
+        # FIXME
         pass
 
     def LIST_TO_TUPLE(self):
+        # FIXME
         pass
 
     def IS_OP(self, invert: int):
@@ -64,6 +68,7 @@ class ByteOp39(ByteOp38):
         pass
 
     def JUMP_IF_NOT_EXC_MATCH(self):
+        # FIXME
         pass
 
     def CONTAINS_OP(self, invert: int):

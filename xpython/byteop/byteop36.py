@@ -39,7 +39,7 @@ def fmt_call_function(vm, argc, repr=repr):
     """
     returns the name of the function from the code object in the stack
     """
-    TOS = vm.access(argc)
+    TOS = vm.peek(argc + 1)
     for attr in ("co_name", "func_name", "__name__"):
         if hasattr(TOS, attr):
             return " (%s)" % getattr(TOS, attr)
@@ -53,7 +53,7 @@ def fmt_call_function_kw(vm, argc, repr=repr):
     returns the name of the function from the code object in the stack
     """
     namedargs_tup = vm.top()
-    func = vm.access(argc + 1)
+    func = vm.peek(argc + 2)
     return " (keyword: %s, function: %s)" % (namedargs_tup, func)
 
 
