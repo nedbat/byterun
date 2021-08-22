@@ -22,7 +22,7 @@ for version in $PYENV_VERSIONS; do
     for file in bytecode-${first_two}/*.pyc; do
 	echo ======= $file ========
 	xpython "$file"
-o	echo ------- $file --------
+	echo ------- $file --------
     done
 done
 rm .python-version
