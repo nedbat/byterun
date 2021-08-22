@@ -8,12 +8,14 @@ from xdis import PYTHON_VERSION
 if PYTHON_VERSION > 2.7:
     import importlib
 
+from xpython.byteop.byteop import fmt_binary_op
 from xpython.byteop.byteop25 import ByteOp25
 
 
 class ByteOp26(ByteOp25):
     def __init__(self, vm):
         super(ByteOp26, self).__init__(vm)
+        self.stack_fmt["IMPORT_NAME"] = fmt_binary_op
 
     # Right now 2.6 is largely the same as 2.5 here. How nice!
 
