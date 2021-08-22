@@ -69,8 +69,8 @@ class ByteOp38(ByteOp37):
         if v is None:
             why = None
         elif isinstance(v, int):
-            # from trepan.api import debug; debug()
             self.vm.jump(v)
+            why = "return"
         elif issubclass(v, BaseException):
             # from trepan.api import debug; debug()
             exctype = v

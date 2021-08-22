@@ -637,6 +637,9 @@ class PyVM(object):
                 # 3.5+ WITH_CLEANUP_FINISH
                 # Nothing needs to be done here.
                 return None
+            elif why == "return":
+                # 3.8+ END_FINALLY
+                pass
 
         return why
 
