@@ -82,7 +82,7 @@ class ByteOp24(ByteOpBase):
         self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
         for opname in (
-            "COMPARE_OP ROT_TWO DELETE_SUBSCR PRINT_ITEM_TO STORE_ATTR IMPORT_NAME"
+            "COMPARE_OP ROT_TWO DELETE_SUBSCR PRINT_ITEM_TO STORE_ATTR"
         ).split():
             self.stack_fmt[opname] = fmt_binary_op
 
@@ -487,28 +487,28 @@ class ByteOp24(ByteOpBase):
 
     # Imports
 
+    # Note: this changes in Python 2.6
     def IMPORT_NAME(self, name):
-        """
-        Imports the module co_names[namei]. TOS and TOS1 are popped and
-        provide the fromlist and level arguments of __import__().  The
-        module object is pushed onto the stack.  The current namespace
-        is not affected: for a proper import statement, a subsequent
-        STORE_FAST instruction modifies the namespace.
+        """Imports the module co_names[namei]. The module object is pushed
+        onto the stack.  The current namespace is not affected: for a
+        proper import statement, a subsequent STORE_FAST instruction
+        modifies the namespace.
 
         Note: name = co_names[namei] set in parse_byte_and_args()
         """
-        level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
 
         if PYTHON_VERSION > 2.7:
             self.vm.push(
                 importlib.__import__(
-                    name, frame.f_globals, frame.f_locals, fromlist, level
+                    name, frame.f_globals, frame.f_locals, fromlist=None, level=0
                 )
             )
         else:
             self.vm.push(
-                __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+                __import__(
+                    name, frame.f_globals, frame.f_locals, fromlist=None, level=0
+                )
             )
 
     def IMPORT_FROM(self, name):

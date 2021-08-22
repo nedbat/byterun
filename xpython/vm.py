@@ -192,7 +192,13 @@ class PyVM(object):
 
     def peek(self, n):
         """Get a value `n` entries down in the stack, without changing the stack."""
-        return self.frame.stack[-n]
+        try:
+            return self.frame.stack[-n]
+        except:
+            from trepan.api import debug
+
+            debug()
+            pass
 
     def pop(self, i=0):
         """Pop a value from the stack.

@@ -8,13 +8,12 @@ fi
 mydir=$(dirname ${BASH_SOURCE[0]})
 set -e
 
-source ../admin-tools/pyenv-versions
-
 (cd ../../python-xdis && . ./admin-tools/setup-master.sh)
-# Note: Python < 2.7 is added at the end and 2.6.9 is used as a sentinal in the version test below
-for version in $PYVERSIONS; do
-    pyenv local $version
-    echo "Using Python $version"
+pyenv local 2.7.18
+OLDPYENV_VERSIONS=${OLDPYENV_VERSIONS:-"2.6.9 2.5.6 2.4.6"}
+for version in $OLDPYENV_VERSIONS; do
+    echo "Testing Python $version"
+    # Note: below we use
     first_two=$(echo $version | cut -d'.' -f 1-2)
     for file in bytecode-${first_two}/*.pyc; do
 	echo ======= $file ========

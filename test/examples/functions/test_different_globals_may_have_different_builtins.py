@@ -17,7 +17,7 @@ def replace_globals(f, new_globals):
 
 def f():
     assert g() == 2
-    assert a == 1
+    assert a == 1  # noqa -- a is in the builtins and set to 2
 
 
 def g():
