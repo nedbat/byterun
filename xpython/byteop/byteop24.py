@@ -19,7 +19,7 @@ from xpython.byteop.byteop import (
     fmt_ternary_op,
     fmt_unary_op,
 )
-from xpython.pyobj import Function, traceback_from_frame
+from xpython.pyobj import Cell, Function, traceback_from_frame
 from xpython.vmtrace import PyVMEVENT_RETURN, PyVMEVENT_YIELD
 
 log = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class ByteOp24(ByteOpBase):
     def __init__(self, vm):
         super(ByteOp24, self).__init__(vm)
         self.stack_fmt["MAKE_FUNCTION"] = fmt_make_function
-        self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
+        # Not for 2.4
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
         for opname in (
             "COMPARE_OP ROT_TWO DELETE_SUBSCR PRINT_ITEM_TO STORE_ATTR"
@@ -726,14 +726,19 @@ class ByteOp24(ByteOpBase):
         function also has argc default parameters, where are found
         before the cells.
         """
-        if self.version >= 3.3:
-            name = self.vm.pop()
-        else:
-            name = None
-        closure, code = self.vm.popn(2)
+        code = self.vm.pop()
         defaults = self.vm.popn(argc)
         globs = self.vm.frame.f_globals
-        fn = Function(name, code, globs, defaults, closure, self.vm)
+
+        closure = tuple([Cell(self.lookup_name(var)) for var in code.co_freevars])
+        fn = Function(
+            name=None,
+            code=code,
+            globs=globs,
+            argdefs=defaults,
+            closure=closure,
+            vm=self.vm,
+        )
         self.vm.push(fn)
 
     def BUILD_SLICE(self, count):
