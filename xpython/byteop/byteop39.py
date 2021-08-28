@@ -73,6 +73,7 @@ class ByteOp39(ByteOp38):
         the stack.
         """
         TOS1, TOS = self.vm.popn(2)
+        # FIXME: not sure what operation should be used to test not "matches".
         if TOS1 != TOS:
             self.vm.jump(target)
         return
@@ -88,13 +89,9 @@ class ByteOp39(ByteOp38):
 
     def LIST_EXTEND(self, i):
         """Calls list.extend(TOS1[-i], TOS). Used to build lists."""
-        TOS1, TOS = self.vm.popn(2)
-        if len(TOS1):
-            list.extend(TOS1[-i], TOS)
-        else:
-            # assert i == 0
-            TOS1 = list(TOS)
-        self.vm.push(TOS1)
+        TOS = self.vm.pop()
+        destination = self.vm.peek(i)
+        destination.extend(TOS)
 
     def SET_UPDATE(self, i):
         """Calls set.update(TOS1[-i], TOS). Used to build sets."""
