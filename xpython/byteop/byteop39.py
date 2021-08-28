@@ -67,9 +67,15 @@ class ByteOp39(ByteOp38):
             self.vm.push(TOS1 is TOS)
         pass
 
-    def JUMP_IF_NOT_EXC_MATCH(self):
-        # FIXME
-        pass
+    def JUMP_IF_NOT_EXC_MATCH(self, target: int):
+        """Tests whether the second value on the stack is an exception
+        matching TOS, and jumps if it is not.  Pops two values from
+        the stack.
+        """
+        TOS1, TOS = self.vm.popn(2)
+        if TOS1 != TOS:
+            self.vm.jump(target)
+        return
 
     def CONTAINS_OP(self, invert: int):
         """Performs in comparison, or not in if invert is 1."""
@@ -78,7 +84,7 @@ class ByteOp39(ByteOp38):
             self.vm.push(TOS1 not in TOS)
         else:
             self.vm.push(TOS1 in TOS)
-        pass
+        return
 
     def LIST_EXTEND(self, i):
         """Calls list.extend(TOS1[-i], TOS). Used to build lists."""
