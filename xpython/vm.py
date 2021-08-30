@@ -167,7 +167,7 @@ class PyVM(object):
 
         self.in_exception_processing = False
 
-        # This is somewhat hoaky:
+        # This is somewhat hokey:
         # Give byteop routines a way to raise an error, without having
         # to import this file. We import from from byteops.
         # Alternatively, VMError could be
@@ -191,14 +191,9 @@ class PyVM(object):
         return self.frame.stack[-1 - i]
 
     def peek(self, n):
-        """Get a value `n` entries down in the stack, without changing the stack."""
-        try:
-            return self.frame.stack[-n]
-        except:
-            from trepan.api import debug
-
-            debug()
-            pass
+        if n <= 0:
+            raise PyVMError("Peek value must be greater than 0")
+        return self.frame.stack[-n]
 
     def pop(self, i=0):
         """Pop a value from the stack.
