@@ -475,11 +475,14 @@ class Frame(object):
 
         for byte_incr, line_incr in zip(byte_increments, line_increments):
             if isinstance(byte_incr, str):
-                return ord(byte_incr)
+                byte_incr = ord(byte_incr)
 
             byte_num += byte_incr
             if byte_num > self.f_lasti:
                 break
+            if isinstance(line_incr, str):
+                line_incr = ord(line_incr)
+
             line_num += line_incr
 
         return line_num
