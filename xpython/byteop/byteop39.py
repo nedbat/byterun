@@ -91,13 +91,15 @@ class ByteOp39(ByteOp38):
         """Calls list.extend(TOS1[-i], TOS). Used to build lists."""
         TOS = self.vm.pop()
         destination = self.vm.peek(i)
+        assert isinstance(destination, list)
         destination.extend(TOS)
 
     def SET_UPDATE(self, i):
         """Calls set.update(TOS1[-i], TOS). Used to build sets."""
         TOS = self.vm.pop()
-        assert isinstance(TOS, set)
-        self.vm.access(i).update(TOS)
+        destination = self.vm.peek(i)
+        assert isinstance(destination, set)
+        destination.update(TOS)
 
     def DICT_MERGE(self, i):
         """Like DICT_UPDATE but raises an exception for duplicate keys."""
@@ -115,4 +117,5 @@ class ByteOp39(ByteOp38):
         TOS = self.vm.pop()
         assert isinstance(TOS, dict)
         destination = self.vm.peek(i)
+        assert isinstance(destination, dict)
         destination.update(TOS)
