@@ -5,6 +5,9 @@ Note: this is subclassed. Later versions use operations from here.
 """
 from __future__ import print_function, division
 
+# FIXME: we should use:
+# from copy import deepcopy
+
 import operator
 import logging
 import six
@@ -101,7 +104,6 @@ class ByteOp24(ByteOpBase):
         self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
         self.version_info = (2, 4, 6)
         self.version = "2.4.6 (x-python)"
-        self.version_float = 2.4
 
     def fmt_unary_op(vm, arg=None):
         """
@@ -325,7 +327,7 @@ class ByteOp24(ByteOpBase):
             why = v
             if why in ("return", "continue"):
                 self.vm.return_value = self.vm.pop()
-            if why == "silenced":  # self.version >= 3.0
+            if why == "silenced":  # self.version_float >= 3.0
                 block = self.vm.pop_block()
                 assert block.type == "except-handler"
                 self.vm.unwind_block(block)
@@ -337,7 +339,7 @@ class ByteOp24(ByteOpBase):
             val = self.vm.pop()
             tb = self.vm.pop()
             self.vm.last_exception = (exctype, val, tb)
-            if self.version >= 3.5:
+            if self.version_float >= 3.5:
                 block = self.vm.top_block()
                 while len(self.vm.frame.stack) > block.level:
                     self.vm.pop()
@@ -517,9 +519,11 @@ class ByteOp24(ByteOpBase):
             if PYTHON_VERSION != self.version_float:
                 if name == "sys":
                     module.version_info = self.version_info
-                    module.version = self.version
+                    module.version = self.version_float
                     pass
                 pass
+        # FIXME:
+        # self.vm.push(deepcopy(module))
         self.vm.push(module)
 
     def IMPORT_FROM(self, name):
@@ -787,14 +791,14 @@ class ByteOp24(ByteOpBase):
             val = self.vm.pop()
             # Investigate: right now we see this *only* in 2.6.
             # Can it happen in other bytecode vesrions?
-            if self.version == 2.6:
+            if self.version_float == 2.6:
                 val = AssertionError(val)
             exctype = self.vm.pop()
         elif argc == 3:
             tb = self.vm.pop()
             val = self.vm.pop()
             # See comment above
-            if self.version == 2.6:
+            if self.version_float == 2.6:
                 val = AssertionError(val)
             exctype = self.vm.pop()
 

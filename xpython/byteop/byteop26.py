@@ -5,6 +5,10 @@ Note: this is subclassed so later versions may use operations from here.
 """
 
 import sys
+
+# FIXME: we should use:
+# from copy import deepcopy
+
 from xdis import PYTHON_VERSION
 
 if PYTHON_VERSION > 2.7:
@@ -23,7 +27,6 @@ class ByteOp26(ByteOp25):
         self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
         self.version_info = (2, 6, 9)
         self.version = "2.6.9 (x-python)"
-        self.version_float = 2.6
 
     # Right now 2.6 is largely the same as 2.5 here. How nice!
 
@@ -56,6 +59,7 @@ class ByteOp26(ByteOp25):
                     module.version = self.version
                     pass
                 pass
+        # self.vm.push(deepcopy(module))
         self.vm.push(module)
 
     def MAKE_CLOSURE(self, argc):
@@ -67,7 +71,7 @@ class ByteOp26(ByteOp25):
         function also has argc default parameters, where are found
         before the cells.
         """
-        if self.version >= 3.3:
+        if self.version_float >= 3.3:
             name = self.vm.pop()
         else:
             name = None

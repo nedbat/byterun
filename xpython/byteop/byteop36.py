@@ -64,7 +64,6 @@ class ByteOp36(ByteOp35):
         self.stack_fmt["CALL_FUNCTION_KW"] = fmt_call_function_kw
         self.version_info = (3, 6, 14)
         self.version = "3.6.14 (x-python)"
-        self.version_float = 3.6
 
     def call_function_kw(self, argc):
         namedargs = {}

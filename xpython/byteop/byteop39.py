@@ -27,7 +27,6 @@ class ByteOp39(ByteOp38):
         super(ByteOp38, self).__init__(vm)
         self.version_info = (3, 9, 6)
         self.version = "3.9.6 (x-python)"
-        self.version_float = 3.9
 
     # Changed in 3.8...
 

@@ -13,7 +13,6 @@ class ByteOp25(ByteOp24):
         super(ByteOp25, self).__init__(vm)
         self.version_info = (2, 5, 6)
         self.version = "2.5.6 (x-python)"
-        self.version_float = 2.5
 
     # New in Python 2.5 but changes in 3.3.
     def WITH_CLEANUP(self):
