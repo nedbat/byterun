@@ -25,6 +25,9 @@ del ByteOp38.POP_FINALLY
 class ByteOp39(ByteOp38):
     def __init__(self, vm):
         super(ByteOp38, self).__init__(vm)
+        self.version_info = (3, 9, 6)
+        self.version = "3.9.6 (x-python)"
+        self.version_float = 3.9
 
     # Changed in 3.8...
 

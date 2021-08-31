@@ -17,6 +17,9 @@ del ByteOp36.STORE_ANNOTATION
 class ByteOp37(ByteOp36):
     def __init__(self, vm):
         super(ByteOp37, self).__init__(vm)
+        self.version_info = (3, 7, 11)
+        self.version = "3.7.11 (x-python)"
+        self.version_float = 3.7
 
     # Changed in 3.7
 

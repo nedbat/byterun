@@ -8,6 +8,7 @@ from __future__ import print_function, division
 import operator
 import logging
 import six
+import sys
 from xdis import PYTHON_VERSION
 
 if PYTHON_VERSION > 2.7:
@@ -98,6 +99,9 @@ class ByteOp24(ByteOpBase):
 
         self.stack_fmt["STORE_DEREF"] = fmt_store_deref
         self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
+        self.version_info = (2, 4, 6)
+        self.version = "2.4.6 (x-python)"
+        self.version_float = 2.4
 
     def fmt_unary_op(vm, arg=None):
         """
@@ -499,17 +503,24 @@ class ByteOp24(ByteOpBase):
         frame = self.vm.frame
 
         if PYTHON_VERSION > 2.7:
-            self.vm.push(
-                importlib.__import__(
-                    name, frame.f_globals, frame.f_locals, fromlist=None, level=0
-                )
+            module = importlib.__import__(
+                name, frame.f_globals, frame.f_locals, fromlist=None, level=0
             )
         else:
-            self.vm.push(
-                __import__(
-                    name, frame.f_globals, frame.f_locals, fromlist=None, level=0
-                )
+            module = __import__(
+                name, frame.f_globals, frame.f_locals, fromlist=None, level=0
             )
+
+        # FIXME: generalize this
+        if name in sys.builtin_module_names:
+            # FIXME: do more here.
+            if PYTHON_VERSION != self.version_float:
+                if name == "sys":
+                    module.version_info = self.version_info
+                    module.version = self.version
+                    pass
+                pass
+        self.vm.push(module)
 
     def IMPORT_FROM(self, name):
         """

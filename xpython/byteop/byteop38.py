@@ -17,6 +17,9 @@ del ByteOp24.SETUP_EXCEPT
 class ByteOp38(ByteOp37):
     def __init__(self, vm):
         super(ByteOp38, self).__init__(vm)
+        self.version_info = (3, 8, 11)
+        self.version = "3.8.11 (x-python)"
+        self.version_float = 3.8
 
     # Changed in 3.8...
 
