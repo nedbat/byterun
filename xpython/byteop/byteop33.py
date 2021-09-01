@@ -10,6 +10,9 @@ from xpython.pyobj import Generator
 class ByteOp33(ByteOp32):
     def __init__(self, vm):
         super(ByteOp33, self).__init__(vm)
+        self.version = "3.3.10 (x-python)"
+        # FIXME: should be a class
+        self.version_info = (3, 3, 10)
 
     # Right now 3.3 is largely the same as 3.2 here. How nice!
 

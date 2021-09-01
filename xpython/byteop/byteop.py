@@ -97,7 +97,7 @@ class ByteOpBase(object):
     def __init__(self, vm):
         self.vm = vm
         # Convenience variables
-        self.version = vm.version
+        self.float_version = vm.version
         self.is_pypy = vm.is_pypy
         self.PyVMError = self.vm.PyVMError
 
@@ -186,7 +186,7 @@ class ByteOpBase(object):
                 if len(pos_args) == 1:
                     pos_args.append(self.vm.frame.f_globals)
 
-                if self.version == PYTHON_VERSION:
+                if self.float_version == PYTHON_VERSION:
                     source = pos_args[0]
                     if isinstance(source, str) or isinstance(source, bytes):
                         try:
@@ -200,7 +200,7 @@ class ByteOpBase(object):
                 else:
                     log.warning(
                         "Running built-in `exec()` because we are cross-version interpreting version %s from version %s"
-                        % (self.version, PYTHON_VERSION)
+                        % (self.float_version, PYTHON_VERSION)
                     )
 
             elif func == eval:
@@ -220,7 +220,7 @@ class ByteOpBase(object):
                     pos_args.append(self.vm.frame.f_locals)
                 assert len(pos_args) == 3
 
-                if self.version == PYTHON_VERSION:
+                if self.float_version == PYTHON_VERSION:
                     source = pos_args[0]
                     if isinstance(source, str) or isinstance(source, unicode):
                         try:
@@ -234,7 +234,7 @@ class ByteOpBase(object):
                 else:
                     log.warning(
                         "Running built-in `eval()` because we are cross-version interpreting version %s from version %s"
-                        % (self.version, PYTHON_VERSION)
+                        % (self.float_version, PYTHON_VERSION)
                     )
 
             elif PYTHON_VERSION >= 3.0 and func == __build_class__:
@@ -245,7 +245,7 @@ class ByteOpBase(object):
                 if (
                     isinstance(init_fn, Function)
                     or self.is_pypy
-                    or self.version != PYTHON_VERSION
+                    or self.float_version != PYTHON_VERSION
                 ) and PYTHON_VERSION >= 3.4:
                     # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
@@ -267,7 +267,7 @@ class ByteOpBase(object):
                 "__name__", self.vm.frame.f_globals["__name__"]
             )
 
-        if inspect.isfunction(func) and self.version == PYTHON_VERSION:
+        if inspect.isfunction(func) and self.float_version == PYTHON_VERSION:
             # Try to convert to an interpreter function so we can interpret it.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
@@ -282,7 +282,7 @@ class ByteOpBase(object):
                 assert len(pos_args) > 0
                 pos_args[0] = self.convert_native_to_Function(frame, pos_args[0])
 
-        if inspect.isfunction(func) and self.version == PYTHON_VERSION:
+        if inspect.isfunction(func) and self.float_version == PYTHON_VERSION:
             log.debug("calling native function %s" % func.__name__)
 
         retval = func(*pos_args, **named_args)

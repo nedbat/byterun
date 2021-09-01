@@ -163,11 +163,12 @@ Want even more status and control? See `trepan-xpy <https://github.com/rocky/tre
 Status:
 +++++++
 
-Currently bytecode from Python versions 3.8 - 3.2, and 2.7 - 2.4 are
+Currently bytecode from Python versions 398 - 3.2, and 2.7 - 2.4 are
 supported. The most recent versions of Python don't have all opcodes
-implemented. Doing that and extending to 3.9 and beyond is on hold
-until there is more interest, I get help, I need or there is or
-funding.
+implemented. This is only one of many interests I have, so support may
+be shoddy. I use funding to help me direct where my attention goes in
+fixing problems, which are vast in this project.
+
 
 *Byterun*, from which this was based on, is awesome. But it cheats in
 subtle ways.
@@ -230,7 +231,7 @@ version being interpreted and the version of Python that is
 running. There is tighter control of opcodes and an opcode's
 implementation is kept for each Python version. So we'll warn early
 when something is invalid. You can run bytecode back to Python 2.4
-using Python 3.7 (largely), which is amazing give that 3.7's native
+using Python 3.9 (largely), which is amazing give that 3.9's native
 byte code is 2 bytes per instruction while 2.4's is 1 or 3 bytes per
 instruction.
 
@@ -259,7 +260,7 @@ You can run many of the tests that Python uses to test itself, and I
 do! And most of those work. Right now this program works best on Python up to
 3.4 when life in Python was much simpler. It runs over 300 in Python's
 test suite for itself without problems. For Python 3.6 the number
-drops down to about 237; Python 3.7 is worse still.
+drops down to about 237; Python 3.9 is worse still.
 
 
 History
