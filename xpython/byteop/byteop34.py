@@ -18,7 +18,7 @@ del ByteOp32.STORE_LOCALS
 class ByteOp34(ByteOp33):
     def __init__(self, vm):
         super(ByteOp34, self).__init__(vm)
-        self.version = "3.4.6 (x-python)"
+        self.version = "3.4.6 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         # FIXME: should be a class
         self.version_info = (3, 4, 6)
 
