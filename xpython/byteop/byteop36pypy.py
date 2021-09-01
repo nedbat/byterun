@@ -9,3 +9,4 @@ from xpython.byteop.byteoppypy import ByteOpPyPy
 class ByteOp36PyPy(ByteOp36, ByteOpPyPy):
     def __init__(self, vm):
         super(ByteOp36PyPy, self).__init__(vm)
+        self.version = "3.6.9 (x-python)\n[PyPy]"

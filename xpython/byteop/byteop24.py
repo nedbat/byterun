@@ -5,9 +5,17 @@ Note: this is subclassed. Later versions use operations from here.
 """
 from __future__ import print_function, division
 
+from collections import namedtuple
+
+Version_info = namedtuple("version_info", "major minor micro releaselevel serial")
+
+# FIXME: we should use:
+# from copy import deepcopy
+
 import operator
 import logging
 import six
+import sys
 from xdis import PYTHON_VERSION
 
 if PYTHON_VERSION > 2.7:
@@ -98,6 +106,8 @@ class ByteOp24(ByteOpBase):
 
         self.stack_fmt["STORE_DEREF"] = fmt_store_deref
         self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
+        self.version_info = (2, 4, 6)
+        self.version = "2.4.6 (x-python)"
 
     def fmt_unary_op(vm, arg=None):
         """
@@ -321,7 +331,7 @@ class ByteOp24(ByteOpBase):
             why = v
             if why in ("return", "continue"):
                 self.vm.return_value = self.vm.pop()
-            if why == "silenced":  # self.version >= 3.0
+            if why == "silenced":  # self.float_version >= 3.0
                 block = self.vm.pop_block()
                 assert block.type == "except-handler"
                 self.vm.unwind_block(block)
@@ -333,7 +343,7 @@ class ByteOp24(ByteOpBase):
             val = self.vm.pop()
             tb = self.vm.pop()
             self.vm.last_exception = (exctype, val, tb)
-            if self.version >= 3.5:
+            if self.float_version >= 3.5:
                 block = self.vm.top_block()
                 while len(self.vm.frame.stack) > block.level:
                     self.vm.pop()
@@ -499,17 +509,26 @@ class ByteOp24(ByteOpBase):
         frame = self.vm.frame
 
         if PYTHON_VERSION > 2.7:
-            self.vm.push(
-                importlib.__import__(
-                    name, frame.f_globals, frame.f_locals, fromlist=None, level=0
-                )
+            module = importlib.__import__(
+                name, frame.f_globals, frame.f_locals, fromlist=None, level=0
             )
         else:
-            self.vm.push(
-                __import__(
-                    name, frame.f_globals, frame.f_locals, fromlist=None, level=0
-                )
+            module = __import__(
+                name, frame.f_globals, frame.f_locals, fromlist=None, level=0
             )
+
+        # FIXME: generalize this
+        if name in sys.builtin_module_names:
+            # FIXME: do more here.
+            if PYTHON_VERSION != self.float_version:
+                if name == "sys":
+                    module.version_info = self.version_info
+                    module.version = self.float_version
+                    pass
+                pass
+        # FIXME:
+        # self.vm.push(deepcopy(module))
+        self.vm.push(module)
 
     def IMPORT_FROM(self, name):
         """
@@ -776,14 +795,14 @@ class ByteOp24(ByteOpBase):
             val = self.vm.pop()
             # Investigate: right now we see this *only* in 2.6.
             # Can it happen in other bytecode vesrions?
-            if self.version == 2.6:
+            if self.float_version == 2.6:
                 val = AssertionError(val)
             exctype = self.vm.pop()
         elif argc == 3:
             tb = self.vm.pop()
             val = self.vm.pop()
             # See comment above
-            if self.version == 2.6:
+            if self.float_version == 2.6:
                 val = AssertionError(val)
             exctype = self.vm.pop()
 

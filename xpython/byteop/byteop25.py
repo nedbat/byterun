@@ -11,6 +11,8 @@ from xpython.byteop.byteop24 import ByteOp24
 class ByteOp25(ByteOp24):
     def __init__(self, vm):
         super(ByteOp25, self).__init__(vm)
+        self.version_info = (2, 5, 6)
+        self.version = "2.5.6 (x-python)"
 
     # New in Python 2.5 but changes in 3.3.
     def WITH_CLEANUP(self):
