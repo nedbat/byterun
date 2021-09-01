@@ -55,7 +55,7 @@ jobs:
     #   This would typically be a build job when using workflows, possibly combined with build
     - run: pip install -e .
     - run: pip install -r requirements-dev.txt
-    - run: SKIP_COMPAT=1 make check && nosetests test/test_compat.py
+    - run: make check && SKIP_COMPAT=1 nosetests test/test_compat.py
     # Teardown
     #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
     # Save test results
