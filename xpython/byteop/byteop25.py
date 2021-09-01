@@ -5,14 +5,14 @@ Note: this is subclassed. Later versions use operations from here.
 """
 from __future__ import print_function, division
 
-from xpython.byteop.byteop24 import ByteOp24
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 
 
 class ByteOp25(ByteOp24):
     def __init__(self, vm):
         super(ByteOp25, self).__init__(vm)
-        self.version_info = (2, 5, 6)
-        self.version = "2.5.6 (x-python)"
+        self.version = "2.5.6 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(2, 5, 6, "final", 0)
 
     # New in Python 2.5 but changes in 3.3.
     def WITH_CLEANUP(self):

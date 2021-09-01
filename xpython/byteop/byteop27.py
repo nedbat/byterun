@@ -5,7 +5,7 @@ from __future__ import print_function, division
 import inspect
 import types
 from xdis import PYTHON_VERSION
-from xpython.byteop.byteop24 import ByteOp24
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop26 import ByteOp26
 
 # Gone since 2.6
@@ -30,9 +30,11 @@ class ByteOp27(ByteOp26):
         super(ByteOp27, self).__init__(vm)
         self.stack_fmt["SET_ADD"] = fmt_set_add
         self.stack_fmt["MAP_ADD"] = fmt_map_add
-        self.version = "2.7.16 (x-python)"
-        # FIXME: should be a named tuple
-        self.version_info = (2, 7, 16)
+
+        # Fake up version information
+        self.hexversion = 0x20712F0
+        self.version = "2.7.18 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(2, 7, 18, "final", 0)
 
     def convert_method_native_func(self, frame, method):
         """If a method's function is a native functions, converted it to the

@@ -7,6 +7,7 @@ import inspect
 import types
 
 from xdis import PYTHON_VERSION, IS_PYPY
+from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop33 import ByteOp33
 from xpython.pyobj import Function
@@ -20,7 +21,7 @@ class ByteOp34(ByteOp33):
         super(ByteOp34, self).__init__(vm)
         self.version = "3.4.6 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         # FIXME: should be a class
-        self.version_info = (3, 4, 6)
+        self.version_info = Version_info(3, 4, 6, "final", 0)
 
     # New in 3.4
 

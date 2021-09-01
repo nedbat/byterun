@@ -15,7 +15,7 @@ if PYTHON_VERSION > 2.7:
     import importlib
 
 from xpython.byteop.byteop import fmt_binary_op
-from xpython.byteop.byteop24 import fmt_make_function
+from xpython.byteop.byteop24 import fmt_make_function, Version_info
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.pyobj import Function
 
@@ -25,8 +25,11 @@ class ByteOp26(ByteOp25):
         super(ByteOp26, self).__init__(vm)
         self.stack_fmt["IMPORT_NAME"] = fmt_binary_op
         self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
-        self.version = "2.6.9 (x-python)"
-        self.version_info = (2, 6, 9)
+
+        # Fake up version information
+        self.hexversion = 0x20609F0
+        self.version = "2.6.9 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(2, 6, 9, "final", 0)
 
     # Right now 2.6 is largely the same as 2.5 here. How nice!
 
@@ -47,6 +50,8 @@ class ByteOp26(ByteOp25):
             # This should make a *copy* of the module so we keep interpreter and
             # intpreted programs separate.
             # See below for how we handle "sys" import
+            if level < 0:
+                level = 0
             module = importlib.__import__(
                 name, frame.f_globals, frame.f_locals, fromlist, level
             )
@@ -60,7 +65,7 @@ class ByteOp26(ByteOp25):
                 if name == "sys":
 
                     # Safe to import this way
-                    if PYTHON_VERSION > 2.7:
+                    if PYTHON_VERSION > 3.4:
                         module_spec = importlib.util.find_spec(name)
                         module = importlib.util.module_from_spec(module_spec)
 
