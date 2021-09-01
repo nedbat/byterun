@@ -5,7 +5,7 @@ from __future__ import print_function, division
 import inspect
 
 from xdis import PYTHON_VERSION
-from xpython.byteop.byteop24 import ByteOp24
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.pyobj import Function
 
@@ -62,7 +62,7 @@ class ByteOp36(ByteOp35):
         super(ByteOp36, self).__init__(vm)
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
         self.stack_fmt["CALL_FUNCTION_KW"] = fmt_call_function_kw
-        self.version_info = (3, 6, 14)
+        self.version_info = Version_info(3, 6, 14, "final", 0)
         self.version = "3.6.14 (x-python)"
 
     def call_function_kw(self, argc):

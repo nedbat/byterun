@@ -5,6 +5,10 @@ Note: this is subclassed. Later versions use operations from here.
 """
 from __future__ import print_function, division
 
+from collections import namedtuple
+
+Version_info = namedtuple("version_info", "major minor micro releaselevel serial")
+
 # FIXME: we should use:
 # from copy import deepcopy
 

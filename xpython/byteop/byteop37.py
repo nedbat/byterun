@@ -2,6 +2,7 @@
 """
 from __future__ import print_function, division
 
+from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop36 import ByteOp36
 
 # Gone in 3.7
@@ -17,7 +18,7 @@ del ByteOp36.STORE_ANNOTATION
 class ByteOp37(ByteOp36):
     def __init__(self, vm):
         super(ByteOp37, self).__init__(vm)
-        self.version_info = (3, 7, 11)
+        self.version_info = Version_info(3, 7, 11, "final", 0)
         self.version = "3.7.11 (x-python)"
 
     # Changed in 3.7
