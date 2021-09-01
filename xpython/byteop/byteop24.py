@@ -327,7 +327,7 @@ class ByteOp24(ByteOpBase):
             why = v
             if why in ("return", "continue"):
                 self.vm.return_value = self.vm.pop()
-            if why == "silenced":  # self.version_float >= 3.0
+            if why == "silenced":  # self.float_version >= 3.0
                 block = self.vm.pop_block()
                 assert block.type == "except-handler"
                 self.vm.unwind_block(block)
@@ -339,7 +339,7 @@ class ByteOp24(ByteOpBase):
             val = self.vm.pop()
             tb = self.vm.pop()
             self.vm.last_exception = (exctype, val, tb)
-            if self.version_float >= 3.5:
+            if self.float_version >= 3.5:
                 block = self.vm.top_block()
                 while len(self.vm.frame.stack) > block.level:
                     self.vm.pop()
@@ -516,10 +516,10 @@ class ByteOp24(ByteOpBase):
         # FIXME: generalize this
         if name in sys.builtin_module_names:
             # FIXME: do more here.
-            if PYTHON_VERSION != self.version_float:
+            if PYTHON_VERSION != self.float_version:
                 if name == "sys":
                     module.version_info = self.version_info
-                    module.version = self.version_float
+                    module.version = self.float_version
                     pass
                 pass
         # FIXME:
@@ -791,14 +791,14 @@ class ByteOp24(ByteOpBase):
             val = self.vm.pop()
             # Investigate: right now we see this *only* in 2.6.
             # Can it happen in other bytecode vesrions?
-            if self.version_float == 2.6:
+            if self.float_version == 2.6:
                 val = AssertionError(val)
             exctype = self.vm.pop()
         elif argc == 3:
             tb = self.vm.pop()
             val = self.vm.pop()
             # See comment above
-            if self.version_float == 2.6:
+            if self.float_version == 2.6:
                 val = AssertionError(val)
             exctype = self.vm.pop()
 

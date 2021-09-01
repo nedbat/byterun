@@ -30,8 +30,9 @@ class ByteOp27(ByteOp26):
         super(ByteOp27, self).__init__(vm)
         self.stack_fmt["SET_ADD"] = fmt_set_add
         self.stack_fmt["MAP_ADD"] = fmt_map_add
-        self.version_info = (2, 7, 16)
         self.version = "2.7.16 (x-python)"
+        # FIXME: should be a named tuple
+        self.version_info = (2, 7, 16)
 
     def convert_method_native_func(self, frame, method):
         """If a method's function is a native functions, converted it to the
@@ -107,7 +108,7 @@ class ByteOp27(ByteOp26):
         # Make sure __enter__ and __exit__ functions in context_manager are
         # converted to our Function type so we can interpret them.
         # Note though that built-in functions can't be traced.
-        if self.version_float == PYTHON_VERSION and not inspect.isbuiltin(
+        if self.float_version == PYTHON_VERSION and not inspect.isbuiltin(
             context_manager.__exit__
         ):
             try:
@@ -119,12 +120,12 @@ class ByteOp27(ByteOp26):
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)
-        if self.version_float == PYTHON_VERSION and not inspect.isbuiltin(
+        if self.float_version == PYTHON_VERSION and not inspect.isbuiltin(
             context_manager.__enter__
         ):
             self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
         finally_block = context_manager.__enter__()
-        if self.version_float < 3.0:
+        if self.float_version < 3.0:
             self.vm.push_block("with", delta)
         else:
             self.vm.push_block("finally", delta)

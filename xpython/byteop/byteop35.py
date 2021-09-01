@@ -29,6 +29,9 @@ class ByteOp35(ByteOp34):
     def __init__(self, vm):
         super(ByteOp35, self).__init__(vm)
         self.stack_fmt["BUILD_MAP_UNPACK_WITH_CALL"] = fmt_build_map_unpack_with_call
+        self.version = "3.5.10 (x-python)\n[PyPy]"
+        # FIXME: should be a class
+        self.version_info = (3, 5, 10)
 
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)

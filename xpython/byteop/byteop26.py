@@ -7,7 +7,7 @@ Note: this is subclassed so later versions may use operations from here.
 import sys
 
 # FIXME: we should use:
-# from copy import deepcopy
+from copy import deepcopy
 
 from xdis import PYTHON_VERSION
 
@@ -25,8 +25,8 @@ class ByteOp26(ByteOp25):
         super(ByteOp26, self).__init__(vm)
         self.stack_fmt["IMPORT_NAME"] = fmt_binary_op
         self.stack_fmt["MAKE_CLOSURE"] = fmt_make_function
-        self.version_info = (2, 6, 9)
         self.version = "2.6.9 (x-python)"
+        self.version_info = (2, 6, 9)
 
     # Right now 2.6 is largely the same as 2.5 here. How nice!
 
@@ -44,6 +44,9 @@ class ByteOp26(ByteOp25):
         frame = self.vm.frame
 
         if PYTHON_VERSION > 2.7:
+            # This should make a *copy* of the module so we keep interpreter and
+            # intpreted programs separate.
+            # See below for how we handle "sys" import
             module = importlib.__import__(
                 name, frame.f_globals, frame.f_locals, fromlist, level
             )
@@ -53,13 +56,18 @@ class ByteOp26(ByteOp25):
         # FIXME: generalize this
         if name in sys.builtin_module_names:
             # FIXME: do more here.
-            if PYTHON_VERSION != self.version_float:
+            if PYTHON_VERSION != self.float_version:
                 if name == "sys":
+
+                    # Safe to import this way
+                    if PYTHON_VERSION > 2.7:
+                        module_spec = importlib.util.find_spec(name)
+                        module = importlib.util.module_from_spec(module_spec)
+
                     module.version_info = self.version_info
                     module.version = self.version
                     pass
                 pass
-        # self.vm.push(deepcopy(module))
         self.vm.push(module)
 
     def MAKE_CLOSURE(self, argc):
@@ -71,7 +79,7 @@ class ByteOp26(ByteOp25):
         function also has argc default parameters, where are found
         before the cells.
         """
-        if self.version_float >= 3.3:
+        if self.float_version >= 3.3:
             name = self.vm.pop()
         else:
             name = None
