@@ -6,6 +6,12 @@ from __future__ import print_function, division
 
 
 class ByteOpPyPy(object):
+    def JUMP_IF_NOT_DEBUG(self, jump_offset):
+        """
+        For now, same as JUMP_ABSOLUTE.
+        """
+        self.vm.jump(jump_offset)
+
     def LOOKUP_METHOD(self, name):
         """
         For now, we'll assume this is the same as LOAD_ATTR:
