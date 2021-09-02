@@ -78,12 +78,8 @@ def exec_code_object(
 
 def get_supported_versions(is_pypy, is_bytecode):
     if is_bytecode:
-        supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_BYTECODE
-        mess = (
-            "PYPY 2.7, 3.2, 3.5 and 3.6"
-            if is_pypy
-            else "CPython 2.4 .. 2.7, 3.2 .. 3.9"
-        )
+        supported_versions = SUPPORTED_BYTECODE
+        mess = "Python 2.4 .. 2.7, 3.2 .. 3.9"
     else:
         supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
         mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.9"
