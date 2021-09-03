@@ -13,4 +13,6 @@ from xpython.byteop.byteoppypy import ByteOpPyPy
 class ByteOp27PyPy(ByteOp27, ByteOpPyPy):
     def __init__(self, vm):
         super(ByteOp27PyPy, self).__init__(vm)
-        self.version = "2.7.10 (x-python)\n[PyPy]"
+
+        # Fake up version information not already faked in super.
+        self.version = "2.7.13 (x-python, Oct 27 1955, 00:00:00)\n[PyPy with x-python]"

@@ -2,7 +2,7 @@
 """
 from __future__ import print_function, division
 
-from xpython.byteop.byteop24 import ByteOp24
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop34 import ByteOp34
 from xpython.stdlib.inspect3 import iscoroutinefunction, isgeneratorfunction
@@ -31,7 +31,7 @@ class ByteOp35(ByteOp34):
         self.stack_fmt["BUILD_MAP_UNPACK_WITH_CALL"] = fmt_build_map_unpack_with_call
         self.version = "3.5.10 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         # FIXME: should be a class
-        self.version_info = (3, 5, 10)
+        self.version_info = Version_info(3, 5, 10, "final", 0)
 
     def build_container_flat(self, count, container_fn):
         elts = self.vm.popn(count)

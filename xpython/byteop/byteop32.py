@@ -4,8 +4,8 @@
 from __future__ import print_function, division
 
 
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop27 import ByteOp27
-from xpython.byteop.byteop24 import ByteOp24
 from xpython.pyobj import Function
 
 # FIXME: investigate does "del" remove an attribute here?
@@ -40,6 +40,8 @@ class ByteOp32(ByteOp27):
     def __init__(self, vm):
         super(ByteOp32, self).__init__(vm)
         self.stack_fmt["MAKE_FUNCTION"] = fmt_make_function
+        self.version = "3.2.6 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(3, 2, 6, "final", 0)
 
     # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7

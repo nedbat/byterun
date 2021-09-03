@@ -4,7 +4,7 @@
 from __future__ import print_function, division
 
 from xpython.byteop.byteop37 import ByteOp37
-from xpython.byteop.byteop24 import ByteOp24
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 
 
 # Gone in 3.8
@@ -17,8 +17,10 @@ del ByteOp24.SETUP_EXCEPT
 class ByteOp38(ByteOp37):
     def __init__(self, vm):
         super(ByteOp38, self).__init__(vm)
-        self.version_info = (3, 8, 11)
-        self.version = "3.8.11 (x-python)"
+
+        self.hexversion = 0x3080BF0
+        self.version_info = Version_info(3, 8, 11, "final", 0)
+        self.version = "3.8.11 (default, Oct 27 1955, 00:00:00)\n[x-python]"
 
     # Changed in 3.8...
 

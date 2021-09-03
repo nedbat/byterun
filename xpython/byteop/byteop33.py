@@ -3,6 +3,7 @@
 """
 from __future__ import print_function, division
 
+from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.pyobj import Generator
 
@@ -10,9 +11,8 @@ from xpython.pyobj import Generator
 class ByteOp33(ByteOp32):
     def __init__(self, vm):
         super(ByteOp33, self).__init__(vm)
-        self.version = "3.3.10 (x-python)"
-        # FIXME: should be a class
-        self.version_info = (3, 3, 10)
+        self.version = "3.3.7 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(3, 3, 7, "final", 0)
 
     # Right now 3.3 is largely the same as 3.2 here. How nice!
 

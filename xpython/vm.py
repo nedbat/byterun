@@ -366,12 +366,7 @@ class PyVM(object):
                 le1 = self.last_exception[1]
                 tail = ""
                 if le1:
-                    if hasattr(le1, "args"):
-                        tail = "\n".join(le1.args)
-                    else:
-                        from trepan.api import debug
-
-                        debug()
+                    tail = "\n".join(le1.args)
                 print(tail)
             raise
 

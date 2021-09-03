@@ -62,6 +62,9 @@ class ByteOp36(ByteOp35):
         super(ByteOp36, self).__init__(vm)
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
         self.stack_fmt["CALL_FUNCTION_KW"] = fmt_call_function_kw
+
+        # Fake up version information
+        self.hexversion = 0x3060BF0
         self.version_info = Version_info(3, 6, 14, "final", 0)
         self.version = "3.6.14 (x-python)"
 

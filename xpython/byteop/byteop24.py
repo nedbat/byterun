@@ -106,8 +106,11 @@ class ByteOp24(ByteOpBase):
 
         self.stack_fmt["STORE_DEREF"] = fmt_store_deref
         self.stack_fmt["LOAD_DEREF"] = fmt_load_deref
-        self.version_info = (2, 4, 6)
-        self.version = "2.4.6 (x-python)"
+
+        # Fake up version information
+        self.hexversion = 0x20406F0
+        self.version = "2.4.6 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(2, 4, 6, "final", 0)
 
     def fmt_unary_op(vm, arg=None):
         """
@@ -522,6 +525,7 @@ class ByteOp24(ByteOpBase):
             # FIXME: do more here.
             if PYTHON_VERSION != self.float_version:
                 if name == "sys":
+                    module.hexversion = self.hexversion
                     module.version_info = self.version_info
                     module.version = self.float_version
                     pass
