@@ -3,6 +3,7 @@
 """
 from __future__ import print_function, division
 
+from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop38 import ByteOp38
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.byteop.byteop36 import ByteOp36
@@ -25,12 +26,13 @@ del ByteOp38.POP_FINALLY
 class ByteOp39(ByteOp38):
     def __init__(self, vm):
         super(ByteOp38, self).__init__(vm)
-        self.version_info = (3, 9, 6)
-        self.version = "3.9.6 (x-python)"
+        self.hexversion = 0x30907F0
+        self.version = "3.9.7 (default, Oct 27 1955, 00:00:00)\n[x-python]"
+        self.version_info = Version_info(3, 9, 7, "final", 0)
 
-    # Changed in 3.8...
+    # Changed in 3.9...
 
-    # New in 3.8
+    # New in 3.9
 
     ##############################################################################
     # Order of function here is the same as in:
