@@ -1,6 +1,378 @@
+2021-09-04  rocky <rocky@dusytfeet.com>
+
+	* : commit 7e0989b4bc46063f33e85eff642f327e7b577326 Merge: 2835405
+	6c6a912 Author: R. Bernstein <rocky@users.noreply.github.com> Date:
+	Sat Sep 4 09:27:42 2021 -0400
+
+2021-09-04  rocky <rocky@dusytfeet.com>
+
+	* test/test_compat.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop39.py: Go over compatibility Better version, version_info and hexversion faking for 3.6 and 3.9
+
+2021-09-04  rocky <rb@dustyfeet.com>
+
+	* test/test_compat.py: extend compat to 3.9
+
+2021-09-03  rocky <rb@dustyfeet.com>
+
+	* : commit b2a2e1e238b74b9162c26622baae55c34453664f Author: rocky
+	<rocky@dusytfeet.com> Date:   Thu Sep 2 05:20:48 2021 -0400
+
+2021-09-02  rocky <rocky@dusytfeet.com>
+
+	* test/add-test.sh, xpython/byteop/byteop35pypy.py: Fill in PyPy 3.5
+
+2021-09-02  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop26pypy.py, xpython/byteop/byteop27pypy.py,
+	xpython/execfile.py: Fill in PyPy 2.6, 2.7 version info Allow PyPy to interpret all bytecode
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* : Reinstate one more test
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop24.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py, xpython/byteop/byteop37.py,
+	xpython/byteop/byteop38.py, xpython/vm.py: Start adding
+	sys.hexversion
+
+2021-09-01  rocky <rb@dustyfeet.com>
+
+	* : commit dd0804d2be17292beb487df9b5d16e44acf2112d Merge: 65df2a1
+	d734558 Author: R. Bernstein <rocky@users.noreply.github.com> Date:
+	Wed Sep 1 12:49:39 2021 -0400
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml: Skip compatibility tests on CircleCI
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop37.py: Start more realistic system.version
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop24.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop37.py: Attempt to clean up version_info
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml: Bump to 3.7.11
+
+2021-09-01  rocky <rocky@dusytfeet.com>
+
+	* README.rst, admin-tools/pyenv-versions, xpython/byteop/byteop.py,
+	xpython/byteop/byteop24.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop26pypy.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop27pypy.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop32pypy.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36pypy.py: Bang on sys.version and
+	sys.version_info
+
+2021-08-31  rocky <rocky@dusytfeet.com>
+
+	* test/vmtest.py, xpython/byteop/byteop.py,
+	xpython/byteop/byteop24.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop37.py, xpython/byteop/byteop38.py,
+	xpython/byteop/byteop39.py: sys.version and sys.version_info..  for cross-interpreted programs
+
+2021-08-31  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop24.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop37.py, xpython/byteop/byteop38.py,
+	xpython/byteop/byteop39.py: WIP sys.version and sys.vers_info mocks
+
+2021-08-31  rocky <rb@dustyfeet.com>
+
+	* : commit 65df2a178289126ba6519239943fb9eccb535523 Author: rocky
+	<rocky@dusytfeet.com> Date:   Tue Aug 31 12:26:12 2021 -0400
+
+2021-08-31  rocky <rocky@dusytfeet.com>
+
+	* : One more bytecode file
+
+2021-08-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/vm.py: Raise error if we vm.peek(0)
+
+2021-08-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Correct 3.9 SET_UPDATE...  and add remaining 3.9 test bytecode.  xpython for 3.9 now works about as good as the others.
+
+2021-08-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/pyobj.py: Fix bug in reporting line number
+
+2021-08-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Correct Python 3.9 LIST_EXTEND
+
+2021-08-28  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Fill in 3.9 JUMP_IF_NO_MATCH
+
+2021-08-22  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop24.py, xpython/byteop/byteop26.py: Correct
+	Python 2.{4,5} MAKE_CLOSURE
+
+2021-08-22  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop26.py: formatting on IMPORT_NAME on 2.6 and
+	later..  We can show its stack operands. Note htat in 2.5 and before there
+	are no stack operands.
+
+2021-08-22  rocky <rocky@dusytfeet.com>
+
+	*
+	test/examples/functions/test_different_globals_may_have_different_b
+	uiltins.py, test/test-all-bytecode.sh, test/test-old-bytecode.sh,
+	xpython/byteop/byteop24.py, xpython/byteop/byteop26.py,
+	xpython/vm.py: Correct 2.4 IMPORT_NAME op...  and add test-old-bytecode.sh to test interpreter on Python < 2.7
+
+2021-08-22  rocky <rocky@dusytfeet.com>
+
+	* test/test-all-bytecode.sh: Remove stray schmutz
+
+2021-08-22  rocky <rocky@dusytfeet.com>
+
+	* : Remove bytecode files that work now
+
+2021-08-22  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop38.py, xpython/vm.py: Handle 3.8 return from
+	generator
+
+2021-08-17  rocky <rocky@dusytfeet.com>
+
+	* test/examples/functions/test_return_from_generator.py,
+	test/test_functions.py, xpython/vm.py: Convert another byterun test
+
+2021-08-17  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop36.py, xpython/byteop/byteop39.py: Reinstate
+	older code
+
+2021-08-17  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop36.py, xpython/byteop/byteop39.py,
+	xpython/vm.py: One more 3.9 op done. Type check VM arguments more
+
+2021-08-16  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/pyenv-versions, xpython/byteop/byteop38.py,
+	xpython/byteop/byteop39.py, xpython/vm.py: Add 3.9 DICT_MERGE and
+	DICT_UPDATE...  Need to add some tests though.  Some small bugs fixed.
+
+2021-07-08  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Note we handle 3.9 (even if not very well)
+
+2021-07-08  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/version.py: Add PyPy 3.7 to list of
+	supported Pythons
+
+2021-07-08  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop38.py: Start 3.8 CALL_FINALLY
+
+2021-07-08  rocky <rocky@dusytfeet.com>
+
+	* test/test_basic.py, xpython/byteop/byteop38.py: Start
+	BEGIN_FINALLY, POP_FINALLY
+
+2021-07-08  rocky <rocky@dusytfeet.com>
+
+	* test/add-test.sh, test/test_basic.py: Add more tests on 3.7-3.9
+
+2021-07-05  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/pyenv-versions, test/compile-file.py,
+	test/examples/basic/test_attribute_access.py,
+	test/examples/basic/test_building_stuff.py,
+	test/examples/basic/test_callback.py,
+	test/examples/basic/test_import.py,
+	test/examples/data/test_attributes.py,
+	test/examples/data/test_fstring.py,
+	test/examples/data/test_map_unpack.py,
+	test/examples/data/test_var_annotate.py,
+	test/examples/expressions/test_comparisons.py,
+	test/examples/expressions/test_generator_expression.py,
+	test/examples/functions/test_call_ex_kw.py,
+	test/examples/functions/test_calling_function_with_args_kwargs.py,
+	test/examples/functions/test_calling_methods_wrong.py,
+	test/examples/functions/test_different_globals_may_have_different_b
+	uiltins.py, test/examples/functions/test_function_calls.py,
+	test/examples/functions/test_generator_with_context_manager.py,
+	test/examples/functions/test_no_builtins.py,
+	test/examples/functions/test_partial.py,
+	test/examples/functions/test_partial_with_kwargs.py,
+	test/examples/functions/test_pos_args.py,
+	test/examples/functions/test_recursion.py,
+	test/examples/functions/test_wraps.py,
+	test/examples/stmts/test_exec.py,
+	test/examples/stmts/test_global.py,
+	test/examples/stmts/test_slice_stmts.py,
+	test/examples/stmts/test_yield_from_tuple.py,
+	test/examples/test_at_context_manager_simplified.py,
+	test/examples/test_decorator.py,
+	test/examples/test_get_yield_from_iter.py,
+	test/examples/test_strange_sequence_ops.py,
+	test/examples/with/test_at_context_manager_complete.py,
+	test/examples/with/test_break_in_with.py,
+	test/examples/with/test_continue_in_with.py,
+	test/examples/with/test_simple_context_manager.py,
+	test/examples/with/test_suppressed_raise_in_context_manager.py,
+	test/stdlib/compile-file.py, test/test_compat.py,
+	test/test_data.py, test/test_stmts.py, test/vmtest.py: Black test
+	files. Bump testing Python version
+
+2021-07-04  rocky <rocky@dusytfeet.com>
+
+	* .editorconfig: Let editors know what style we use.
+
+2021-07-04  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop32.py: Comment grammar
+
+2021-07-04  rocky <rocky@dusytfeet.com>
+
+	* xpython/builtins.py, xpython/byteop/byteop.py,
+	xpython/byteop/byteop24.py, xpython/byteop/byteop25.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop26pypy.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop27pypy.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop32pypy.py,
+	xpython/byteop/byteop33.py, xpython/byteop/byteop34.py,
+	xpython/byteop/byteop35pypy.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop36pypy.py, xpython/byteop/byteop37.py,
+	xpython/byteop/byteop38.py, xpython/execfile.py, xpython/pyobj.py,
+	xpython/stdlib/inspect2.py, xpython/stdlib/inspect3.py,
+	xpython/stdlib/inspectfor32.py, xpython/stdlib/types34.py,
+	xpython/vm.py, xpython/vmtrace.py: Black reformat python files
+
+2021-06-23  rocky <rocky@dusytfeet.com>
+
+	* setup.cfg: Yet another config file
+
+2021-06-23  rocky <rocky@dusytfeet.com>
+
+	* xpython/version.py: Black shouldn't format version.py
+
+2021-04-01  rocky <rocky@dusytfeet.com>
+
+	* test/examples/exceptions/test_coverage_issue_92.py,
+	test/test-all-bytecode.sh: Add shell script to test all bytecode
+
+2021-04-01  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/pyenv-versions: move 3.8 bytecode that does doesn't
+	work yet...  Bump 3.7 version used in testing
+
+2021-04-01  rocky <rocky@dusytfeet.com>
+
+	* test/examples/exceptions/raise1.py, test/test_exceptions.py: One
+	more exception test converted ..  This time, test_coverage_issue_92
+
+2021-03-31  rocky <rocky@dusytfeet.com>
+
+	* test/examples/exceptions/test_catching_exceptions.py,
+	test/examples/exceptions/test_exception_match.py,
+	test/test_exceptions.py: Convert one more test to new-style test...  test_catching_exceptions.py in particular
+
+2021-03-30  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Correct 3.9 IS_OP and LIST_EXTEND
+
+2021-03-30  rocky <rocky@dusytfeet.com>
+
+	* test/test_basic.py: Go over 3.6 bytecode
+
+2021-03-27  rocky <rb@dustyfeet.com>
+
+	* test/test_functions.py: Reinstate more function tests
+
+2021-03-24  rocky <rb@dustyfeet.com>
+
+	* : commit 1df1380a55bc9ea251076da188e03e69d97f8279 Author: rocky
+	<rb@dustyfeet.com> Date:   Wed Mar 24 13:31:28 2021 -0400
+
+2021-03-21  rocky <rocky@dusytfeet.com>
+
+	* test/test_exceptions.py, test/test_functions.py,
+	test/test_with.py, xpython/byteop/byteop38.py: Reduce testing in 3.8
+	and 3.9
+
+2021-03-21  rocky <rb@dustyfeet.com>
+
+	* admin-tools/pyenv-versions: Bump testing Python versions
+
+2021-03-21  rocky <rocky@dusytfeet.com>
+
+	* .pre-commit-config.yaml, __pkginfo__.py, test/add-test.sh,
+	test/vmtest.py, xpython/__main__.py, xpython/byteop/__init__.py,
+	xpython/byteop/byteop39.py, xpython/execfile.py, xpython/version.py: 
+	Start 3.9 bytecode
+
+2021-02-13  rocky <rocky@dusytfeet.com>
+
+	* .pre-commit-config.yaml, setup.py, xpython/__init__.py,
+	xpython/version.py: Administrivia: tidy a little
+
+2020-10-25  rocky <rocky@dusytfeet.com>
+
+	* .pre-commit-config.yaml, admin-tools/pyenv-versions,
+	requirements-dev.txt: Administrivia
+
+2020-08-01  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/pyenv-versions,
+	test/examples/basic/test_attribute_access.py,
+	test/examples/basic/test_import.py, test/test_basic.py,
+	xpython/byteop/byteop24.py: Use importlib.__import__ when possible Python 2.7 still needs the __import__ builtin Pull out another test in test_basic.py and make it standalone.  Update to latest versions in pyenv-versions
+
+2020-07-29  rocky <rocky@dusytfeet.com>
+
+	* xpython/__main__.py, xpython/byteop/byteop35.py, xpython/vm.py: Go
+	over exception handling
+
+2020-07-28  rocky <rocky@dusytfeet.com>
+
+	* README.rst: Update what's up
+
+2020-07-28  rocky <rocky@dusytfeet.com>
+
+	* test/examples/{ => expressions}/test_generator_expression.py,
+	test/test_basic.py, xpython/byteop/byteop38.py: 3.8 MAP_ADD changes.
+	Add more 3.8 tests
+
+2020-07-28  rocky <rocky@dusytfeet.com>
+
+	* test/examples/basic/test_building_stuff.py, test/test_basic.py: 
+	Add More 3.8 tests.  Make test_building_stuff.py self checking
+
+2020-07-28  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, admin-tools/how-to-make-a-release.md,
+	test/add-test.sh, test/vmtest.py, xpython/byteop/__init__.py,
+	xpython/byteop/byteop37.py, xpython/byteop/byteop38.py,
+	xpython/version.py: The most minimal 3.8 support Note: All new opcodes are incomplete.  Many tests haven't been
+	byte-compiled yet That said, this still works okay when not encountering new opcodes.
+
 2020-07-24  rocky <rocky@dusytfeet.com>
 
-	* xpython/version.py: Get ready for release 1.3.5
+	* ChangeLog, NEWS.md, xpython/version.py: Get ready for release
+	1.3.5
 
 2020-07-24  rocky <rocky@dusytfeet.com>
 
@@ -2286,4 +2658,3 @@
 2013-01-13  Ned Batchelder <ned@nedbatchelder.com>
 
 	* Ignore stuff
-

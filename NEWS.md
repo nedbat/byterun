@@ -1,3 +1,14 @@
+1.3.6 2021-09-04
+================
+
+* Handle Python 3.7 - 3.9 better
+* fake sys.version, sys.version_info, and sys.hexversion in cross interpreting
+* Handle PyPy 3.5 and other PyPy's better
+* Fix bug in reporting line number
+* Fix bug in Python 2.{4,5} MAKE_CLOSURE
+* Improve ofrmating on IMPORT_NAME on 2.6 and later
+* Type check VM arguments more
+
 1.3.5 2020-07-24
 ================
 

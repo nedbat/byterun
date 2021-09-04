@@ -21,8 +21,8 @@
 
     $ emacs xpython/version.py
     $ source xpython/version.py
-    $ echo $VERSION
-    $ git commit -m"Get ready for release $VERSION" .
+    $ echo $__version__
+    $ git commit -m"Get ready for release $__version__" .
 
 
 # Update ChangeLog:
@@ -40,17 +40,17 @@
 # Make packages and check
 
     $ remake -c dist
-	$ twine check dist/x[-_]python-$VERSION*
+	$ twine check dist/x[-_]python-$__version__*
 
 # Check package on github
 
 Todo: turn this into a script in `admin-tools`
 
 	$ [[ ! -d /tmp/gittest ]] && mkdir /tmp/gittest; pushd /tmp/gittest
-	$ pyenv local 3.7.5
+	$ pyenv local 3.7.9
 	$ pip install -e git://github.com/rocky/x-python.git#egg=x-python
 	$ xpython -V # see that new version appears
-	$ pip uninstall x-pythons
+	$ pip uninstall x-python
 	$ popd
 
 # Release on Github
