@@ -65,8 +65,8 @@ class ByteOp36(ByteOp35):
 
         # Fake up version information
         self.hexversion = 0x3060BF0
+        self.version = "3.6.14 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         self.version_info = Version_info(3, 6, 14, "final", 0)
-        self.version = "3.6.14 (x-python)"
 
     def call_function_kw(self, argc):
         namedargs = {}

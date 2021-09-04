@@ -18,27 +18,34 @@ COMPATABILITY_MATRIX = {
     2.7: (2.6, 2.5, 2.4),
     3.2: (),
     # FIXME:
-    # 3.5, 3.4, 3.3 -> 3.{3,2}
-    # 3.2 -> 2.7
+    #
+    # File examples/data/test_fstring.py
+    # xpython/byteop/byteop.py", line 119, in binaryOperator
+    # self.vm.push(BINARY_OPERATORS[op](x, y))
+    # First started appearing in Python 3.6
+    #
+    # TypeError: can't concat str to bytes
     # File "examples/functions/test_closures.py", line 6, in <module>
     # variables as we nest.
+    #
     # File "examples/functions/test_closures.py", line 39, in <lambda>
     # (lambda data, width=w: pack(width, data))
     # File "examples/functions/test_closures.py", line 0, in pack
     # TypeError: sequence item 0: expected str instance, bytes found
+    #
     # TODO: work on these. The list is not too large
     # Fails on 3.4 with:
     # File "examples/with/test_at_context_manager_complete.py", line 6, in <module>
     # NameError: global name '_too_many' is not defined
-    3.3: (3.2,),
+    3.3: (3.2, 2.7, 2.6, 2.5, 2.4),
     # Handling 3.6+ may change as we get async operators implemented,
     # but for now we're good for what we have.
-    3.4: (3.9, 3.8, 3.7, 3.6, 3.5, 3.3, 3.2),
-    3.5: (3.9, 3.8, 3.7, 3.6, 3.4, 3.3, 3.2),
-    3.6: (3.9, 3.8, 3.7, 3.5, 3.4, 3.3, 3.2),
-    3.7: (3.9, 3.8, 3.6, 3.5, 3.4, 3.3, 3.2),
-    3.8: (3.9, 3.7, 3.6, 3.5, 3.4, 3.3, 3.2),
-    3.9: (3.8, 3.8, 3.7, 3.5, 3.4, 3.3, 3.2),
+    3.4: (3.5, 3.3, 3.2, 2.7, 2.6, 2.5, 2.4),
+    3.5: (3.4, 3.3, 3.2, 2.7, 2.6, 2.5, 2.4),
+    3.6: (3.5, 3.4, 3.3, 3.2, 2.7, 2.6, 2.5, 2.4),
+    3.7: (3.5, 3.4, 3.3, 3.2, 2.7, 2.6, 2.5, 2.4),
+    3.8: (3.5, 3.4, 3.3, 3.2, 2.7, 2.6, 2.5, 2.4),
+    3.9: (3.5, 3.4, 3.3, 3.2, 2.7, 2.6, 2.5, 2.4),
 }
 
 # In addition, PyPy and CPython *should* be inter compatible,
