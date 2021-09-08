@@ -71,10 +71,10 @@ Todo: turn this into a script in `admin-tools`
 
 # Get on PyPI
 
-	$ twine upload dist/x[-_]python-${VERSION}*
+	$ twine upload dist/x[-_]python-${__version__}*
 
 Check on https://pypi.org/project/x-python/
 
 # Move dist files to uploaded
 
-	$ mv -v dist/x[_-]python-${VERSION}* dist/uploaded
+	$ mv -v dist/x[_-]python-${__version__}* dist/uploaded
