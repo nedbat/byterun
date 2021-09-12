@@ -102,17 +102,12 @@ def format_instruction(
     byte_code = opc.opmap.get(byte_name, 0)
 
     if vm and byte_name in vm.byteop.stack_fmt:
-        stack_args = vm.byteop.stack_fmt[byte_name](vm, int_arg)
-    else:
-        stack_args = ""
-
-    if vm and byte_name in vm.byteop.stack_fmt:
         stack_args = vm.byteop.stack_fmt[byte_name](vm, int_arg, repr)
     else:
         stack_args = ""
 
     if hasattr(opc, "opcode_arg_fmt") and byte_name in opc.opcode_arg_fmt:
-        argrepr = opc.opcode_arg_fmt[byte_name](int_arg)
+        argrepr = f"""("{opc.opcode_arg_fmt[byte_name](int_arg)}") {int_arg}"""
     elif int_arg is None:
         argrepr = ""
     elif byte_code in opc.COMPARE_OPS:

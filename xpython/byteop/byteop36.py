@@ -35,7 +35,7 @@ COMPREHENSION_FN_NAMES = frozenset(
 )
 
 
-def fmt_call_function(vm, argc, repr=repr):
+def fmt_call_function(vm, argc, repr=repr) -> str:
     """
     returns the name of the function from the code object in the stack
     """
@@ -48,13 +48,24 @@ def fmt_call_function(vm, argc, repr=repr):
     return ""
 
 
-def fmt_call_function_kw(vm, argc, repr=repr):
+def fmt_call_function_kw(vm, argc, repr=repr) -> str:
     """
     returns the name of the function from the code object in the stack
     """
     namedargs_tup = vm.top()
     func = vm.peek(argc + 2)
     return " (keyword: %s, function: %s)" % (namedargs_tup, func)
+
+
+def fmt_format_value(vm, flags, repr=repr) -> str:
+    """
+    returns the flag
+    """
+    if flags == 2:
+        from trepan.api import debug
+
+        debug()
+    return f""" ("{format_value_flags(flags)}") {flags}"""
 
 
 class ByteOp36(ByteOp35):
