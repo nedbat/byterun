@@ -12,8 +12,11 @@ from xpython.pyobj import Function
 # Gone in 3.6
 del ByteOp24.MAKE_CLOSURE
 del ByteOp24.CALL_FUNCTION_VAR
-del ByteOp24.CALL_FUNCTION_KW
-del ByteOp24.CALL_FUNCTION_VAR_KW
+
+# Even though Python 3.6 loses CALL_FUNCTION_VAR_KW, PyPy retains this for 3.6.
+# It is gone though in 3.7. So we will keep this around for one more version than
+# would be needed if we were doing strictly CPython 3.6
+# del ByteOp24.CALL_FUNCTION_VAR_KW
 
 # Note the order is important. The TOS is listed *last*.
 MAKE_FUNCTION_SLOT_NAMES = ("closure", "annotations", "kwdefaults", "defaults")
@@ -39,7 +42,9 @@ def fmt_call_function(vm, argc, repr=repr) -> str:
     """
     returns the name of the function from the code object in the stack
     """
-    TOS = vm.peek(argc + 1)
+    name_default, pos_args = divmod(argc, 256)
+    TOS = vm.peek(pos_args + 1)
+    # FIXME: give info on pos_args. Right now this is okay only for pos_args == 0
     for attr in ("co_name", "func_name", "__name__"):
         if hasattr(TOS, attr):
             return " (%s)" % getattr(TOS, attr)
@@ -55,17 +60,6 @@ def fmt_call_function_kw(vm, argc, repr=repr) -> str:
     namedargs_tup = vm.top()
     func = vm.peek(argc + 2)
     return " (keyword: %s, function: %s)" % (namedargs_tup, func)
-
-
-def fmt_format_value(vm, flags, repr=repr) -> str:
-    """
-    returns the flag
-    """
-    if flags == 2:
-        from trepan.api import debug
-
-        debug()
-    return f""" ("{format_value_flags(flags)}") {flags}"""
 
 
 class ByteOp36(ByteOp35):

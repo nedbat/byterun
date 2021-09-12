@@ -45,7 +45,18 @@ class ByteOp26(ByteOp25):
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
 
-        if PYTHON_VERSION > 2.7:
+        if importlib is not None:
+            module_spec = importlib.util.find_spec(name)
+            module = importlib.util.module_from_spec(module_spec)
+
+            load_module = (
+                module_spec.loader.exec_module
+                if hasattr(module_spec.loader, "exec_module")
+                else module_spec.loader.load_module
+            )
+            load_module(module)
+
+        elif PYTHON_VERSION > 2.7:
             # This should make a *copy* of the module so we keep interpreter and
             # intpreted programs separate.
             # See below for how we handle "sys" import
@@ -62,12 +73,6 @@ class ByteOp26(ByteOp25):
             # FIXME: do more here.
             if PYTHON_VERSION != self.float_version:
                 if name == "sys":
-
-                    # Safe to import this way
-                    if PYTHON_VERSION > 3.4:
-                        module_spec = importlib.util.find_spec(name)
-                        module = importlib.util.module_from_spec(module_spec)
-
                     module.version_info = self.version_info
                     module.version = self.version
                     pass

@@ -2,11 +2,15 @@
 """
 from __future__ import print_function, division
 
-from xpython.byteop.byteop24 import Version_info
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop36 import ByteOp36
 
 # Gone in 3.7
 del ByteOp36.STORE_ANNOTATION
+
+# Gone in 3.6 PyPy (and therefore we kept it in 3.6 Python)
+del ByteOp24.CALL_FUNCTION_VAR_KW
+
 # del ByteOp36.WITH_CLEANUP_START
 # del ByteOp36.WITH_CLEANUP_FINISH
 # del ByteOp36.END_FINALLY
