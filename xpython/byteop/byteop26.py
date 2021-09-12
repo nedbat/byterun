@@ -6,13 +6,12 @@ Note: this is subclassed so later versions may use operations from here.
 
 import sys
 
-# FIXME: we should use:
-from copy import deepcopy
-
 from xdis import PYTHON_VERSION
 
-if PYTHON_VERSION > 2.7:
+try:
     import importlib
+except ImportError:
+    importlib = None
 
 from xpython.byteop.byteop import fmt_binary_op
 from xpython.byteop.byteop24 import fmt_make_function, Version_info
