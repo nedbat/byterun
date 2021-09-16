@@ -20,6 +20,9 @@ class ByteOpPyPy(object):
         Note: name = co_names[namei] set in parse_byte_and_args()
 
         """
+        from trepan.api import debug
+
+        debug()
         obj = self.vm.pop()
         val = getattr(obj, name)
         self.vm.push(val)
