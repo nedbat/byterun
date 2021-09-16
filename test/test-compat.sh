@@ -13,6 +13,9 @@ for PYENV_VERSION in $PYVERSIONS; do
 
 	for bytecode_dir in bytecode-* ; do
 		echo testing $bytecode_dir ...
+		if [[ $bbytecode_dir == bytecode-pypy3.7 ]] ; then
+			echo "Skipping PyPy 3.7 for now"
+		fi
 		for file in ${bytecode_dir}/*.pyc ; do
 			(( $VERBOSE )) && echo $file
 			if ! xpython $file >/dev/null ; then
