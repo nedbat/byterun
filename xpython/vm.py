@@ -199,9 +199,6 @@ class PyVM(object):
         try:
             return self.frame.stack[-n]
         except:
-            from trepan.api import debug
-
-            debug()
             return 0
 
     def pop(self, i=0):
