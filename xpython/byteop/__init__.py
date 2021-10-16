@@ -9,11 +9,10 @@ def get_byteop(vm, python_version, is_pypy):
     platform is_pypy. vm.VMError will be raised if we can't find a suitable version.
     """
 
-    int_vers = int(python_version * 10)
-
-    if int_vers < 30:
-        if int_vers >= 26:
-            if int_vers == 27:
+    python_version = python_version[:2]
+    if python_version < (3, 0):
+        if python_version >= (2, 6):
+            if python_version == (2, 7):
                 if is_pypy:
                     from xpython.byteop.byteop27pypy import ByteOp27PyPy
 
@@ -23,17 +22,17 @@ def get_byteop(vm, python_version, is_pypy):
 
                     byteop = ByteOp27(vm)
             else:
-                assert int_vers == 26
+                assert python_version == (2, 6)
                 from xpython.byteop.byteop26 import ByteOp26
 
                 byteop = ByteOp26(vm)
                 pass
         else:
-            if int_vers == 25:
+            if python_version == (2, 5):
                 from xpython.byteop.byteop25 import ByteOp25
 
                 byteop = ByteOp25(vm)
-            elif int_vers == 24:
+            elif python_version == (2, 4):
                 from xpython.byteop.byteop24 import ByteOp24
 
                 byteop = ByteOp24(vm)
@@ -41,8 +40,8 @@ def get_byteop(vm, python_version, is_pypy):
             pass
     else:
         # 3.0 or greater
-        if int_vers < 35:
-            if int_vers == 32:
+        if python_version < (3, 5):
+            if python_version == (3, 2):
                 if is_pypy:
                     from xpython.byteop.byteop32pypy import ByteOp32PyPy
 
@@ -51,18 +50,18 @@ def get_byteop(vm, python_version, is_pypy):
                     from xpython.byteop.byteop32 import ByteOp32
 
                     byteop = ByteOp32(vm)
-            elif int_vers == 33:
+            elif python_version == (3, 3):
                 from xpython.byteop.byteop33 import ByteOp33
 
                 byteop = ByteOp33(vm)
-            elif int_vers == 34:
+            elif python_version == (3, 4):
                 from xpython.byteop.byteop34 import ByteOp34
 
                 byteop = ByteOp34(vm)
             else:
                 raise vm.VMEerror("Version %s not supported" % python_version)
         else:
-            if int_vers == 35:
+            if python_version == (3, 5):
                 if is_pypy:
                     from xpython.byteop.byteop35pypy import ByteOp35PyPy
 
@@ -71,7 +70,7 @@ def get_byteop(vm, python_version, is_pypy):
                     from xpython.byteop.byteop35 import ByteOp35
 
                     byteop = ByteOp35(vm)
-            elif int_vers == 36:
+            elif python_version == (3, 6):
                 if is_pypy:
                     from xpython.byteop.byteop36pypy import ByteOp36PyPy
 
@@ -80,7 +79,7 @@ def get_byteop(vm, python_version, is_pypy):
                     from xpython.byteop.byteop36 import ByteOp36
 
                     byteop = ByteOp36(vm)
-            elif int_vers == 37:
+            elif python_version == (3, 7):
                 if is_pypy:
                     from xpython.byteop.byteop37pypy import ByteOp37PyPy
 
@@ -90,11 +89,11 @@ def get_byteop(vm, python_version, is_pypy):
 
                     byteop = ByteOp37(vm)
 
-            elif int_vers == 38:
+            elif python_version == (3, 8):
                 from xpython.byteop.byteop38 import ByteOp38
 
                 byteop = ByteOp38(vm)
-            elif int_vers == 39:
+            elif python_version == (3, 9):
                 from xpython.byteop.byteop39 import ByteOp39
 
                 byteop = ByteOp39(vm)

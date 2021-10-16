@@ -14,7 +14,7 @@ from xdis import (
     code2num,
     CO_NEWLOCALS,
     PYTHON3,
-    PYTHON_VERSION,
+    PYTHON_VERSION_TRIPLE,
     IS_PYPY,
     op_has_argument,
     next_offset,
@@ -139,7 +139,7 @@ def format_instruction(
 class PyVM(object):
     def __init__(
         self,
-        python_version=PYTHON_VERSION,
+        python_version=PYTHON_VERSION_TRIPLE,
         is_pypy=IS_PYPY,
         vmtest_testing=False,
         format_instruction_func=format_instruction,
@@ -177,10 +177,8 @@ class PyVM(object):
         # pulled out of this file
         self.PyVMError = PyVMError
 
-        int_vers = int(python_version * 10)
-        version_info = (int_vers // 10, int_vers % 10)
         variant = "pypy" if is_pypy else None
-        self.opc = get_opcode_module(version_info, variant)
+        self.opc = get_opcode_module(python_version, variant)
         self.byteop = get_byteop(self, python_version, is_pypy)
 
     ##############################################
