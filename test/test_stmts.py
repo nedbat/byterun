@@ -7,7 +7,7 @@ try:
 except ImportError:
     from . import vmtest
 
-# from xdis import PYTHON_VERSION
+# from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 
 class TestStmts(vmtest.VmTestCase):

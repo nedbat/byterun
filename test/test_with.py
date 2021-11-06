@@ -7,12 +7,12 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 
 class TestWithStatement(vmtest.VmTestCase):
 
-    if PYTHON_VERSION < 3.8:
+    if PYTHON_VERSION_TRIPLE < (3, 8):
 
         def test_simple_context_manager(self):
             self.self_checking()
@@ -38,7 +38,7 @@ class TestWithStatement(vmtest.VmTestCase):
         def test_raise_in_with(self):
             self.do_one()
 
-    if PYTHON_VERSION >= 3.6:
+    if PYTHON_VERSION_TRIPLE >= (3, 6):
         print("Test not gone over yet for >= 3.6")
     else:
 
@@ -69,7 +69,7 @@ class TestWithStatement(vmtest.VmTestCase):
                 """
             )
 
-        if PYTHON_VERSION >= 3.3:
+        if PYTHON_VERSION_TRIPLE >= (3, 3):
 
             # "yield from" is not in 3.2-
             def test_generator_with_context_manager(self):

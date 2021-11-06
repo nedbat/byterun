@@ -8,21 +8,21 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis import PYTHON_VERSION, PYTHON3
+from xdis.version_info import PYTHON_VERSION_TRIPLE, PYTHON3
 
 PY2 = not PYTHON3
 
 
 class TestExceptions(vmtest.VmTestCase):
 
-    if PYTHON_VERSION >= 3.8:
+    if PYTHON_VERSION_TRIPLE >= (3, 8):
         print("Test not gone over yet for >= 3.8")
     else:
 
         def test_exception_match(self):
             self.self_checking()
 
-    if PYTHON_VERSION < 3.9:
+    if PYTHON_VERSION_TRIPLE < (3, 9):
 
         def test_catching_exceptions(self):
             self.self_checking()
@@ -36,7 +36,7 @@ class TestExceptions(vmtest.VmTestCase):
     def test_coverage_issue_92(self):
         self.assert_ok("raise ValueError", raises=ValueError)
 
-    if PYTHON_VERSION >= 3.6:
+    if PYTHON_VERSION_TRIPLE >= (3, 6):
         print("Test not gone over yet for >= 3.6")
     else:
         if PY2:

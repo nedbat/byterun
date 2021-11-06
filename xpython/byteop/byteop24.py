@@ -16,9 +16,9 @@ import operator
 import logging
 import six
 import sys
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
-if PYTHON_VERSION > 2.7:
+if PYTHON_VERSION_TRIPLE >= (3, 0):
     import importlib
 
 from xpython.byteop.byteop import (
@@ -511,7 +511,7 @@ class ByteOp24(ByteOpBase):
         """
         frame = self.vm.frame
 
-        if PYTHON_VERSION > 2.7:
+        if PYTHON_VERSION_TRIPLE > (2, 7):
             module = importlib.__import__(
                 name, frame.f_globals, frame.f_locals, fromlist=None, level=0
             )

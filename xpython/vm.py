@@ -434,7 +434,7 @@ class PyVM(object):
             arg = None
 
             if op_has_argument(byte_code, self.opc):
-                if self.version >= 3.6:
+                if self.version >= (3, 6):
                     int_arg = code2num(co_code, arg_offset) | extended_arg
                     # Note: Python 3.6.0a1 is 2, for 3.6.a3 and beyond we have 1
                     arg_offset += 1
@@ -596,7 +596,7 @@ class PyVM(object):
             self.jump(block.handler)
             return why
 
-        if self.version < 3.0:
+        if self.version < (3, 0):
             if (
                 block.type == "finally"
                 or (block.type == "setup-except" and why == "exception")

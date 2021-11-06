@@ -17,7 +17,7 @@ def fmt_build_map_unpack_with_call(vm, arg, repr=repr):
     the evaluation stack
     """
     # See corresponding comment in BUILD_MAP_UNPACK_WITH_CALL
-    if vm.version == 3.5:
+    if vm.version[:2] == (3, 5):
         fn_pos, count = divmod(arg, 256)
         fn_pos = count + fn_pos
     else:

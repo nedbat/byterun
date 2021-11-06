@@ -287,9 +287,6 @@ def coroutine(func):
 
     @_functools.wraps(func)
     def wrapped(*args, **kwargs):
-        from trepan.api import debug
-
-        debug()
         coro = func(*args, **kwargs)
         if (
             coro.__class__ is CoroutineType

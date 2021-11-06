@@ -4,7 +4,8 @@ import os
 import sys
 import tokenize
 import mimetypes
-from xdis import load_module, PYTHON_VERSION, IS_PYPY
+from xdis import load_module, IS_PYPY
+from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
 from xpython.vm import format_instruction, PyVM, PyVMUncaughtException
 from xpython.vmtrace import PyVMTraced
@@ -47,7 +48,7 @@ class NoSourceError(Exception):
 def exec_code_object(
     code,
     env,
-    python_version=PYTHON_VERSION,
+    python_version=PYTHON_VERSION_TRIPLE,
     is_pypy=IS_PYPY,
     callback=None,
     format_instruction=format_instruction,
@@ -218,10 +219,10 @@ def run_python_file(
                 supported_versions, mess = get_supported_versions(
                     IS_PYPY, is_bytecode=False
                 )
-                if PYTHON_VERSION not in supported_versions:
+                if PYTHON_VERSION_TRIPLE[:2] not in supported_versions:
                     raise CannotCompileError(
                         "We need %s to compile source code; you are running Python %s"
-                        % (mess, PYTHON_VERSION)
+                        % (mess, version_tuple_to_str())
                     )
 
                 # We have the source.  `compile` still needs the last line to be clean,
@@ -229,7 +230,7 @@ def run_python_file(
                 if not source or source[-1] != "\n":
                     source += "\n"
                 code = compile(source, filename, "exec")
-                python_version = PYTHON_VERSION
+                python_version = PYTHON_VERSION_TRIPLE
 
         except (IOError, ImportError):
             raise NoSourceError("No file to run: %r" % filename)
