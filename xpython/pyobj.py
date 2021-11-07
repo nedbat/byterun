@@ -7,9 +7,10 @@ import linecache
 import types
 from copy import copy
 from sys import stderr
-from xdis import CO_GENERATOR, CO_ITERABLE_COROUTINE, iscode, PYTHON3, PYTHON_VERSION
+from xdis import CO_GENERATOR, CO_ITERABLE_COROUTINE, iscode
+from xdis.version_info import PYTHON3, PYTHON_VERSION_TRIPLE
 
-if PYTHON_VERSION >= 3.4:
+if PYTHON_VERSION_TRIPLE >= (3, 4):
     from xpython.stdlib.types34 import _AsyncGeneratorWrapper
 else:
 
@@ -153,10 +154,10 @@ class Function(object):
             code.co_consts[0] if hasattr(code, "co_consts") and code.co_consts else None
         )
 
-        if vm.version >= 3.0:
+        if vm.version >= (3, 0):
             self.__annotations__ = annotations
             self.__kwdefaults__ = kwdefaults
-            if vm.version >= 3.4:
+            if vm.version >= (3, 4):
                 self.__qualname__ = qualname if qualname else self.__name__
             else:
                 assert qualname is None
@@ -222,8 +223,8 @@ class Function(object):
     def __get__(self, instance, owner):
         if instance is not None:
             return Method(instance, owner, self)
-        version = self.version if hasattr(self, "version") else PYTHON_VERSION
-        if version < 3.0:
+        version = self.version if hasattr(self, "version") else PYTHON_VERSION_TRIPLE
+        if version < (3, 0):
             return Method(None, owner, self)
         else:
             return self
@@ -236,7 +237,7 @@ class Function(object):
             # so just do the right thing.
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
-        elif self._func and self.version == PYTHON_VERSION:
+        elif self._func and self.version[:2] == PYTHON_VERSION_TRIPLE[:2]:
             # Perhaps this branch can go and we just use the others.
             # It will require a *lot* more code from inspect.py to be added:
             # classes Signature, Parameter, etc.
@@ -247,12 +248,12 @@ class Function(object):
             # See 3.7.7. test_keywordonlyarg.py
 
             # To catch dynamic changes, we'll run a second check
-            if self.version >= 3.0:
+            if self.version >= (3, 0):
                 inspect3.getcallargs(self, *args, **kwargs)
             else:
                 inspect2.getcallargs(self, *args, **kwargs)
         else:
-            if self.version >= 3.0:
+            if self.version >= (3, 0):
                 callargs = inspect3.getcallargs(self, *args, **kwargs)
             else:
                 callargs = inspect2.getcallargs(self, *args, **kwargs)
@@ -261,7 +262,7 @@ class Function(object):
             self.func_code, callargs, self.func_globals, {}, self.__closure__
         )
         if self.__code__.co_flags & CO_GENERATOR:
-            qualname = self.__qualname__ if self._vm.version >= 3.4 else None
+            qualname = self.__qualname__ if self._vm.version >= (3, 4) else None
             gen = Generator(
                 g_frame=frame, name=self.__name__, qualname=qualname, vm=self._vm
             )
@@ -378,7 +379,13 @@ class Block(object):
 
 class Frame(object):
     def __init__(
-        self, f_code, f_globals, f_locals, f_back, version=PYTHON_VERSION, closure=None
+        self,
+        f_code,
+        f_globals,
+        f_locals,
+        f_back,
+        version=PYTHON_VERSION_TRIPLE,
+        closure=None,
     ):
         self.f_code = f_code
         self.f_globals = f_globals
@@ -535,7 +542,7 @@ class Generator(object):
         self.gi_running = False
         self.gi_code = g_frame.f_code
         self.__name__ = g_frame.f_code.co_name
-        self.__qualname__ = qualname if g_frame.version >= 3.4 else None
+        self.__qualname__ = qualname if g_frame.version >= (3, 4) else None
 
     def __iter__(self):
         return self

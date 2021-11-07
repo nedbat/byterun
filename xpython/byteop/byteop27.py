@@ -4,7 +4,7 @@ from __future__ import print_function, division
 
 import inspect
 import types
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop26 import ByteOp26
 
@@ -110,7 +110,7 @@ class ByteOp27(ByteOp26):
         # Make sure __enter__ and __exit__ functions in context_manager are
         # converted to our Function type so we can interpret them.
         # Note though that built-in functions can't be traced.
-        if self.float_version == PYTHON_VERSION and not inspect.isbuiltin(
+        if self.version[:2] == PYTHON_VERSION_TRIPLE[:2] and not inspect.isbuiltin(
             context_manager.__exit__
         ):
             try:
@@ -122,12 +122,12 @@ class ByteOp27(ByteOp26):
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)
-        if self.float_version == PYTHON_VERSION and not inspect.isbuiltin(
+        if self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2] and not inspect.isbuiltin(
             context_manager.__enter__
         ):
             self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
         finally_block = context_manager.__enter__()
-        if self.float_version < 3.0:
+        if self.version_info[:2] < (3, 0):
             self.vm.push_block("with", delta)
         else:
             self.vm.push_block("finally", delta)

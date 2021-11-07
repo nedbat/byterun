@@ -6,7 +6,7 @@ Note: this is subclassed so later versions may use operations from here.
 
 import sys
 
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 try:
     import importlib
@@ -56,7 +56,7 @@ class ByteOp26(ByteOp25):
             )
             load_module(module)
 
-        elif PYTHON_VERSION > 2.7:
+        elif PYTHON_VERSION_TRIPLE >= (3, 0):
             # This should make a *copy* of the module so we keep interpreter and
             # intpreted programs separate.
             # See below for how we handle "sys" import
@@ -71,7 +71,7 @@ class ByteOp26(ByteOp25):
         # FIXME: generalize this
         if name in sys.builtin_module_names:
             # FIXME: do more here.
-            if PYTHON_VERSION != self.float_version:
+            if PYTHON_VERSION_TRIPLE[:2] != self.version_info[:2]:
                 if name == "sys":
                     module.version_info = self.version_info
                     module.version = self.version
@@ -88,7 +88,7 @@ class ByteOp26(ByteOp25):
         function also has argc default parameters, where are found
         before the cells.
         """
-        if self.float_version >= 3.3:
+        if self.version_info[:2] >= (3, 3):
             name = self.vm.pop()
         else:
             name = None

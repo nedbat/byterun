@@ -36,7 +36,7 @@ class ByteOp33(ByteOp32):
         else:
             # FIXME: The code has the effect of rerunning the last instruction.
             # I'm not sure if or why it is correct.
-            if self.vm.version >= 3.6:
+            if self.vm.version >= (3, 6):
                 self.vm.jump(self.vm.frame.f_lasti - 2)
             else:
                 self.vm.jump(self.vm.frame.f_lasti - 1)

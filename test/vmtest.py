@@ -13,7 +13,12 @@ import six
 
 from xpython.vm import PyVM, PyVMError
 
-from xdis import PYTHON_VERSION, IS_PYPY
+from xdis.version_info import (
+    PYTHON_VERSION_TRIPLE,
+    IS_PYPY,
+    version_tuple_to_str,
+    version_str_to_tuple,
+)
 
 # Make this false if you need to run the debugger inside a test.
 CAPTURE_STDOUT = "-s" not in sys.argv
@@ -30,7 +35,7 @@ srcdir = get_srcdir()
 
 
 def parent_function_name():
-    if PYTHON_VERSION < 3.5:
+    if PYTHON_VERSION_TRIPLE < (3, 5):
         return inspect.stack()[2][3]
     else:
         return inspect.stack()[2].function
@@ -38,33 +43,33 @@ def parent_function_name():
 
 LINE_STR = "-" * 25
 
+supported_versions = frozenset(
+    [(2, 7), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (3, 9)]
+)
+
 
 class VmTestCase(unittest.TestCase):
     def do_one(self):
-        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9):
-            self.version_float = PYTHON_VERSION
-        else:
-            assert PYTHON_VERSION == 2.7
-            self.version_float = 2.7
+        self.version_pair = PYTHON_VERSION_TRIPLE[:2]
+        assert self.version_pair in supported_versions
 
         platform = "pypy" if IS_PYPY else ""
         path = osp.join(
             srcdir,
-            "bytecode-%s%s" % (platform, self.version_float),
+            "bytecode-%s%s" % (platform, version_tuple_to_str(self.version_pair)),
             parent_function_name() + ".pyc",
         )
         self.assert_ok(path, arg_type="bytecode-file")
 
     def self_checking(self):
         """Use this for a program that has asserts to check its validity"""
-        if PYTHON_VERSION in (2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9):
-            self.version_float = PYTHON_VERSION
-        else:
-            assert PYTHON_VERSION == 2.7
-            self.version_float = 2.7
+        self.version_pair = PYTHON_VERSION_TRIPLE[:2]
+        assert self.version_pair in supported_versions
 
         path = osp.join(
-            srcdir, "bytecode-%s" % self.version_float, parent_function_name() + ".pyc"
+            srcdir,
+            "bytecode-%s" % version_tuple_to_str(self.version_pair),
+            parent_function_name() + ".pyc",
         )
         self.assert_runs_ok(path, arg_type="bytecode-file")
 
@@ -73,7 +78,7 @@ class VmTestCase(unittest.TestCase):
 
         if arg_type == "bytecode-file":
             (
-                self.version_float,
+                self.version_pair,
                 timestamp,
                 magic_int,
                 code,
@@ -82,7 +87,7 @@ class VmTestCase(unittest.TestCase):
                 sip_hash,
             ) = load_module(path_or_code)
         else:
-            self.version_float = PYTHON_VERSION
+            self.version_pair = PYTHON_VERSION_TRIPLE[:2]
             if arg_type == "source":
                 code_str = open(path_or_code, "r").read()
             else:
@@ -125,7 +130,7 @@ class VmTestCase(unittest.TestCase):
 
         # Run the code through the real Python interpreter, for comparison.
 
-        if self.version_float != PYTHON_VERSION:
+        if self.version_pair != PYTHON_VERSION_TRIPLE[:2]:
             return
 
         py_stdout = six.StringIO()
@@ -152,12 +157,7 @@ class VmTestCase(unittest.TestCase):
 
     def assert_same_exception(self, e1, e2):
         """Exceptions don't implement __eq__, check it ourselves."""
-        try:
-            self.assertEqual(str(e1), str(e2))
-        except:
-            from trepan.api import debug
-
-            debug()
+        self.assertEqual(str(e1), str(e2))
         self.assertIs(type(e1), type(e2))
 
     def assert_runs_ok(self, path_or_code, raises=None, arg_type="string"):
@@ -165,7 +165,7 @@ class VmTestCase(unittest.TestCase):
 
         if arg_type == "bytecode-file":
             (
-                self.version_float,
+                self.version_pair,
                 timestamp,
                 magic_int,
                 code,
@@ -174,7 +174,7 @@ class VmTestCase(unittest.TestCase):
                 sip_hash,
             ) = load_module(path_or_code)
         else:
-            self.version_float = PYTHON_VERSION
+            self.version_pair = PYTHON_VERSION_TRIPLE[:2]
             if arg_type == "source":
                 code_str = open(path_or_code, "r").read()
             else:
@@ -188,10 +188,15 @@ class VmTestCase(unittest.TestCase):
 
         print(
             "%s bytecode %s for %s %s "
-            % (LINE_STR, self.version_float, code.co_filename, LINE_STR)
+            % (
+                LINE_STR,
+                version_tuple_to_str(self.version_pair),
+                code.co_filename,
+                LINE_STR,
+            )
         )
 
-        vm = PyVM(python_version=self.version_float)
+        vm = PyVM(python_version=self.version_pair)
 
         vm_value = vm_exc = None
         try:

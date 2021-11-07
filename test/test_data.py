@@ -7,7 +7,7 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 
 class TestData(vmtest.VmTestCase):
@@ -20,12 +20,12 @@ class TestData(vmtest.VmTestCase):
     def test_eval(self):
         self.self_checking()
 
-    if PYTHON_VERSION >= 3.5:
+    if PYTHON_VERSION_TRIPLE >= (3, 5):
 
         def test_map_unpack(self):
             self.self_checking()
 
-    if PYTHON_VERSION >= 3.6:
+    if PYTHON_VERSION_TRIPLE >= (3, 6):
 
         def test_fstring(self):
             self.self_checking()

@@ -4,7 +4,7 @@ from __future__ import print_function, division
 
 import inspect
 
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.pyobj import Function
@@ -29,7 +29,7 @@ def identity(x):
 
 FSTRING_CONVERSION_MAP = {0: identity, 1: str, 2: repr}
 
-if PYTHON_VERSION > 2.7:
+if PYTHON_VERSION_TRIPLE >= (3, 0):
     FSTRING_CONVERSION_MAP[3] = ascii
 
 # Code with these co_names have an implicit .0 in them
@@ -183,7 +183,7 @@ class ByteOp36(ByteOp35):
         if (
             not inspect.iscode(code)
             and hasattr(code, "to_native")
-            and self.version == PYTHON_VERSION
+            and self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]
         ):
             code = code.to_native()
 

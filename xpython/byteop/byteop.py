@@ -9,7 +9,7 @@ import inspect
 import operator
 import logging
 import sys
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 from xpython.pyobj import Function
 from xpython.builtins import build_class
 
@@ -60,7 +60,7 @@ INPLACE_OPERATORS = frozenset(
     ]
 )
 
-if PYTHON_VERSION >= 3.5:
+if PYTHON_VERSION_TRIPLE >= (3, 5):
     BINARY_OPERATORS["MATRIX_MULTIPLY"] = operator.matmul
 
 
@@ -97,7 +97,7 @@ class ByteOpBase(object):
     def __init__(self, vm):
         self.vm = vm
         # Convenience variables
-        self.float_version = vm.version
+        self.version = vm.version
         self.is_pypy = vm.is_pypy
         self.PyVMError = self.vm.PyVMError
 
@@ -186,7 +186,7 @@ class ByteOpBase(object):
                 if len(pos_args) == 1:
                     pos_args.append(self.vm.frame.f_globals)
 
-                if self.float_version == PYTHON_VERSION:
+                if self.version == PYTHON_VERSION_TRIPLE[:2]:
                     source = pos_args[0]
                     if isinstance(source, str) or isinstance(source, bytes):
                         try:
@@ -200,7 +200,7 @@ class ByteOpBase(object):
                 else:
                     log.warning(
                         "Running built-in `exec()` because we are cross-version interpreting version %s from version %s"
-                        % (self.float_version, PYTHON_VERSION)
+                        % (self.version, PYTHON_VERSION_TRIPLE)
                     )
 
             elif func == eval:
@@ -220,7 +220,7 @@ class ByteOpBase(object):
                     pos_args.append(self.vm.frame.f_locals)
                 assert len(pos_args) == 3
 
-                if self.float_version == PYTHON_VERSION:
+                if self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]:
                     source = pos_args[0]
                     if isinstance(source, str) or isinstance(source, unicode):
                         try:
@@ -234,10 +234,10 @@ class ByteOpBase(object):
                 else:
                     log.warning(
                         "Running built-in `eval()` because we are cross-version interpreting version %s from version %s"
-                        % (self.float_version, PYTHON_VERSION)
+                        % (self.version, PYTHON_VERSION_TRIPLE)
                     )
 
-            elif PYTHON_VERSION >= 3.0 and func == __build_class__:
+            elif PYTHON_VERSION_TRIPLE >= (3, 0) and func == __build_class__:
                 assert (
                     len(pos_args) > 0
                 ), "__build_class__() should have at least one argument, an __init__() function."
@@ -245,8 +245,8 @@ class ByteOpBase(object):
                 if (
                     isinstance(init_fn, Function)
                     or self.is_pypy
-                    or self.float_version != PYTHON_VERSION
-                ) and PYTHON_VERSION >= 3.4:
+                    or self.version_info[:2] != PYTHON_VERSION_TRIPLE[:2]
+                ) and PYTHON_VERSION_TRIPLE >= (3, 4):
                     # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
                     # Down the line we will try to do this universally, but it is tricky:
@@ -267,11 +267,14 @@ class ByteOpBase(object):
                 "__name__", self.vm.frame.f_globals["__name__"]
             )
 
-        if inspect.isfunction(func) and self.float_version == PYTHON_VERSION:
+        if (
+            inspect.isfunction(func)
+            and self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]
+        ):
             # Try to convert to an interpreter function so we can interpret it.
             if func in self.vm.fn2native:
                 func = self.vm.fn2native[func]
-            elif False:  # self.vm.version < 3.0:
+            elif False:  # self.vm.version < (3, 0):
                 # Not quite ready. See 3.7 test_asyncgen.py for an
                 # example of code that comes here. In that test, the
                 # LOAD_GLOBAL '_ignore_deprecated_imports' fails to
@@ -282,7 +285,10 @@ class ByteOpBase(object):
                 assert len(pos_args) > 0
                 pos_args[0] = self.convert_native_to_Function(frame, pos_args[0])
 
-        if inspect.isfunction(func) and self.float_version == PYTHON_VERSION:
+        if (
+            inspect.isfunction(func)
+            and self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]
+        ):
             log.debug("calling native function %s" % func.__name__)
 
         retval = func(*pos_args, **named_args)
@@ -304,7 +310,7 @@ class ByteOpBase(object):
     def convert_native_to_Function(self, frame, func):
         assert inspect.isfunction(func) or isinstance(func, Function)
         slots = {"kwdefaults": {}, "annotations": {}}
-        if self.vm.version >= 3.0:
+        if self.vm.version >= (3, 0):
             slots["globs"] = frame.f_globals
             arg2attr = {
                 "code": "__code__",

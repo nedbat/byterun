@@ -6,7 +6,7 @@ from __future__ import print_function, division
 import inspect
 import types
 
-from xdis import PYTHON_VERSION, IS_PYPY
+from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
 from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop33 import ByteOp33
@@ -106,7 +106,7 @@ class ByteOp34(ByteOp33):
 
         if (
             inspect.iscode(code)
-            and self.version == PYTHON_VERSION
+            and self.version[:2] == PYTHON_VERSION_TRIPLE[:2]
             and self.is_pypy == IS_PYPY
         ):
             # Python 3.4 __build_class__ is more strict about what can be a

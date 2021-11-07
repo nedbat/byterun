@@ -30,7 +30,7 @@ def fmt_make_function(vm, arg=None, repr=repr):
     returns the name of the function from the code object in the stack
     """
     # Gotta love Python for stuff like this.
-    fn_index = 1 if vm.version >= 3.2 else 2
+    fn_index = 1 if vm.version >= (3, 2) else 2
     fn_item = vm.peek(fn_index)
     name = fn_item if isinstance(fn_item, str) else fn_item.co_name
     return " (%s)" % name
@@ -59,7 +59,7 @@ class ByteOp32(ByteOp27):
         rest, default_count = divmod(argc, 256)
         annotate_count, kw_default_count = divmod(rest, 256)
 
-        if self.float_version >= 3.3:
+        if self.version_info[:2] >= (3, 3):
             name = self.vm.pop()
             code = self.vm.pop()
         else:

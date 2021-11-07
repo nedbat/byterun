@@ -25,23 +25,25 @@ def read(*rnames):
 
 exec(read("xpython/version.py"))
 
-PYTHON_VERSION = sys.version_info[0] + (sys.version_info[1] / 10.0)
+# Don't assume we have xdis installed.
+PYTHON_VERSION_TRIPLE = tuple(sys.version_info[:3])
+
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 
-supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
+supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON  # noqa
 mess = "PYPY 2.7, 3.2, 3.5-3.7" if IS_PYPY else "CPython 2.7, 3.2 .. 3.9"
 
-if PYTHON_VERSION not in supported_versions:
+if PYTHON_VERSION_TRIPLE[:2] not in supported_versions:
     python = "PyPy " if IS_PYPY else "C"
-    print("We only support %s; you have %sPython %s" % (mess, python, PYTHON_VERSION))
+    print("We only support %s; you have %sPython %s" % (mess, python, sys.version_info))
     raise Exception(mess)
 
-if 3.0 <= PYTHON_VERSION <= 3.2:
+if (3, 0) <= PYTHON_VERSION_TRIPLE < (3, 3):
     click_version = "<= 4.0"
 else:
     click_version = ""
 
-install_requires = (["six", "xdis >= 5.0.12, < 5.1.0", "click%s" % click_version],)
+install_requires = (["six", "xdis >= 6.0.3, < 6.1.0", "click%s" % click_version],)
 
 py_modules = None
 short_desc = "Python cross-version byte-code interpeter"

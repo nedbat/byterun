@@ -7,14 +7,14 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis import PYTHON_VERSION
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 
 class TestFunctions(vmtest.VmTestCase):
     def test_no_builtins(self):
         self.self_checking()
 
-    if PYTHON_VERSION < 3.8:
+    if PYTHON_VERSION_TRIPLE < (3, 8):
 
         def test_calling_function_with_args_kwargs(self):
             self.self_checking()
@@ -34,18 +34,18 @@ class TestFunctions(vmtest.VmTestCase):
     def test_recursion(self):
         self.self_checking()
 
-    if 3.0 <= PYTHON_VERSION:
+    if (3, 0) <= PYTHON_VERSION_TRIPLE:
 
         def test_function_calls(self):
             self.self_checking()
 
     # test_pos_args has function syntax added in 3.3
-    if PYTHON_VERSION >= 3.3:
+    if PYTHON_VERSION_TRIPLE >= (3, 3):
 
         def test_pos_args(self):
             self.self_checking()
 
-        if PYTHON_VERSION < 3.8:
+        if PYTHON_VERSION_TRIPLE < (3, 8):
             # "yield from" and bytecode YIELD_FROM added in 3.3
             def test_yield_from_tuple(self):
                 self.self_checking()
@@ -106,7 +106,7 @@ class TestFunctions(vmtest.VmTestCase):
 
 
 class TestClosures(vmtest.VmTestCase):
-    if PYTHON_VERSION < 3.8:
+    if PYTHON_VERSION_TRIPLE < (3, 8):
 
         def test_closures(self):
             self.self_checking()
@@ -115,7 +115,7 @@ class TestClosures(vmtest.VmTestCase):
             self.self_checking()
 
         # Has function-call syntax that is only valid for 3.5+
-        if PYTHON_VERSION >= 3.5:
+        if PYTHON_VERSION_TRIPLE >= (3, 5):
 
             def test_call_ex_kw(self):
                 self.self_checking()
@@ -202,7 +202,7 @@ class TestGenerators(vmtest.VmTestCase):
             """
         )
 
-    if PYTHON_VERSION >= 3.3:
+    if PYTHON_VERSION_TRIPLE >= (3, 3):
         # yield from starts in 3.3
         def test_yield_from(self):
             self.assert_ok(
