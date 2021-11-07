@@ -9,7 +9,7 @@ from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
 from xpython.vm import format_instruction, PyVM, PyVMUncaughtException
 from xpython.vmtrace import PyVMTraced
-from xpython.version import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
+from xpython.version_info import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
 # To silence the "import imp" DeprecationWarning below
 import warnings

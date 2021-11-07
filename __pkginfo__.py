@@ -24,6 +24,7 @@ def read(*rnames):
 
 
 exec(read("xpython/version.py"))
+exec(read("xpython/version_info.py"))
 
 # Don't assume we have xdis installed.
 PYTHON_VERSION_TRIPLE = tuple(sys.version_info[:3])
