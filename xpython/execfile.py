@@ -203,7 +203,7 @@ def run_python_file(
                 supported_versions, mess = get_supported_versions(
                     is_pypy, is_bytecode=True
                 )
-                if python_version not in supported_versions:
+                if python_version[:2] not in supported_versions:
                     raise WrongBytecodeError(
                         "We only support byte code for %s: %r is %2.1f bytecode"
                         % (mess, filename, python_version)

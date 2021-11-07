@@ -157,7 +157,7 @@ class VmTestCase(unittest.TestCase):
 
     def assert_same_exception(self, e1, e2):
         """Exceptions don't implement __eq__, check it ourselves."""
-        self.assertEqual(e1, e2)
+        self.assertEqual(str(e1), str(e2))
         self.assertIs(type(e1), type(e2))
 
     def assert_runs_ok(self, path_or_code, raises=None, arg_type="string"):

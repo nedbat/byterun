@@ -122,12 +122,12 @@ class ByteOp27(ByteOp26):
         else:
             exit_method = context_manager.__exit__
         self.vm.push(exit_method)
-        if self.float_version[:2] == PYTHON_VERSION_TRIPLE[
-            :2
-        ] and not inspect.isbuiltin(context_manager.__enter__):
+        if self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2] and not inspect.isbuiltin(
+            context_manager.__enter__
+        ):
             self.convert_method_native_func(self.vm.frame, context_manager.__enter__)
         finally_block = context_manager.__enter__()
-        if self.version < (3, 0):
+        if self.version_info[:2] < (3, 0):
             self.vm.push_block("with", delta)
         else:
             self.vm.push_block("finally", delta)

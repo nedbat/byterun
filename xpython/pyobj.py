@@ -237,7 +237,7 @@ class Function(object):
             # so just do the right thing.
             assert len(args) == 1 and not kwargs, "Surprising comprehension!"
             callargs = {".0": args[0]}
-        elif self._func and self.version == PYTHON_VERSION:
+        elif self._func and self.version[:2] == PYTHON_VERSION_TRIPLE[:2]:
             # Perhaps this branch can go and we just use the others.
             # It will require a *lot* more code from inspect.py to be added:
             # classes Signature, Parameter, etc.
@@ -248,7 +248,7 @@ class Function(object):
             # See 3.7.7. test_keywordonlyarg.py
 
             # To catch dynamic changes, we'll run a second check
-            if self.version >= 3.0:
+            if self.version >= (3, 0):
                 inspect3.getcallargs(self, *args, **kwargs)
             else:
                 inspect2.getcallargs(self, *args, **kwargs)
@@ -542,7 +542,7 @@ class Generator(object):
         self.gi_running = False
         self.gi_code = g_frame.f_code
         self.__name__ = g_frame.f_code.co_name
-        self.__qualname__ = qualname if g_frame.version >= 3.4 else None
+        self.__qualname__ = qualname if g_frame.version >= (3, 4) else None
 
     def __iter__(self):
         return self

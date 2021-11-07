@@ -97,7 +97,7 @@ class ByteOpBase(object):
     def __init__(self, vm):
         self.vm = vm
         # Convenience variables
-        self.float_version = vm.version
+        self.version = vm.version
         self.is_pypy = vm.is_pypy
         self.PyVMError = self.vm.PyVMError
 

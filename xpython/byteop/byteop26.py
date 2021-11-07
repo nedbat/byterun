@@ -88,7 +88,7 @@ class ByteOp26(ByteOp25):
         function also has argc default parameters, where are found
         before the cells.
         """
-        if self.float_version >= 3.3:
+        if self.version_info[:2] >= (3, 3):
             name = self.vm.pop()
         else:
             name = None

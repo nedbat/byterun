@@ -25,19 +25,17 @@ def read(*rnames):
 
 exec(read("xpython/version.py"))
 
-from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
+# Don't assume we have xdis installed.
+PYTHON_VERSION_TRIPLE = tuple(sys.version_info[:3])
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON  # noqa
 mess = "PYPY 2.7, 3.2, 3.5-3.7" if IS_PYPY else "CPython 2.7, 3.2 .. 3.9"
 
-if PYTHON_VERSION_TRIPLE not in supported_versions:
+if PYTHON_VERSION_TRIPLE[:2] not in supported_versions:
     python = "PyPy " if IS_PYPY else "C"
-    print(
-        "We only support %s; you have %sPython %s"
-        % (mess, python, version_tuple_to_str())
-    )
+    print("We only support %s; you have %sPython %s" % (mess, python, sys.version_info))
     raise Exception(mess)
 
 if (3, 0) <= PYTHON_VERSION_TRIPLE < (3, 3):

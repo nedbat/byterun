@@ -59,7 +59,7 @@ class ByteOp32(ByteOp27):
         rest, default_count = divmod(argc, 256)
         annotate_count, kw_default_count = divmod(rest, 256)
 
-        if self.float_version >= 3.3:
+        if self.version_info[:2] >= (3, 3):
             name = self.vm.pop()
             code = self.vm.pop()
         else:
