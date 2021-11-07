@@ -178,6 +178,11 @@ class PyVM(object):
         self.PyVMError = PyVMError
 
         variant = "pypy" if is_pypy else None
+
+        # FIXME: HACK alert - until the next release of xpython > 6.0.3
+        if is_pypy and python_version == (3, 8, 0):
+            python_version = (3, 8, 12)
+
         self.opc = get_opcode_module(python_version, variant)
         self.byteop = get_byteop(self, python_version, is_pypy)
 

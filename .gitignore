@@ -2,9 +2,10 @@
 *.pyc
 *~
 .coverage
+.mypy_cache
 .tox
 /*~
-.mypy_cache
+/.cache
 /.python-version
 /activate
 /build

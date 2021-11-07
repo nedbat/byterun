@@ -1,3 +1,13 @@
+1.4.0 2021-11-07
+================
+
+* Use newer xdis which supports 3.10. We don't have 3.10 opcode interpretation yet though.
+  This was a lot of upheaval since we can no longer use floats to represent python versions:
+  3.1 == 3.10 in floating point. As xdis uses, we use tuples now.
+* Improve fake `version_info` for PyPy.
+* Start pypy37 and pypy38 bytecodes, although this is not finished yet. You interpret other bytecode from PyPy though.
+* Tweak `FORMAT_VALUE` and improve assembly display
+
 1.3.6 2021-09-04
 ================
 

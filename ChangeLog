@@ -1,3 +1,90 @@
+2021-11-07  rocky <rocky@dusytfeet.com>
+
+	* .github/workflows/osx.yml, .github/workflows/ubuntu.yml,
+	.github/workflows/windows.yml: Administriva: workflows CI
+
+2021-11-07  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/setup-master.sh, admin-tools/setup-python-3.5.sh: 
+	Administrivia
+
+2021-11-07  R. Bernstein <rocky@users.noreply.github.com>
+
+	* : Merge pull request #5 from rocky/newer-xdis Newer xdis
+
+2021-11-06  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, test/test_basic.py, test/test_data.py,
+	test/test_exceptions.py, test/test_functions.py,
+	test/test_stmts.py, test/test_with.py, test/vmtest.py,
+	xpython/byteop/byteop.py, xpython/byteop/byteop24.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py, xpython/execfile.py, xpython/pyobj.py,
+	xpython/stdlib/types34.py, xpython/version.py, xpython/vm.py: Lots
+	of python version comparisons redone...  remove float compare and put in tuple compare needed by newer xdis
+
+2021-10-16  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/byteop/__init__.py, xpython/vm.py: Start
+	using tuples in Python version comparisons
+
+2021-09-16  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteop35pypy.py, xpython/byteop/byteop36pypy.py,
+	xpython/byteop/byteoppypy.py: Improve PyPy interpretation
+
+2021-09-16  rocky <rocky@dusytfeet.com>
+
+	* test/test-compat.sh: Remove PyPy 3.7 until we can go over
+	LOOKUP_METHOD and CALL_METHOD
+
+2021-09-16  rocky <rocky@dusytfeet.com>
+
+	* xpython/byteop/byteoppypy.py: Remove debug statement
+
+2021-09-15  rocky <rocky@dusytfeet.com>
+
+	* .circleci/config.yml, xpython/vm.py: CI tweak; remove trepan call
+
+2021-09-15  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/pyenv-newest-versions, test/test-compat.sh,
+	xpython/byteop/byteop37pypy.py: Improve fake version_info for PyPy
+	3.7
+
+2021-09-15  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/pyenv-newest-versions, test/test-compat.sh,
+	xpython/byteop/__init__.py, xpython/byteop/byteop37pypy.py,
+	xpython/byteop/byteoppypy.py: Support pypy3.7
+
+2021-09-12  rocky <rocky@dusytfeet.com>
+
+	* test/test_compat.py, xpython/byteop/byteop26.py,
+	xpython/byteop/byteop36.py, xpython/byteop/byteop37.py,
+	xpython/vm.py: Work on cross version decompilation
+
+2021-09-12  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/check-versions.sh, admin-tools/{pyenv-versions =>
+	pyenv-2.7-3.5-versions}, admin-tools/pyenv-newest-versions,
+	xpython/byteop/byteop26.py: Working with different Python version
+
+2021-09-12  rocky <rocky@dusytfeet.com>
+
+	* xpython/vm.py: Formatting tweak
+
+2021-09-11  rocky <rocky@dusytfeet.com>
+
+	* __pkginfo__.py, xpython/byteop/byteop36.py, xpython/vm.py: Tweak
+	FORMAT_VALUE use newer xdis
+
+2021-09-08  rocky <rocky@dusytfeet.com>
+
+	* admin-tools/how-to-make-a-release.md: Administrivia
+
 2021-09-04  rocky <rocky@dusytfeet.com>
 
 	* : commit 7e0989b4bc46063f33e85eff642f327e7b577326 Merge: 2835405
