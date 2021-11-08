@@ -58,8 +58,9 @@ class ByteOp26(ByteOp25):
 
         elif PYTHON_VERSION_TRIPLE >= (3, 0):
             # This should make a *copy* of the module so we keep interpreter and
-            # intpreted programs separate.
+            # interpreted programs separate.
             # See below for how we handle "sys" import
+            # FIXME: should split on ".". Doesn't work for, say, os.path
             if level < 0:
                 level = 0
             module = importlib.__import__(
