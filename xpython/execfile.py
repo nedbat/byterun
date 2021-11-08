@@ -1,6 +1,6 @@
 """Execute files of Python code."""
 
-import os
+import os.path as osp
 import sys
 import tokenize
 import mimetypes
@@ -183,7 +183,7 @@ def run_python_file(
     if package:
         sys.path[0] = ""
     else:
-        sys.path[0] = os.path.abspath(os.path.dirname(filename))
+        sys.path[0] = osp.abspath(osp.dirname(filename))
 
     is_pypy = IS_PYPY
     try:
@@ -208,7 +208,9 @@ def run_python_file(
                         "We only support byte code for %s: %r is %2.1f bytecode"
                         % (mess, filename, python_version)
                     )
-                pass
+                # FIXME: add a time check of code.co_filename vs time on filename (bytecode file)
+                # and give a waning if the source is newer.
+                main_mod.__file__ = code.co_filename
             else:
                 source_file = open_source(filename)
                 try:

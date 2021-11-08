@@ -45,29 +45,35 @@ class ByteOp26(ByteOp25):
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
 
-        if importlib is not None:
-            module_spec = importlib.util.find_spec(name)
-            module = importlib.util.module_from_spec(module_spec)
+        # if importlib is not None:
+        #     module_spec = importlib.util.find_spec(name)
+        #     module = importlib.util.module_from_spec(module_spec)
 
-            load_module = (
-                module_spec.loader.exec_module
-                if hasattr(module_spec.loader, "exec_module")
-                else module_spec.loader.load_module
-            )
-            load_module(module)
+        #     load_module = (
+        #         module_spec.loader.exec_module
+        #         if hasattr(module_spec.loader, "exec_module")
+        #         else module_spec.loader.load_module
+        #     )
+        #     load_module(module)
 
-        elif PYTHON_VERSION_TRIPLE >= (3, 0):
-            # This should make a *copy* of the module so we keep interpreter and
-            # interpreted programs separate.
-            # See below for how we handle "sys" import
-            # FIXME: should split on ".". Doesn't work for, say, os.path
-            if level < 0:
-                level = 0
-            module = importlib.__import__(
-                name, frame.f_globals, frame.f_locals, fromlist, level
-            )
-        else:
-            module = __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+        # elif PYTHON_VERSION_TRIPLE >= (3, 0):
+        #     # This should make a *copy* of the module so we keep interpreter and
+        #     # interpreted programs separate.
+        #     # See below for how we handle "sys" import
+        #     # FIXME: should split on ".". Doesn't work for, say, os.path
+        #     if level < 0:
+        #         level = 0
+        #     module = importlib.__import__(
+        #         name, frame.f_globals, frame.f_locals, fromlist, level
+        #     )
+        # else:
+        #     module = __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+
+        # INVESTIGATE: the above doesn't work for things like "import os.path as osp"
+        # The module it finds ins os.posixpath which doesn't have a "path" attribute
+        # while the below finds "os" which does have a "path" attribute.
+        #
+        module = __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
 
         # FIXME: generalize this
         if name in sys.builtin_module_names:
