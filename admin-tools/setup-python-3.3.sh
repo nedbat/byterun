@@ -1,5 +1,6 @@
 #!/bin/bash
-PYTHON_VERSION=3.7.12
+PYTHON_VERSION=3.5.10
+pyenv local $PYTHON_VERSION
 
 # FIXME put some of the below in a common routine
 function finish {
@@ -16,8 +17,7 @@ fi
 mydir=$(dirname $bs)
 fulldir=$(readlink -f $mydir)
 cd $fulldir/..
-(cd ../python-xdis && git checkout master && pyenv local $PYTHON_VERSION) && git pull && \
-    git checkout master && pyenv local $PYTHON_VERSION && git pull
-(cd ../python-uncompyle6 && ./admin-tools/setup-master.sh)
+(cd ../python-xdis && git checkout python-3.3 && pyenv local $PYTHON_VERSION) && git pull && \
+    git checkout python-3.5 && pyenv local $PYTHON_VERSION && git pull
 cd $owd
 rm -v */.python-version >/dev/null 2>&1 || true
