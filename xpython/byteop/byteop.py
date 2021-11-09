@@ -9,7 +9,7 @@ import inspect
 import operator
 import logging
 import sys
-from xdis.version_info import PYTHON_VERSION_TRIPLE
+from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 from xpython.pyobj import Function
 from xpython.builtins import build_class
 
@@ -113,6 +113,8 @@ class ByteOpBase(object):
 
         # Set this lazily in "convert_method_native_func
         self.method_func_access = None
+        self.cross_bytecode_eval_warning_shown = False
+        self.cross_bytecode_exec_warning_shown = False
 
     def binaryOperator(self, op):
         x, y = self.vm.popn(2)
@@ -198,10 +200,15 @@ class ByteOpBase(object):
                     self.vm.push(self.vm.run_code(*pos_args, toplevel=False))
                     return
                 else:
-                    log.warning(
-                        "Running built-in `exec()` because we are cross-version interpreting version %s from version %s"
-                        % (self.version, PYTHON_VERSION_TRIPLE)
-                    )
+                    if not self.cross_bytecode_exec_warning_shown:
+                        log.warning(
+                            "Running built-in `exec()` because we are cross-version interpreting version %s from version %s."
+                            % (
+                                version_tuple_to_str(self.version_info, end=2),
+                                version_tuple_to_str(PYTHON_VERSION_TRIPLE, end=2),
+                            )
+                        )
+                        self.cross_bytecode_exec_warning_shown = True
 
             elif func == eval:
 
@@ -232,10 +239,15 @@ class ByteOpBase(object):
                     self.vm.push(self.vm.run_code(*pos_args, toplevel=False))
                     return
                 else:
-                    log.warning(
-                        "Running built-in `eval()` because we are cross-version interpreting version %s from version %s"
-                        % (self.version, PYTHON_VERSION_TRIPLE)
-                    )
+                    if not self.cross_bytecode_eval_warning_shown:
+                        log.warning(
+                            "Running built-in `eval()` because we are cross-version interpreting version %s from version %s."
+                            % (
+                                version_tuple_to_str(self.version_info, end=2),
+                                version_tuple_to_str(PYTHON_VERSION_TRIPLE, end=2),
+                            )
+                        )
+                        self.cross_bytecode_eval_warning_shown = True
 
             elif PYTHON_VERSION_TRIPLE >= (3, 0) and func == __build_class__:
                 assert (

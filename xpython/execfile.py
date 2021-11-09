@@ -1,9 +1,11 @@
 """Execute files of Python code."""
 
+import os
 import os.path as osp
 import sys
 import tokenize
 import mimetypes
+from typing import Optional
 from xdis import load_module, IS_PYPY
 from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
@@ -43,6 +45,17 @@ class NoSourceError(Exception):
     """For raising errors when we can't find source code."""
 
     pass
+
+
+def source_is_older(source_path: str, bytecode_path: str) -> Optional[bool]:
+    """
+    Check that the modification time on `source_path` is before the modification
+
+    """
+    try:
+        return os.stat(source_path).st_mtime > os.stat(bytecode_path).st_mtime
+    except FileNotFoundError:
+        return None
 
 
 def exec_code_object(
@@ -208,9 +221,14 @@ def run_python_file(
                         "We only support byte code for %s: %r is %2.1f bytecode"
                         % (mess, filename, python_version)
                     )
-                # FIXME: add a time check of code.co_filename vs time on filename (bytecode file)
-                # and give a waning if the source is newer.
                 main_mod.__file__ = code.co_filename
+
+                if not source_is_older(code.co_filename, filename):
+                    print(
+                        f"warning source file {code.co_filename} is newer than bytecode {filename}"
+                    )
+                    pass
+
             else:
                 source_file = open_source(filename)
                 try:
