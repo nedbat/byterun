@@ -6,9 +6,34 @@ import types
 from inspect import isclass, ismethod
 from xdis import CO_GENERATOR, CO_COROUTINE
 
-from xdis import PYTHON_VERSION, COMPILER_FLAG_BIT
+from xdis import COMPILER_FLAG_BIT
+from xdis.version_info import PYTHON_VERSION_TRIPLE
 
-if PYTHON_VERSION >= 3.3:
+# Note: we don't want to import pyobj and Function since that imports us.
+def _missing_arguments_before_34(f_name, argnames, pos, values):
+    names = [repr(name) for name in argnames if name not in values]
+    missing = len(names)
+    if missing == 1:
+        s = names[0]
+    elif missing == 2:
+        s = "{} and {}".format(*names)
+    else:
+        tail = ", {} and {}".format(*names[-2:])
+        del names[-2:]
+        s = ", ".join(names) + tail
+    raise TypeError(
+        "%s() missing %i required %s argument%s: %s"
+        % (
+            f_name,
+            missing,
+            "positional" if pos else "keyword-only",
+            "" if missing == 1 else "s",
+            s,
+        )
+    )
+
+
+if PYTHON_VERSION_TRIPLE >= (3, 3):
     from inspect import (
         FullArgSpec,
         Parameter,
@@ -18,7 +43,7 @@ if PYTHON_VERSION >= 3.3:
         signature,
     )
 
-    if PYTHON_VERSION >= 3.4:
+    if PYTHON_VERSION_TRIPLE >= (3, 4):
         from inspect import (
             _missing_arguments,
             _signature_bound_method,
@@ -30,32 +55,13 @@ if PYTHON_VERSION >= 3.3:
             _too_many,
             unwrap,
         )
+    else:
+        _missing_arguments = _missing_arguments_before_34
     pass
 else:
     from xpython.stdlib.inspectfor32 import FullArgSpec, Parameter, Signature
 
-    # Note: we don't want to import pyobj and Function since that imports us.
-    def _missing_arguments(f_name, argnames, pos, values):
-        names = [repr(name) for name in argnames if name not in values]
-        missing = len(names)
-        if missing == 1:
-            s = names[0]
-        elif missing == 2:
-            s = "{} and {}".format(*names)
-        else:
-            tail = ", {} and {}".format(*names[-2:])
-            del names[-2:]
-            s = ", ".join(names) + tail
-        raise TypeError(
-            "%s() missing %i required %s argument%s: %s"
-            % (
-                f_name,
-                missing,
-                "positional" if pos else "keyword-only",
-                "" if missing == 1 else "s",
-                s,
-            )
-        )
+    _missing_arguments = _missing_arguments_before_34
 
     def _too_many(f_name, args, kwonly, varargs, defcount, given, values):
         atleast = len(args) - defcount
