@@ -9,6 +9,7 @@ SUPPORTED_PYTHON = (
     (3, 7),
     (3, 8),
     (3, 9),
+    (3, 10),
 )
 
 # PYPY 3.7 and 3.8 aren't ready yet
@@ -27,4 +28,5 @@ SUPPORTED_BYTECODE = (
     (3, 7),
     (3, 8),
     (3, 9),
+    (3, 10),
 )
