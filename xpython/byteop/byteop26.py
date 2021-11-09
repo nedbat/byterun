@@ -4,6 +4,7 @@
 Note: this is subclassed so later versions may use operations from here.
 """
 
+import os
 import sys
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
@@ -73,7 +74,25 @@ class ByteOp26(ByteOp25):
         # The module it finds ins os.posixpath which doesn't have a "path" attribute
         # while the below finds "os" which does have a "path" attribute.
         #
-        module = __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
+        assert level >= -1, f"Invalid Level number {level} on IMPORT_NAME"
+        module = None
+        if level == -1:
+            # In Python 2.6 added the level parameter and it was -1 by default until but not including 3.0.
+            # -1 means try relative imports before absolute imports.
+            if PYTHON_VERSION_TRIPLE >= (3, 0, 0):
+                # FIXME: give warning that we can't handle absolute import. Or fix up code to handle possible absolute import.
+                level = 0
+            else:
+                module = __import__(
+                    "." + os.sep + name,
+                    frame.f_globals,
+                    frame.f_locals,
+                    fromlist,
+                    level,
+                )
+
+        if module is None:
+            module = __import__(name, frame.f_globals, frame.f_locals, fromlist, level)
 
         # FIXME: generalize this
         if name in sys.builtin_module_names:

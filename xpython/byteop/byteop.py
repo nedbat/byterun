@@ -188,7 +188,7 @@ class ByteOpBase(object):
                 if len(pos_args) == 1:
                     pos_args.append(self.vm.frame.f_globals)
 
-                if self.version == PYTHON_VERSION_TRIPLE[:2]:
+                if self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]:
                     source = pos_args[0]
                     if isinstance(source, str) or isinstance(source, bytes):
                         try:
