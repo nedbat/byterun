@@ -6,35 +6,39 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis.version_info import PYTHON3, PYTHON_VERSION_TRIPLE
+from xdis.version_info import PYTHON3, PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
 PY2 = not PYTHON3
 
 
 class TestBasic(vmtest.VmTestCase):
-    def test_attribute_access(self):
-        self.self_checking()
+    if PYTHON_VERSION_TRIPLE[:2] in ((3, 10),):
+        print("Test not gone over yet for %s" % version_tuple_to_str())
+    else:
 
-        self.assert_ok(
-            """\
-            class Thing2(object):
-                z = 17
-                def __init__(self):
-                    self.x = 23
-            t = Thing2()
-            print(t.xyzzy)
-            """,
-            raises=AttributeError,
-        )
+        def test_attribute_access(self):
+            self.self_checking()
 
-    def test_bound_method_on_falsy_objects(self):
-        self.self_checking()
+            self.assert_ok(
+                """\
+                class Thing2(object):
+                    z = 17
+                    def __init__(self):
+                        self.x = 23
+                t = Thing2()
+                print(t.xyzzy)
+                """,
+                raises=AttributeError,
+            )
 
-    def test_building_stuff(self):
-        self.self_checking()
+        def test_bound_method_on_falsy_objects(self):
+            self.self_checking()
 
-    def test_callback(self):
-        self.self_checking()
+        def test_building_stuff(self):
+            self.self_checking()
+
+        def test_callback(self):
+            self.self_checking()
 
     def test_calling_methods_wrong(self):
         self.self_checking()
@@ -48,23 +52,27 @@ class TestBasic(vmtest.VmTestCase):
     def test_generator_expression(self):
         self.self_checking()
 
-    def test_inplace_operators(self):
-        self.self_checking()
+    if PYTHON_VERSION_TRIPLE[:2] in ((3, 10),):
+        print("Test not gone over yet for %s" % version_tuple_to_str())
+    else:
+
+        def test_inplace_operators(self):
+            self.self_checking()
+
+        def test_slice(self):
+            self.self_checking()
+
+        def test_slice_stmts(self):
+            self.self_checking()
+
+        def test_subscripting(self):
+            self.self_checking()
 
     def test_import(self):
         self.self_checking()
 
-    def test_slice(self):
-        self.self_checking()
-
-    def test_slice_stmts(self):
-        self.self_checking()
-
-    def test_subscripting(self):
-        self.self_checking()
-
-    if PYTHON_VERSION_TRIPLE in ((3, 9), (3, 10)):
-        print("Test not gone over yet for %s" % vresion_tuple_to_str())
+    if PYTHON_VERSION_TRIPLE[:2] in ((3, 9), (3, 10)):
+        print("Test not gone over yet for %s" % version_tuple_to_str())
     else:
 
         if PY2:

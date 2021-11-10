@@ -20,12 +20,12 @@ class TestData(vmtest.VmTestCase):
     def test_eval(self):
         self.self_checking()
 
-    if PYTHON_VERSION_TRIPLE >= (3, 5):
+    if (3, 5) <= PYTHON_VERSION_TRIPLE < (3, 10):
 
         def test_map_unpack(self):
             self.self_checking()
 
-    if PYTHON_VERSION_TRIPLE >= (3, 6):
+    if (3, 6) <= PYTHON_VERSION_TRIPLE < (3, 10):
 
         def test_fstring(self):
             self.self_checking()
