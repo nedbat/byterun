@@ -103,6 +103,11 @@ def get_byteop(vm, python_version, is_pypy):
                 from xpython.byteop.byteop39 import ByteOp39
 
                 byteop = ByteOp39(vm)
+
+            elif python_version == (3, 10):
+                from xpython.byteop.byteop310 import ByteOp310
+
+                byteop = ByteOp310(vm)
             else:
                 raise vm.VMEerror("Version %s not supported" % python_version)
             pass

@@ -6,7 +6,7 @@ try:
 except ImportError:
     from . import vmtest
 
-from xdis.version_info import PYTHON3, PYTHON_VERSION_TRIPLE, version_tuple_to_str
+from xdis.version_info import PYTHON3, PYTHON_VERSION_TRIPLE
 
 PY2 = not PYTHON3
 
@@ -63,7 +63,7 @@ class TestBasic(vmtest.VmTestCase):
     def test_subscripting(self):
         self.self_checking()
 
-    if PYTHON_VERSION_TRIPLE in ((3, 9),):
+    if PYTHON_VERSION_TRIPLE in ((3, 9), (3, 10)):
         print("Test not gone over yet for %s" % vresion_tuple_to_str())
     else:
 

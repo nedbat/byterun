@@ -7,12 +7,16 @@ import sys
 from xpython import execfile
 from xpython.vm import PyVMRuntimeError
 from xpython.version import __version__
-from xdis import PYTHON_VERSION, IS_PYPY
+from xdis.version_info import IS_PYPY, version_tuple_to_str
 
 
 def version_message():
     platform = "PyPy " if IS_PYPY else "C"
-    mess = "%s running from %sPython %s" % (__version__, platform, PYTHON_VERSION)
+    mess = "%s running from %sPython %s" % (
+        __version__,
+        platform,
+        version_tuple_to_str(),
+    )
     return mess
 
 
