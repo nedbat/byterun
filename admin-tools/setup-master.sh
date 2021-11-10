@@ -18,6 +18,6 @@ fulldir=$(readlink -f $mydir)
 cd $fulldir/..
 (cd ../python-xdis && git checkout master && pyenv local $PYTHON_VERSION) && git pull && \
     git checkout master && pyenv local $PYTHON_VERSION && git pull
-(cd ../python-uncompyle6 && ./admin-tools/setup-master.sh)
+(cd ../python-uncompyle6 && . ./admin-tools/setup-master.sh)
 cd $owd
 rm -v */.python-version >/dev/null 2>&1 || true
