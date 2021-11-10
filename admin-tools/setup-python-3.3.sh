@@ -14,5 +14,6 @@ cd $fulldir/..
 (cd ../python-xdis && git checkout python-3.3 && pyenv local $PYTHON_VERSION) && git pull && \
     git checkout python-3.3 && pyenv local $PYTHON_VERSION && git pull
 (cd ../python-uncompyle6 && ./admin-tools/setup-python-3.3.sh)
+git checkout python-3.3
 cd $owd
 rm -v */.python-version >/dev/null 2>&1 || true
