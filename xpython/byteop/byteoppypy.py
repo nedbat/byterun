@@ -4,6 +4,8 @@ Specific PyPy versions i.e. PyPy 2.7, 3.2, 3.5-3.7 inherit this.
 """
 from __future__ import print_function, division
 
+import inspect
+
 
 class ByteOpPyPy(object):
     def JUMP_IF_NOT_DEBUG(self, jump_offset):
@@ -23,6 +25,11 @@ class ByteOpPyPy(object):
         obj = self.vm.pop()
         val = getattr(obj, name)
         self.vm.push(val)
+        if self.version_info[:2] >= (3, 7):
+            if inspect.isfunction(val) or inspect.isbuiltin(val):
+                self.vm.push("LOAD_METHOD lookup success")
+            else:
+                self.vm.push("fill in attribute method lookup")
 
     def CALL_METHOD(self, argc):
         """
