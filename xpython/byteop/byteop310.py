@@ -28,34 +28,70 @@ class ByteOp310(ByteOp39):
     #   already been performed in parse_byte_and_args().
     ##############################################################################
 
-    def GET_LEN(self):
+    def COPY_DICT_WITHOUT_KEYS(self):
+        """TOS is a tuple of mapping keys, and TOS1 is the match
+        subject. Replace TOS with a dict formed from the items of TOS1, but
+        without any of the keys in TOS."""
         # FIXME
-        raise self.vm.PyVMError("GET_LEN not implemented")
+        raise self.vm.PyVMError("MATCH_COPY_DICT_WITHOUT_KEYS not implemented")
+
+    def GET_LEN(self):
+        """Push len(TOS) onto the stack."""
+        self.vm.push(len(self.vm.pop()))
 
     def MATCH_MAPPING(self):
+        """If TOS is an instance of collections.abc.Mapping (or, more
+        technically: if it has the Py_TPFLAGS_MAPPING flag set in its
+        tp_flags), push True onto the stack. Otherwise, push False.
+        """
         # FIXME
         raise self.vm.PyVMError("MATCH_MAPPING not implemented")
 
     def MATCH_SEQUENCE(self):
+        """If TOS is an instance of collections.abc.Sequence and is not an
+        instance of str/bytes/bytearray (or, more technically: if it
+        has the Py_TPFLAGS_SEQUENCE flag set in its tp_flags), push
+        True onto the stack. Otherwise, push False.
+        """
         # FIXME
         raise self.vm.PyVMError("MATCH_SEQUENCE not implemented")
 
     def MATCH_KEYS(self):
+        """TOS is a tuple of mapping keys, and TOS1 is the match subject. If
+        TOS1 contains all of the keys in TOS, push a tuple containing
+        the corresponding values, followed by True. Otherwise, push
+        None, followed by False.
+        """
         # FIXME
         raise self.vm.PyVMError("MATCH_KEYS not implemented")
 
-    def COPY_DICT_WITHOUT_KEYS(self):
+    def GEN_START(self, kind):
+        """Pops TOS. If TOS was not None, raises an exception. The kind
+        operand corresponds to the type of generator or coroutine and
+        determines the error message. The legal kinds are 0 for
+        generator, 1 for coroutine, and 2 for async generator.
+        """
         # FIXME
-        raise self.vm.PyVMError("MATCH_COPY_DICT_WITHOUT_KEYS not implemented")
+        assert kind in (0, 1, None)
+        self.vm.pop()
+        raise self.vm.PyVMError("GEN_START not implemented")
 
-    def ROT_N(self):
+    def ROT_N(self, count: int):
+        """
+        Lift the top count stack items one position up, and move TOS down to position count.
+        """
         # FIXME
         raise self.vm.PyVMError("ROT_N not implemented")
 
-    def GEN_START(self):
-        # FIXME
-        raise self.vm.PyVMError("GEN_START not implemented")
-
     def MATCH_CLASS(self):
+        """TOS is a tuple of keyword attribute names, TOS1 is the class being
+        matched against, and TOS2 is the match subject. count is the number of
+        positional sub-patterns.
+
+        Pop TOS. If TOS2 is an instance of TOS1 and has the positional
+        and keyword attributes required by count and TOS, set TOS to
+        True and TOS1 to a tuple of extracted attributes. Otherwise,
+        set TOS to False.
+        """
         # FIXME
         raise self.vm.PyVMError("MATCH_CLASS not implemented")
