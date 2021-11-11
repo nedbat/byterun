@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Bytecode Interpreter operations for Python 3.4
 """
-from __future__ import print_function, division
-
 import inspect
 import types
 

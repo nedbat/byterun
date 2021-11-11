@@ -3,7 +3,6 @@
 
 Note: this is subclassed. Later versions use operations from here.
 """
-from __future__ import print_function, division
 
 from collections import namedtuple
 

@@ -2,8 +2,6 @@
 
 Specific PyPy versions i.e. PyPy 2.7, 3.2, 3.5-3.7 inherit this.
 """
-from __future__ import print_function, division
-
 import inspect
 
 

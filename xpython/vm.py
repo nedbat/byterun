@@ -1,8 +1,6 @@
 """A pure-Python Python bytecode interpreter."""
 # Based on:
 # pyvm2 by Paul Swartz (z3p), from http://www.twistedmatrix.com/users/z3p/
-
-from __future__ import print_function, division
 import linecache
 import logging
 import sys

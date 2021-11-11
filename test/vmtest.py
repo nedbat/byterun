@@ -1,7 +1,5 @@
 """Testing tools for x-python."""
 
-from __future__ import print_function
-
 from xdis import load_module
 import os.path as osp
 import inspect

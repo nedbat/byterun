@@ -1,6 +1,4 @@
 """Implementations of Python fundamental objects for xpython."""
-from __future__ import print_function
-
 import collections
 import inspect
 import linecache

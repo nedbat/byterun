@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Bytecode Interpreter operations for Python 3.8
 """
-from __future__ import print_function, division
-
 from xpython.byteop.byteop37 import ByteOp37
 from xpython.byteop.byteop24 import ByteOp24, Version_info
 

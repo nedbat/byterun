@@ -1,6 +1,4 @@
 """Test Python statements."""
-
-from __future__ import print_function
 from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 
 try:

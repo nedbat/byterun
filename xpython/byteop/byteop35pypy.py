@@ -1,7 +1,5 @@
 """Bytecode Interpreter operations for PyPy 3.5
 """
-from __future__ import print_function, division
-
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.byteop.byteop36 import ByteOp36
 from xpython.byteop.byteoppypy import ByteOpPyPy

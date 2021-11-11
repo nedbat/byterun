@@ -1,7 +1,5 @@
 """Bytecode Interpreter operations for Python 3.6
 """
-from __future__ import print_function, division
-
 import inspect
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """Byte Interpreter operations for Python 3.2
 """
-from __future__ import print_function, division
-
-
 from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop27 import ByteOp27
 from xpython.pyobj import Function

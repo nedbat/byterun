@@ -1,7 +1,5 @@
 """Test functions, function, function signatures, etc."""
 
-from __future__ import print_function
-
 try:
     import vmtest
 except ImportError:

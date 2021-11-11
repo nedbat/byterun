@@ -1,7 +1,5 @@
 """Bytecode Interpreter operations for PyPy 3.8
 """
-from __future__ import print_function, division
-
 from xpython.byteop.byteop38 import ByteOp38
 from xpython.byteop.byteoppypy import ByteOpPyPy
 

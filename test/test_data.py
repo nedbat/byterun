@@ -1,7 +1,5 @@
 """Things involving data, variables, and typesin x-python."""
 
-from __future__ import print_function
-
 try:
     import vmtest
 except ImportError:
