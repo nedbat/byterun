@@ -30,32 +30,32 @@ class ByteOp310(ByteOp39):
 
     def GET_LEN(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("GET_LEN not implemented")
 
     def MATCH_MAPPING(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("MATCH_MAPPING not implemented")
 
     def MATCH_SEQUENCE(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("MATCH_SEQUENCE not implemented")
 
     def MATCH_KEYS(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("MATCH_KEYS not implemented")
 
     def COPY_DICT_WITHOUT_KEYS(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("MATCH_COPY_DICT_WITHOUT_KEYS not implemented")
 
     def ROT_N(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("ROT_N not implemented")
 
     def GEN_START(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("GEN_START not implemented")
 
     def MATCH_CLASS(self):
         # FIXME
-        pass
+        raise self.vm.PyVMError("MATCH_CLASS not implemented")
