@@ -13,6 +13,9 @@ class ByteOp310(ByteOp39):
         self.version_info = Version_info(3, 10, 0, "final", 0)
 
     # Changed in 3.10...
+    def JUMP_ABSOLUTE(self, target):
+        """Set bytecode counter to target."""
+        self.vm.jump(target * 2)
 
     # New in 3.10
 

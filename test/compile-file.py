@@ -36,7 +36,7 @@ else:
 bytecode_path = osp.normpath(
     osp.join(
         get_srcdir(),
-        "bytecode-%s%s" % (platform, version_tuple_to_str(end=2)),
+        f"bytecode-{platform}{version_tuple_to_str(end=2)}",
         "%s.pyc" % basename,
     )
 )
