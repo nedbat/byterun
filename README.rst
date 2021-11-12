@@ -13,7 +13,7 @@ You can use this to:
 * Have one Python program that runs multiple versions of Python bytecode.
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
-The ability to run Python bytecode as far back as 2.4 from Python 3.9
+The ability to run Python bytecode as far back as 2.4 from Python 3.10
 I find pretty neat. (Even more could easily be added).
 
 Also, The sandboxed environment in a debugger I find
@@ -163,7 +163,7 @@ Want even more status and control? See `trepan-xpy <https://github.com/rocky/tre
 Status:
 +++++++
 
-Currently bytecode from Python versions 398 - 3.2, and 2.7 - 2.4 are
+Currently bytecode from Python versions 3.10 to 3.2, and 2.7 to 2.4 are
 supported. The most recent versions of Python don't have all opcodes
 implemented. This is only one of many interests I have, so support may
 be shoddy. I use funding to help me direct where my attention goes in
@@ -231,7 +231,7 @@ version being interpreted and the version of Python that is
 running. There is tighter control of opcodes and an opcode's
 implementation is kept for each Python version. So we'll warn early
 when something is invalid. You can run bytecode back to Python 2.4
-using Python 3.9 (largely), which is amazing give that 3.9's native
+using Python 3.10 (largely), which is amazing give that 3.10's native
 byte code is 2 bytes per instruction while 2.4's is 1 or 3 bytes per
 instruction.
 
