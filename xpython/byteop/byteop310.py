@@ -17,6 +17,24 @@ class ByteOp310(ByteOp39):
         """Set bytecode counter to target."""
         self.vm.jump(target * 2)
 
+    def POP_JUMP_IF_TRUE(self, target):
+        """If TOS is true, sets the bytecode counter to target. TOS is popped."""
+        val = self.vm.pop()
+        if val:
+            # 3.10+ is smarter about offsets. Since everything is a word,
+            # there a can be no odd offsets to jump to. targets are doubled
+            # to get word offsets.
+            self.vm.jump(target * 2)
+
+    def POP_JUMP_IF_FALSE(self, target):
+        """If TOS is false, sets the bytecode counter to target. TOS is popped."""
+        val = self.vm.pop()
+        if not val:
+            # 3.10+ is smarter about offsets. Since everything is a word,
+            # there a can be no odd offsets to jump to. targets are doubled
+            # to get word offsets.
+            self.vm.jump(target * 2)
+
     # New in 3.10
 
     ##############################################################################

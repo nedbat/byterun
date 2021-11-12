@@ -144,11 +144,6 @@ class ByteOp27(ByteOp26):
         """If TOS is true, sets the bytecode counter to target. TOS is popped."""
         val = self.vm.pop()
         if val:
-            if self.version_info[:2] >= (3, 10):
-                # 3.10+ is smarter about offsets. Since everything is a word,
-                # there a can be no odd offsets to jump to. targets are doubled
-                # to get word offsets.
-                target += target
             self.vm.jump(target)
 
     def POP_JUMP_IF_FALSE(self, target):
