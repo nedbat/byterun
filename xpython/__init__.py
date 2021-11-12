@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Copyright (C) 2020-2021 Rock Bernstein
+"""Copyright (C) 2020-2021 Rocky Bernstein
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.

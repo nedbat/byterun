@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+# Copyright (C) 2021 Rocky Bernstein
+# This program comes with ABSOLUTELY NO WARRANTY.
+# This is free software, and you are welcome to redistribute it
+# under certain conditions.
+# See the documentation for the full license.
+
 """Bytecode Interpreter operations for Python 3.9
 """
 from xpython.byteop.byteop24 import Version_info

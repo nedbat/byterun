@@ -223,7 +223,7 @@ def run_python_file(
                     )
                 main_mod.__file__ = code.co_filename
 
-                if not source_is_older(code.co_filename, filename):
+                if source_is_older(code.co_filename, filename):
                     print(
                         f"warning source file {code.co_filename} is newer than bytecode {filename}"
                     )
