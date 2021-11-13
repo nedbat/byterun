@@ -180,10 +180,11 @@ class ByteOp310(ByteOp39):
         determines the error message. The legal kinds are 0 for
         generator, 1 for coroutine, and 2 for async generator.
         """
+        generator = self.vm.pop()
+        # if generator is None:
+        #     raise self.vm.PyVMError("GEN_START TOS is None")
         # FIXME
         assert kind in (0, 1, None)
-        self.vm.pop()
-        raise self.vm.PyVMError("GEN_START not implemented")
 
     def ROT_N(self, count: int):
         """
