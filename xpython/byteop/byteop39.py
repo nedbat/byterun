@@ -82,7 +82,7 @@ class ByteOp39(ByteOp38):
         """
         TOS1, TOS = self.vm.popn(2)
         # FIXME: not sure what operation should be used to test not "matches".
-        if TOS1 != TOS:
+        if not issubclass(TOS1, TOS):
             self.vm.jump(target)
         return
 
