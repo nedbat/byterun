@@ -29,29 +29,6 @@ class ByteOp310(ByteOp39):
         self.version_info = Version_info(3, 10, 0, "final", 0)
 
     # Changed in 3.10...
-    def JUMP_ABSOLUTE(self, target):
-        """Set bytecode counter to target. Changed from 2.4: target is in word (2-byte)
-        units"""
-        self.vm.jump(target * 2)
-
-    def POP_JUMP_IF_TRUE(self, target):
-        """If TOS is true, sets the bytecode counter to target. TOS is popped."""
-        val = self.vm.pop()
-        if val:
-            # 3.10+ is smarter about offsets. Since everything is a word,
-            # there a can be no odd offsets to jump to. targets are doubled
-            # to get word offsets.
-            self.vm.jump(target * 2)
-
-    def POP_JUMP_IF_FALSE(self, target):
-        """If TOS is false, sets the bytecode counter to target. TOS is popped."""
-        val = self.vm.pop()
-        if not val:
-            # 3.10+ is smarter about offsets. Since everything is a word,
-            # there a can be no odd offsets to jump to. targets are doubled
-            # to get word offsets.
-            self.vm.jump(target * 2)
-
     def MAKE_FUNCTION(self, argc):
         """
         Pushes a new function object on the stack. From bottom to top,
