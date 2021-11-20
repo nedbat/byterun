@@ -59,8 +59,10 @@ class ByteOp39(ByteOp38):
         pass
 
     def LOAD_ASSERTION_ERROR(self):
-        # FIXME
-        pass
+        """
+        Pushes AssertionError onto the stack. Used by the `assert` statement.
+        """
+        self.vm.push(AssertionError)
 
     def LIST_TO_TUPLE(self):
         # FIXME
