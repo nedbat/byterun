@@ -52,10 +52,12 @@ class ByteOp39(ByteOp38):
 
     def RERAISE(self):
         # FIXME
+        raise RuntimeError("RERAISE not implemented yet")
         pass
 
     def WITH_EXCEPT_START(self):
         # FIXME
+        raise RuntimeError("WITH_EXCEPT_START not implemented yet")
         pass
 
     def LOAD_ASSERTION_ERROR(self):
