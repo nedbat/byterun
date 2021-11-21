@@ -12,4 +12,11 @@ from xpython.byteop.byteoppypy import ByteOpPyPy
 class ByteOp37PyPy(ByteOp37, ByteOpPyPy):
     def __init__(self, vm):
         super(ByteOp37PyPy, self).__init__(vm)
+        self.is_pypy = True
         self.version = "3.7.12 (x-python, Oct 27 1955, 00:00:00)\n[PyPy with x-python]"
+
+    def CALL_METHOD_KW(self, argc):
+        """
+        """
+        # FIXME
+        raise self.vm.PyVMError("CALL_METHOD_KW not implemented")
