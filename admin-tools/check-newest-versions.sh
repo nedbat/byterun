@@ -8,12 +8,12 @@ function finish {
 owd=$(pwd)
 trap finish EXIT
 
-cd $(dirname ${BASH_SOURCE[0]})
+cd $(dirname ${BASH_SOURCE[0]})/..
 
 (cd ../python-xdis/admin-tools && ./setup-master.sh)
 git checkout master
 
-if ! source ./pyenv-newest-versions ; then
+if ! source ./admin-tools/pyenv-newest-versions ; then
     exit $?
 fi
 
