@@ -29,17 +29,19 @@ assert source.endswith(".py")
 basename = osp.basename(source[:-3])
 
 if IS_PYPY:
+    version = version_tuple_to_str(end=2, delimiter="")
     platform = "pypy"
+    bytecode_path = osp.normpath(
+        osp.join(
+            get_srcdir(), f"bytecode-pypy{version}", f"{basename}.pypy{version}.pyc"
+        )
+    )
 else:
     platform = ""
-
-bytecode_path = osp.normpath(
-    osp.join(
-        get_srcdir(),
-        f"bytecode-{platform}{version_tuple_to_str(end=2)}",
-        "%s.pyc" % basename,
+    version = version_tuple_to_str(end=2)
+    bytecode_path = osp.normpath(
+        osp.join(get_srcdir(), f"bytecode-{platform}{version}", f"{basename}.pyc")
     )
-)
 
 import py_compile
 

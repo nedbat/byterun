@@ -85,6 +85,10 @@ def fmt_make_function(vm, arg=None, repr=repr):
 class ByteOp24(ByteOpBase):
     def __init__(self, vm):
         super(ByteOp24, self).__init__(vm)
+
+        # Superclasses can overwrite this. But default to not PyPy.
+        self.is_pypy = False
+
         self.stack_fmt["MAKE_FUNCTION"] = fmt_make_function
         # Not for 2.4
         self.stack_fmt["CALL_FUNCTION"] = fmt_call_function
@@ -439,13 +443,13 @@ class ByteOp24(ByteOpBase):
 
     # Building
 
-    def BUILD_TUPLE(self, count):
+    def BUILD_TUPLE(self, count: int):
         """Creates a tuple consuming count items from the stack, and pushes
         the resulting tuple onto the stack.
         """
         self.build_container(count, tuple)
 
-    def BUILD_LIST(self, count):
+    def BUILD_LIST(self, count: int):
         """Works as BUILD_TUPLE, but creates a list."""
         elts = self.vm.popn(count)
         self.vm.push(elts)

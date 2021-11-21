@@ -6,6 +6,13 @@ import inspect
 
 
 class ByteOpPyPy(object):
+    def BUILD_LIST_FROM_ARG(self, count: int):
+        """Builds a list containing TOS.
+        Is equivalint to BUILD_LIST(0) followed by ROT_TWO
+        """
+        self.BUILD_LIST(count)
+        self.ROT_TWO()
+
     def JUMP_IF_NOT_DEBUG(self, jump_offset):
         """
         For now, same as JUMP_ABSOLUTE.

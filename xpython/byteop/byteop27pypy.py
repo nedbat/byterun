@@ -14,3 +14,4 @@ class ByteOp27PyPy(ByteOp27, ByteOpPyPy):
 
         # Fake up version information not already faked in super.
         self.version = "2.7.13 (x-python, Oct 27 1955, 00:00:00)\n[PyPy with x-python]"
+        self.is_pypy = True
