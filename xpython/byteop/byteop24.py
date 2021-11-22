@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 COMPREHENSION_FN_NAMES = frozenset(("<setcomp>", "<dictcomp>", "<genexpr>"))
 
 
-def get_cell_name(vm, i):
+def get_cell_name(vm, i: int):
     # From LOAD_CLOSURE:
     # The name of the variable is co_cellvars[i] if i is less
     # than the length of co_cellvars. Otherwise it is co_freevars[i -len(co_cellvars)]
@@ -55,7 +55,7 @@ def fmt_load_deref(vm, int_arg, repr=repr):
     return " (%s)" % (vm.frame.cells[get_cell_name(vm, int_arg)].get())
 
 
-def fmt_call_function(vm, argc, repr=repr):
+def fmt_call_function(vm, argc: int, repr=repr):
     """
     returns the name of the function from the code object in the stack
     """
@@ -719,7 +719,7 @@ class ByteOp24(ByteOpBase):
             """
             self.vm.frame.f_lineno = lineno
 
-    def MAKE_FUNCTION(self, argc):
+    def MAKE_FUNCTION(self, argc: int):
         """
         Pushes a new function object on the stack. TOS is the code
         associated with the function. The function object is defined to have
@@ -742,7 +742,7 @@ class ByteOp24(ByteOpBase):
 
         self.vm.push(fn)
 
-    def MAKE_CLOSURE(self, argc):
+    def MAKE_CLOSURE(self, argc: int):
         """
         Creates a new function object, sets its func_closure slot, and
         pushes it on the stack. TOS is the code associated with the
@@ -782,7 +782,7 @@ class ByteOp24(ByteOpBase):
         else:  # pragma: no cover
             raise self.vm.PyVMError("Strange BUILD_SLICE count: %r" % count)
 
-    def RAISE_VARARGS(self, argc):
+    def RAISE_VARARGS(self, argc: int):
         """
         Raises an exception. argc indicates the number of parameters to the
         raise statement, ranging from 0 to 3. The handler will find
@@ -824,7 +824,7 @@ class ByteOp24(ByteOpBase):
         else:
             return "exception"
 
-    def CALL_FUNCTION(self, argc):
+    def CALL_FUNCTION(self, argc: int):
         """
         Calls a callable object.
         The low byte of argc indicates the number of positional
@@ -850,7 +850,7 @@ class ByteOp24(ByteOpBase):
             self.vm.last_exception = (TypeError, exc.args, tb)
             return "exception"
 
-    def CALL_FUNCTION_VAR(self, argc):
+    def CALL_FUNCTION_VAR(self, argc: int):
         """
         Calls a function. argc is interpreted as in CALL_FUNCTION.
         The top element on the stack contains the variable argument
@@ -862,7 +862,7 @@ class ByteOp24(ByteOpBase):
         var_args = self.vm.pop()
         return self.call_function(argc, var_args=var_args, keyword_args={})
 
-    def CALL_FUNCTION_KW(self, argc):
+    def CALL_FUNCTION_KW(self, argc: int):
         """
         Calls a function. argc is interpreted as in CALL_FUNCTION.
         The top element on the stack contains the keyword arguments
@@ -873,7 +873,7 @@ class ByteOp24(ByteOpBase):
         keyword_args = self.vm.pop()
         return self.call_function(argc, var_args=[], keyword_args=keyword_args)
 
-    def CALL_FUNCTION_VAR_KW(self, argc):
+    def CALL_FUNCTION_VAR_KW(self, argc: int):
         """
         Calls a function. argc is interpreted as in CALL_FUNCTION. The top
         element on the stack contains the keyword arguments dictionary

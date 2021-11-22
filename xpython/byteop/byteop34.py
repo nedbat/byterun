@@ -46,7 +46,7 @@ class ByteOp34(ByteOp33):
 
     # Python 3.3 docs describe this but seem to follow pre-3.3
     # conventions (which go back to Python 2.x days).
-    def MAKE_FUNCTION(self, argc):
+    def MAKE_FUNCTION(self, argc: int):
         """
         Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of:
 

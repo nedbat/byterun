@@ -42,7 +42,7 @@ class ByteOp33(ByteOp32):
 
     # Python 3.3 docs describe a 3.4 MAKE_FUNCTION but seem to follow pre-3.3
     # conventions (which go back to Python 2.x days).
-    # def MAKE_FUNCTION(self, argc):
+    # def MAKE_FUNCTION(self, argc: int):
 
 
 if __name__ == "__main__":

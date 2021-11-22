@@ -15,7 +15,7 @@ class ByteOp37PyPy(ByteOp37, ByteOpPyPy):
         self.is_pypy = True
         self.version = "3.7.12 (x-python, Oct 27 1955, 00:00:00)\n[PyPy with x-python]"
 
-    def CALL_METHOD_KW(self, keyword_count):
+    def CALL_METHOD_KW(self, keyword_count: int):
         """
         argc has a count of the number of keyword parameters.
         TOS has a tuple of keyword parameter names. Below that are the

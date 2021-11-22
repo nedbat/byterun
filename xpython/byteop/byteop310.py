@@ -29,7 +29,7 @@ class ByteOp310(ByteOp39):
         self.version_info = Version_info(3, 10, 0, "final", 0)
 
     # Changed in 3.10...
-    def MAKE_FUNCTION(self, argc):
+    def MAKE_FUNCTION(self, argc: int):
         """
         Pushes a new function object on the stack. From bottom to top,
         the consumed stack must consist of values if the argument

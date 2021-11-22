@@ -105,7 +105,7 @@ class ByteOp26(ByteOp25):
                 pass
         self.vm.push(module)
 
-    def MAKE_CLOSURE(self, argc):
+    def MAKE_CLOSURE(self, argc: int):
         """
         Creates a new function object, sets its func_closure slot, and
         pushes it on the stack. TOS is the code associated with the

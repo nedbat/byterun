@@ -36,7 +36,7 @@ class ByteOpPyPy(object):
             else:
                 self.vm.push("fill in attribute method lookup")
 
-    def CALL_METHOD(self, argc):
+    def CALL_METHOD(self, argc: int):
         """
         For now, we'll assume this is like CALL_FUNCTION:
 

@@ -262,7 +262,7 @@ class ByteOp35(ByteOp34):
         if kwargs:
             self.vm.push(kwargs)
 
-    def CALL_FUNCTION_VAR(self, argc):
+    def CALL_FUNCTION_VAR(self, argc: int):
         """Calls a callable object, similarly to `CALL_FUNCTION_VAR` and
         `CALL_FUNCTION_KW`. *argc* represents the number of keyword
         and positional arguments, identically to `CALL_FUNCTION`. The

@@ -8,6 +8,8 @@ import inspect
 import operator
 import logging
 import sys
+from typing import Any, Callable
+
 from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 from xpython.pyobj import Function
 from xpython.builtins import build_class
@@ -305,7 +307,7 @@ class ByteOpBase(object):
         retval = func(*pos_args, **named_args)
         self.vm.push(retval)
 
-    def call_function(self, argc, var_args, keyword_args):
+    def call_function(self, argc: int, var_args, keyword_args: dict) -> Any:
         named_args = {}
         len_kw, len_pos = divmod(argc, 256)
         for i in range(len_kw):
@@ -318,7 +320,7 @@ class ByteOpBase(object):
         func = self.vm.pop()
         return self.call_function_with_args_resolved(func, pos_args, named_args)
 
-    def convert_native_to_Function(self, frame, func):
+    def convert_native_to_Function(self, frame, func: Callable) -> Callable:
         assert inspect.isfunction(func) or isinstance(func, Function)
         slots = {"kwdefaults": {}, "annotations": {}}
         if self.vm.version >= (3, 0):

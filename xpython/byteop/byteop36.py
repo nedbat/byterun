@@ -41,7 +41,7 @@ COMPREHENSION_FN_NAMES = frozenset(
 )
 
 
-def fmt_call_function(vm, argc, repr=repr) -> str:
+def fmt_call_function(vm, argc: int, repr=repr) -> str:
     """
     returns the name of the function from the code object in the stack
     """
@@ -76,7 +76,7 @@ class ByteOp36(ByteOp35):
         self.version = "3.6.14 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         self.version_info = Version_info(3, 6, 14, "final", 0)
 
-    def call_function_kw(self, argc):
+    def call_function_kw(self, argc: int):
         namedargs = {}
         namedargs_tup = self.vm.pop()
         for name in reversed(namedargs_tup):
@@ -126,7 +126,7 @@ class ByteOp36(ByteOp35):
         if kwargs:
             self.vm.push(kwargs)
 
-    def CALL_FUNCTION_KW(self, argc):
+    def CALL_FUNCTION_KW(self, argc: int):
         """
         Calls a callable object with positional (if any) and keyword
         arguments.
@@ -147,7 +147,7 @@ class ByteOp36(ByteOp35):
         """
         return self.call_function_kw(argc)
 
-    def MAKE_FUNCTION(self, argc):
+    def MAKE_FUNCTION(self, argc: int):
         """
         Pushes a new function object on the stack. From bottom to top,
         the consumed stack must consist of values if the argument
