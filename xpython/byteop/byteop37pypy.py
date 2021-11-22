@@ -15,8 +15,20 @@ class ByteOp37PyPy(ByteOp37, ByteOpPyPy):
         self.is_pypy = True
         self.version = "3.7.12 (x-python, Oct 27 1955, 00:00:00)\n[PyPy with x-python]"
 
-    def CALL_METHOD_KW(self, argc):
+    def CALL_METHOD_KW(self, keyword_count):
         """
+        argc has a count of the number of keyword parameters.
+        TOS has a tuple of keyword parameter names. Below that are the
+        keyword values. After that is the a cached method which in our
+        case is garbage. After that is the method to call.
         """
-        # FIXME
-        raise self.vm.PyVMError("CALL_METHOD_KW not implemented")
+        kw_keys = self.vm.pop()
+        assert isinstance(kw_keys, tuple)
+        assert len(kw_keys) == keyword_count
+        keyword_args = {}
+        for i in range(keyword_count):
+            param_value = self.vm.pop()
+            keyword_args[kw_keys[i]] = param_value
+
+        self.vm.pop()  # cached method slot is not used here.
+        return self.call_function(0, var_args=[], keyword_args=keyword_args)
