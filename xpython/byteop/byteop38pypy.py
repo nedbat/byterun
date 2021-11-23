@@ -1,7 +1,7 @@
 """Bytecode Interpreter operations for PyPy 3.8
 """
 from xpython.byteop.byteop38 import ByteOp38
-from xpython.byteop.byteop24 import ByteOp24
+from xpython.byteop.byteop37pypy import ByteOp37PyPy
 from xpython.byteop.byteoppypy import ByteOpPyPy
 
 
@@ -21,3 +21,5 @@ class ByteOp38PyPy(ByteOp38, ByteOpPyPy):
         """
 
         self.vm.push_block("setup-except", jump_offset)
+
+    CALL_METHOD_KW = ByteOp37PyPy.CALL_METHOD_KW
