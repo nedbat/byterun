@@ -15,20 +15,36 @@ class ByteOp37PyPy(ByteOp37, ByteOpPyPy):
         self.is_pypy = True
         self.version = "3.7.12 (x-python, Oct 27 1955, 00:00:00)\n[PyPy with x-python]"
 
-    def CALL_METHOD_KW(self, keyword_count: int):
+    def CALL_METHOD_KW(self, argc: int):
         """
         argc has a count of the number of keyword parameters.
         TOS has a tuple of keyword parameter names. Below that are the
         keyword values. After that is the a cached method which in our
         case is garbage. After that is the method to call.
         """
-        kw_keys = self.vm.pop()
-        assert isinstance(kw_keys, tuple)
-        assert len(kw_keys) == keyword_count
+
+        # We are going to access parameter off of the stack which is
+        # has the last parameter closest to the top.
+        # Reverse keyword names in the tuple match our access pattern.
+        kw_names = self.vm.pop()
+        assert isinstance(kw_names, tuple)
+        kw_names = list(reversed(kw_names))
+        kwarg_count = len(kw_names)
+
+        assert argc >= kwarg_count
+        pos_argc = argc - kwarg_count
         keyword_args = {}
-        for i in range(keyword_count):
+
+        for i in range(kwarg_count):
             param_value = self.vm.pop()
-            keyword_args[kw_keys[i]] = param_value
+            keyword_args[kw_names[i]] = param_value
+
+        pos_args = []
+        for i in range(pos_argc):
+            pos_args.append(self.vm.pop())
+
+        pos_args = list(reversed(pos_args))
 
         self.vm.pop()  # cached method slot is not used here.
-        return self.call_function(0, var_args=[], keyword_args=keyword_args)
+        func = self.vm.pop()
+        return self.call_function_with_args_resolved(func, pos_args, keyword_args)
