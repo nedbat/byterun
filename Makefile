@@ -12,15 +12,15 @@ LINT    = flake8
 SHELL   ?= bash
 SKIP_COMPAT ?= 1
 
-PHONY=all check check-compat check-full clean unittest dist distclean lint flake8 test rmChangeLog clean_pyc
+.PHONY: all check check-compat check-full clean unittest dist distclean lint flake8 test rmChangeLog clean_pyc
 
 #: Default target - same as "check"
 all: check
 
-# Run all tests, exluding those that need pyenv
+# Run all tests, excluding those that need pyenv
 check:
 	test -f test/.python-version && rm -v test/.python-version || true
-	cd test && python -V && SKIP_COMPAT=$(SKIP_COMPAT) nosetests --stop
+	$(MAKE) -C test check
 
 #: Check across all Python versions
 check-full:
@@ -94,5 +94,3 @@ rmChangeLog:
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
-
-.PHONY: $(PHONY)

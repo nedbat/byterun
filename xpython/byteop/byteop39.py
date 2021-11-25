@@ -70,7 +70,7 @@ class ByteOp39(ByteOp38):
         """
         Pops a list from the stack and pushes a tuple containing the same values.
         """
-        self.vm.push(tuple(vm.pop()))
+        self.vm.push(tuple(self.vm.pop()))
 
     def IS_OP(self, invert: int):
         """Performs is comparison, or is not if invert is 1."""
