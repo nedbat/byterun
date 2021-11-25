@@ -14,11 +14,12 @@ You can use this to:
 * Use in a dynamic fuzzer or in coholic execution for analysis
 
 The ability to run Python bytecode as far back as 2.4 from Python 3.10
-I find pretty neat. (Even more could easily be added).
+or Python 3.10 from a Python 2.7 interpreter I find pretty neat. (Even
+more could easily be added).
 
-Also, The sandboxed environment in a debugger I find
+Also, idea of the sandboxed environment in a debugger I find
 interesting. (Note: currently environments are not sandboxed that
-well, but I am working towards that.)
+well, but I am working towards that, and it is a bit challenging.)
 
 Since there is a separate execution, and traceback stack,
 inside a debugger you can try things out in the middle of a debug
@@ -26,13 +27,12 @@ session without effecting the real execution. On the other hand if a
 sequence of executions works out, it is possible to copy this (under
 certain circumstances) back into CPython's execution stack.
 
-Going the other way, I have hooked in `trepan3k
-<https://pypi.python.org/pypi/trepan3k>`_ into this interpreter so you
-have a pdb/gdb like debugger also with the ability to step bytecode
-instructions.
+I have hooked in `trepan3k <https://pypi.python.org/pypi/trepan3k>`_
+into this interpreter so you have a pdb/gdb like debugger also with
+the ability to step bytecode instructions.
 
 To experiment with faster ways to support trace callbacks such as
-those used in a debugger. In particular added an instruction to
+those used in a debugger, added is an instruction to
 support fast breakpoints and breakpointing on a particular instruction
 that doesn't happen to be on a line boundary. I believe this could
 could and should be ported back to CPython and there would be benefit.

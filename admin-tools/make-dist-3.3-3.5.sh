@@ -18,7 +18,7 @@ if ! source ./setup-python-3.3.sh ; then
 fi
 
 cd ..
-source $PACKAGE/version.py
+source xpython/version.py
 echo $__version__
 
 for pyversion in $PYVERSIONS; do
