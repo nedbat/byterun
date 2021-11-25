@@ -11,7 +11,7 @@ PYENV_VERSIONS=${PYENV_VERSIONS:-"3.6.14 3.7.11 3.8.11 3.9.7 3.3.7 3.4.10 3.2.6 
 for version in $PYENV_VERSIONS; do
     # Note: below we use
     if [[ $version == 2.6.9 ]]; then
-        cd ../../python-xdis && . ./admin-tools/setup-python-2.4.sh)
+        (cd ../../python-xdis && . ./admin-tools/setup-python-2.4.sh)
     fi
     for file in $*; do
         pyenv local $version
