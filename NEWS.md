@@ -1,3 +1,11 @@
+1.5.0 2021-11-25
+================
+
+* Better PyPy 3.6-3.8 opcode coverages,
+* Better 3.9 opcode coverage
+* Start handling Python 3.10
+* Add bytecode files and testing for the above.
+
 1.4.0 2021-11-07
 ================
 

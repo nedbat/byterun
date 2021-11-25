@@ -1,3 +1,227 @@
+2021-11-25  rocky <rby@dusytfeet.com>
+
+	* xpython/version.py: Get ready for release 1.5.0
+
+2021-11-25  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop37pypy.py: Format CALL_METHOD{,_EX}
+
+2021-11-25  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop36pypy.py: Correct some PyPy 3.6 opcodes CALL_FUNCTION_KW and BUILD_MAP_UNPACK_WITH_CALL stick with older 3.5
+	semantics rather than the 3.6 change semantics
+
+2021-11-25  rocky <rby@dusytfeet.com>
+
+	* Makefile, test/Makefile, xpython/byteop/byteop39.py: Correct 3.9
+	LIST_TO_TUPLE & testing administrivia
+
+2021-11-23  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop38pypy.py: Include PyPy 3.8 CALL_METHOD_KW
+
+2021-11-23  rocky <rby@dusytfeet.com>
+
+	* admin-tools/pyenv-newest-versions,
+	test/examples/basic/test_callback.py,
+	xpython/byteop/byteop37pypy.py: More complete PyPY 3.7
+	LOOKUP_METHOD_KW handles postional args now
+
+2021-11-22  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/byteop/byteop24.py,
+	xpython/byteop/byteop26.py, xpython/byteop/byteop310.py,
+	xpython/byteop/byteop32.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop36.py, xpython/byteop/byteop37pypy.py,
+	xpython/byteop/byteoppypy.py: Add some 3.6+ type annotations, e.g.
+	for argc
+
+2021-11-22  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop37pypy.py: First cut at implementing
+	METHOD_CALL_KW
+
+2021-11-20  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop37pypy.py: PyPy stuff Note CALL_METHOD_KW is not implemented Move pypy compiled files ot a
+	more natural place
+
+2021-11-20  rocky <rby@dusytfeet.com>
+
+	* admin-tools/check-3.3-3.5-versions.sh,
+	admin-tools/check-newest-versions.sh, admin-tools/check-versions.sh: 
+	Administrivia
+
+2021-11-20  rocky <rby@dusytfeet.com>
+
+	* admin-tools/pyenv-newest-versions, test/compile-file.py,
+	test/vmtest.py, xpython/byteop/byteop24.py,
+	xpython/byteop/byteop26pypy.py, xpython/byteop/byteop27pypy.py,
+	xpython/byteop/byteop35pypy.py, xpython/byteop/byteop36pypy.py,
+	xpython/byteop/byteop38pypy.py, xpython/byteop/byteoppypy.py,
+	xpython/version.py: Better PyPy support Add BUILD_LIST_FROM_ARG start moving towards PYPY bytecode naming
+	conventions,
+
+2021-11-20  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Raise RuntimeError on unimplemented
+	3.9 ops
+
+2021-11-20  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Add 3.9 "LIST_TO_TUPLE"
+
+2021-11-20  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py: Implement 3.9 LOAD_ASSERTION_ERROR
+
+2021-11-15  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop310.py: 3.10 jump absolute ops fix Absolute addresses do not need to address in byteops310 since this
+	is now handled inside vm.py
+
+2021-11-14  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop39.py, xpython/vm.py: Improve
+	JUMP_IF_NOT_EXC_MATCH ...  and correct 3.10 absolute jumps for wordcode increments
+
+2021-11-13  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop310.py: GEN_START tweak
+
+2021-11-12  rocky <rby@dusytfeet.com>
+
+	* xpython/__init__.py, xpython/byteop/byteop310.py,
+	xpython/byteop/byteop36.py, xpython/byteop/byteop37pypy.py,
+	xpython/byteop/byteop38.py, xpython/byteop/byteop39.py,
+	xpython/execfile.py: Adjust Python 3.10 MAKE_FUNCTION annotations
+
+2021-11-11  rocky <rby@dusytfeet.com>
+
+	* : commit 6faac3eca8ffdc841ff4c9bda205b5c148709c9a Author: R.
+	Bernstein <rocky@users.noreply.github.com> Date:   Thu Nov 11
+	22:51:48 2021 -0500
+
+2021-11-11  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop27.py, xpython/byteop/byteop310.py: More 3.10
+	jump relative fixes
+
+2021-11-11  rocky <rby@dusytfeet.com>
+
+	* test/compile-file.py, xpython/byteop/byteop27.py,
+	xpython/byteop/byteop310.py, xpython/vm.py: Adjust relative jumps
+	for 3.10 Rmove duplicate 2.7 JUMP_ABSOLUTE
+
+2021-11-11  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop310.py: More 3.10 opcode work
+
+2021-11-11  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop27.py, xpython/byteop/byteop310.py: Correct
+	3.10 POP_JUMP-IF_TRUE
+
+2021-11-11  rocky <rby@dusytfeet.com>
+
+	* admin-tools/pyenv-newest-versions, test/test_basic.py,
+	test/test_data.py, test/test_exceptions.py, test/test_functions.py,
+	test/test_stmts.py, test/test_with.py, test/vmtest.py,
+	xpython/byteop/byteop.py, xpython/byteop/byteop24.py,
+	xpython/byteop/byteop25.py, xpython/byteop/byteop26pypy.py,
+	xpython/byteop/byteop27.py, xpython/byteop/byteop27pypy.py,
+	xpython/byteop/byteop310.py, xpython/byteop/byteop32.py,
+	xpython/byteop/byteop32pypy.py, xpython/byteop/byteop33.py,
+	xpython/byteop/byteop34.py, xpython/byteop/byteop35.py,
+	xpython/byteop/byteop35pypy.py, xpython/byteop/byteop36.py,
+	xpython/byteop/byteop36pypy.py, xpython/byteop/byteop37.py,
+	xpython/byteop/byteop37pypy.py, xpython/byteop/byteop38.py,
+	xpython/byteop/byteop38pypy.py, xpython/byteop/byteop39.py,
+	xpython/byteop/byteoppypy.py, xpython/pyobj.py, xpython/vm.py: 
+	Remove from __future__
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteoppypy.py: Beef up PyPy LOOKUP_METHOD for >=
+	3.7
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* test/test_data.py, test/test_stmts.py: Tidy
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* : commit 684574de9d144431b79d68a5a4ef766af89c8cb0 Author: rocky
+	<rby@dusytfeet.com> Date:   Wed Nov 10 15:36:22 2021 -0500
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* admin-tools/setup-python-2.7.sh: Administrivia
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* admin-tools/{check-3.3-3-5-versions.sh =>
+	check-3.1-3.2-versions.sh}, admin-tools/setup-python-3.1.sh,
+	test/test-3.1-3.2-bytecode.sh: Administrivia
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* admin-tools/check-3.3-3.5-versions.sh,
+	admin-tools/setup-python-3.3.sh: Administrivia
+
+2021-11-10  rocky <rby@dusytfeet.com>
+
+	* test/test_basic.py, test/test_data.py, test/test_functions.py,
+	test/test_stmts.py: Reduce 3.10 tests for now
+
+2021-11-10  R. Bernstein <rocky@users.noreply.github.com>
+
+	* : Merge pull request #6 from rocky/add-python-3.10 Add python 3.10
+
+2021-11-09  rocky <rby@dusytfeet.com>
+
+	* __pkginfo__.py, test/vmtest.py, xpython/__main__.py,
+	xpython/byteop/__init__.py, xpython/byteop/byteop310.py,
+	xpython/version_info.py: Start Python 3.10 opcodes
+
+2021-11-09  rocky <rby@dusytfeet.com>
+
+	* : commit 5e72cf00dc07ef3202317e041c5984d4d6aacdf0 Author: rocky
+	<rby@dusytfeet.com> Date:   Tue Nov 9 14:19:30 2021 -0500
+
+2021-11-09  rocky <rby@dusytfeet.com>
+
+	* admin-tools/setup-master.sh, admin-tools/setup-python-3.3.sh,
+	admin-tools/setup-python-3.5.sh, test/test-3.3-3.5-bytecode.sh,
+	test/test-newest-bytecode.sh, xpython/stdlib/inspect3.py: Sync up
+	with 3.5 branch
+
+2021-11-09  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/byteop/byteop26.py: Handle level
+	-1 in IMPORT_NAME...  correct cross compiling check.
+
+2021-11-09  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop.py, xpython/execfile.py: Two tweaks...  * Check for older source code and warn * Give warning about cros interpet for eval and exec once
+
+2021-11-08  rocky <rby@dusytfeet.com>
+
+	* test/add-single-test.sh, test/add-version.sh,
+	test/examples/basic/test_import.py, xpython/byteop/byteop26.py,
+	xpython/execfile.py: Bugs...  * Fix import bug in newer Python (use older __import__) * Use __file__ from code object when we have a bytecode file
+
+2021-11-07  rocky <rby@dusytfeet.com>
+
+	* xpython/byteop/byteop26.py: Note one of the many import problems
+
+2021-11-07  rocky <rby@dusytfeet.com>
+
+	* ChangeLog, __pkginfo__.py, admin-tools/make-dist.sh, setup.cfg,
+	tox.ini, xpython/execfile.py, xpython/version.py,
+	xpython/version_info.py: Admnistrivia start packaging cleanup
+
 2021-11-07  rocky <rby@dusytfeet.com>
 
 	* : commit 0ff4e7e3b81919b73fb8730514d996a4ca31837a Author: rocky
