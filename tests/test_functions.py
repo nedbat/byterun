@@ -296,6 +296,17 @@ class TestClosures(vmtest.VmTestCase):
             assert answer == 54
             """)
 
+    def test_lexical_scope(self):
+        self.assert_ok("""\
+            def f(x, z):
+                def g(y):
+                    return x + y + z
+                return g
+            g1 = f(3, 4)
+            g2 = f(5, 6)
+            assert g1(100) == 107
+            assert g2(100) == 111
+            """)
 
 class TestGenerators(vmtest.VmTestCase):
     def test_first(self):

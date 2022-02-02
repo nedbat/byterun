@@ -23,7 +23,7 @@ def make_cell(value):
 class Function(object):
     __slots__ = [
         'func_code', 'func_name', 'func_defaults', 'func_globals',
-        'func_locals', 'func_dict', 'func_closure',
+        'func_locals', 'func_dict', 'func_closure', 'freevar2cell_map',
         '__name__', '__dict__', '__doc__',
         '_vm', '_func',
     ]
@@ -34,11 +34,16 @@ class Function(object):
         self.func_name = self.__name__ = name or code.co_name
         self.func_defaults = tuple(defaults)
         self.func_globals = globs
-        self.func_locals = self._vm.frame.f_locals
+        self.func_locals = {} # self._vm.frame.f_locals
         self.__dict__ = {}
         self.func_closure = closure
         self.__doc__ = code.co_consts[0] if code.co_consts else None
 
+        m = {}
+        for i in range(len(code.co_freevars)):
+            var_name = code.co_freevars[i]
+            m[var_name] = closure[i]
+        self.freevar2cell_map = m
         # Sometimes, we need a real Python function.  This is for that.
         kw = {
             'argdefs': self.func_defaults,
@@ -71,7 +76,7 @@ class Function(object):
         else:
             callargs = inspect.getcallargs(self._func, *args, **kwargs)
         frame = self._vm.make_frame(
-            self.func_code, callargs, self.func_globals, {}
+            self.func_code, callargs, self.func_globals, {}, self
         )
         CO_GENERATOR = 32           # flag for "this code uses yield"
         if self.func_code.co_flags & CO_GENERATOR:
@@ -135,12 +140,13 @@ Block = collections.namedtuple("Block", "type, handler, level")
 
 
 class Frame(object):
-    def __init__(self, f_code, f_globals, f_locals, f_back):
+    def __init__(self, f_code, f_globals, f_locals, f_back, f_func_obj=None):
         self.f_code = f_code
         self.f_globals = f_globals
         self.f_locals = f_locals
         self.f_back = f_back
         self.stack = []
+        self.f_func_obj = f_func_obj
         if f_back and f_back.f_globals is f_globals:
             # If we share the globals, we share the builtins.
             self.f_builtins = f_back.f_builtins
@@ -156,24 +162,17 @@ class Frame(object):
         self.f_lineno = f_code.co_firstlineno
         self.f_lasti = 0
 
+        self.cells = {}
         if f_code.co_cellvars:
-            self.cells = {}
-            if not f_back.cells:
-                f_back.cells = {}
             for var in f_code.co_cellvars:
                 # Make a cell for the variable in our locals, or None.
                 cell = Cell(self.f_locals.get(var))
-                f_back.cells[var] = self.cells[var] = cell
-        else:
-            self.cells = None
+                self.cells[var] = cell
 
         if f_code.co_freevars:
-            if not self.cells:
-                self.cells = {}
             for var in f_code.co_freevars:
-                assert self.cells is not None
-                assert f_back.cells, "f_back.cells: %r" % (f_back.cells,)
-                self.cells[var] = f_back.cells[var]
+                cell = self.f_func_obj.freevar2cell_map[var]
+                self.cells[var] = cell
 
         self.block_stack = []
         self.generator = None
