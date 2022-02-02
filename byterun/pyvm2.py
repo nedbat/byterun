@@ -90,7 +90,7 @@ class VirtualMachine(object):
     def pop_block(self):
         return self.frame.block_stack.pop()
 
-    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None):
+    def make_frame(self, code, callargs={}, f_globals=None, f_locals=None, f_func_obj=None):
         log.info("make_frame: code=%r, callargs=%s" % (code, repper(callargs)))
         if f_globals is not None:
             f_globals = f_globals
@@ -107,7 +107,7 @@ class VirtualMachine(object):
                 '__package__': None,
             }
         f_locals.update(callargs)
-        frame = Frame(code, f_globals, f_locals, self.frame)
+        frame = Frame(code, f_globals, f_locals, self.frame, f_func_obj)
         return frame
 
     def push_frame(self, frame):
