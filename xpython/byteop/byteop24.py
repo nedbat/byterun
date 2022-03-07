@@ -383,8 +383,12 @@ class ByteOp24(ByteOpBase):
         STORE_GLOBAL if possible."""
         self.vm.frame.f_locals[name] = self.vm.pop()
 
+    def DELETE_GLOBAL(self, name):
+        """Implements del name, where name in global."""
+        del self.vm.frame.f_globals[name]
+
     def DELETE_NAME(self, name):
-        """Implements del name, where namei is the index into co_names attribute of the code object."""
+        """Implements del name, where name is the index into co_names attribute of the code object."""
         del self.vm.frame.f_locals[name]
 
     def UNPACK_SEQUENCE(self, count):

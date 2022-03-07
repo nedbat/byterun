@@ -532,6 +532,8 @@ class PyVM(object):
                 # dispatch
                 if hasattr(byteop, bytecode_name):
                     bytecode_fn = getattr(byteop, bytecode_name, None)
+                else:
+                    bytecode_fn = None
                 if not bytecode_fn:  # pragma: no cover
                     raise PyVMError(
                         "Unknown bytecode type: %s\n\t%s"
