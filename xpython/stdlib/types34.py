@@ -61,6 +61,7 @@ except TypeError:
 GetSetDescriptorType = type(FunctionType.__code__)
 MemberDescriptorType = type(FunctionType.__globals__)
 
+
 # Provide a PEP 3115 compliant mechanism for class creation
 def new_class(name, bases=(), kwds=None, exec_body=None):
     """Create a class object dynamically using the appropriate metaclass."""

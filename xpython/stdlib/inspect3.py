@@ -9,6 +9,7 @@ from xdis import CO_GENERATOR, CO_COROUTINE
 from xdis import COMPILER_FLAG_BIT
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
+
 # Note: we don't want to import pyobj and Function since that imports us.
 def _missing_arguments_before_34(f_name, argnames, pos, values):
     names = [repr(name) for name in argnames if name not in values]

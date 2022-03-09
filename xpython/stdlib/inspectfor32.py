@@ -2,10 +2,7 @@
 """Parts of Python 3.3+'s inspect class for older Pythons"""
 
 import itertools
-import types
 from collections import namedtuple, OrderedDict
-
-from xdis import PYTHON_VERSION
 
 # from _ParameterKind without the enum that doesn't work on older Pythons
 POSITIONAL_ONLY = 0

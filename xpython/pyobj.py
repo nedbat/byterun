@@ -111,7 +111,7 @@ class Function(object):
         self.version = vm.version
         self.__doc__ = doc
 
-        if not name is None and not isinstance(name, str):
+        if name is not None and not isinstance(name, str):
             raise TypeError(
                 "Function() argument 1 (name) must None or string, not %s" % type(name)
             )

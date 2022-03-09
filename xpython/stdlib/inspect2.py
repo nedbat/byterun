@@ -3,6 +3,7 @@
 # The changed parts from the Python 2.7 "inspect" library.
 # We've converted this also to run on Python up to 3.7
 
+import sys
 from collections import namedtuple
 from inspect import ismethod
 
