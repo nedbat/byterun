@@ -27,7 +27,7 @@ UNARY_OPERATORS = {
 BINARY_OPERATORS = {
     "POWER": pow,
     "MULTIPLY": operator.mul,
-    "DIVIDE": getattr(operator, "div", lambda x, y: None),
+    "DIVIDE": getattr(operator, "div", lambda x, y: x / y),
     "FLOOR_DIVIDE": operator.floordiv,
     "TRUE_DIVIDE": operator.truediv,
     "MODULO": operator.mod,
