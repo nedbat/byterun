@@ -264,12 +264,12 @@ class ByteOp24(ByteOpBase):
         self.vm.return_value = dest
         return "continue"
 
-    def LIST_APPEND(self, count):
+    def LIST_APPEND(self):
         """Calls list.append(TOS1, TOS). Used to implement list
         comprehensions.
         """
         val = self.vm.pop()
-        the_list = self.vm.peek(count)
+        the_list = self.vm.pop()
         the_list.append(val)
 
     def LOAD_LOCALS(self):

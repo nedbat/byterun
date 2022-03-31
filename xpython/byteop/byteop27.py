@@ -62,6 +62,16 @@ class ByteOp27(ByteOp26):
             method = types.MethodType(func, method.__self__)
         return method
 
+    # Changed in 2.7
+    def LIST_APPEND(self, count):
+        """Calls list.append(TOS[-i], TOS). Used to implement list comprehensions.
+        While the appended value is popped off, the list object remains on the stack
+        so that it is available for further iterations of the loop.
+        """
+        val = self.vm.pop()
+        the_list = self.vm.peek(count)
+        the_list.append(val)
+
     # New in 2.7
 
     # Note SET_ADD and MAP_ADD don't seem to be documented in

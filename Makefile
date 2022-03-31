@@ -24,7 +24,7 @@ check:
 
 #: Check across all Python versions
 check-full:
-	SKIP_COMPAT=$(SKIP_COMPAT) bash ./admin-tools/check-versions.sh
+	SKIP_COMPAT=$(SKIP_COMPAT) bash ./admin-tools/check-newest-versions.sh
 
 # There is a bug somewhere that causes check-compat not to run
 # when run with the other tests.
