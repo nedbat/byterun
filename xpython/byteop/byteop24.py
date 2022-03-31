@@ -550,10 +550,13 @@ class ByteOp24(ByteOpBase):
         """
         mod = self.vm.top()
         if not hasattr(mod, name):
-            value = ImportError(
-                "cannot import name '%s' from '%s' (%s)"
-                % (name, mod.__name__, mod.__file__)
-            )
+            if not hasattr(mod, "__file__"):
+                # Builtins don't have a __file__ attribute
+                value = ImportError(f"cannot import name '{name}' from '{mod.__name__}")
+            else:
+                value = ImportError(
+                    f"cannot import name '{name}' from '{mod.__name__} ({mod.__file__}"
+                )
 
             self.vm.last_exception = (ImportError, value, None)
             return "exception"

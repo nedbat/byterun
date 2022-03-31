@@ -79,7 +79,7 @@ class ByteOp26(ByteOp25):
         if level == -1:
             # In Python 2.6 added the level parameter and it was -1 by default until but not including 3.0.
             # -1 means try relative imports before absolute imports.
-            if PYTHON_VERSION_TRIPLE >= (3, 0, 0):
+            if PYTHON_VERSION_TRIPLE >= (3, 0):
                 # FIXME: give warning that we can't handle absolute import. Or fix up code to handle possible absolute import.
                 level = 0
             else:
