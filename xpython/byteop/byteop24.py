@@ -15,6 +15,7 @@ import operator
 import logging
 import six
 import sys
+
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 if PYTHON_VERSION_TRIPLE >= (3, 0):

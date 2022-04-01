@@ -6,6 +6,7 @@ Note: this is subclassed so later versions may use operations from here.
 
 import os
 import sys
+import xpython.stdlib
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
@@ -45,6 +46,10 @@ class ByteOp26(ByteOp25):
         """
         level, fromlist = self.vm.popn(2)
         frame = self.vm.frame
+
+        # Should we replace import "name" with a compatabliity version?
+        if name in xpython.stdlib.__all__:
+            name = f"xpython.stdlib.{name}"
 
         # if importlib is not None:
         #     module_spec = importlib.util.find_spec(name)
