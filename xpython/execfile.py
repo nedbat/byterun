@@ -90,7 +90,7 @@ def exec_code_object(
             callback("fatal", 0, "fatalOpcode", 0, -1, event_arg, [], vm)
     else:
         if python_version != PYTHON_VERSION_TRIPLE[:2]:
-            make_compatible_builtins(BUILTINS, python_version)
+            make_compatible_builtins(BUILTINS.__dict__, python_version)
         vm = PyVM(python_version, is_pypy, format_instruction_func=format_instruction)
         try:
             vm.run_code(code, f_globals=env)
@@ -230,6 +230,7 @@ def run_python_file(
                         % (mess, filename, python_version)
                     )
                 main_mod.__file__ = code.co_filename
+                make_compatible_builtins(main_mod.__builtins__.__dict__, python_version)
 
                 if source_is_older(code.co_filename, filename):
                     print(
@@ -261,6 +262,9 @@ def run_python_file(
                 python_version = PYTHON_VERSION_TRIPLE
 
         except (IOError, ImportError):
+            from trepan.api import debug
+
+            debug()
             raise NoSourceError("No file to run: %r" % filename)
 
         # Execute the source file.

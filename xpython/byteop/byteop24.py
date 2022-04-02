@@ -19,7 +19,9 @@ import sys
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 if PYTHON_VERSION_TRIPLE >= (3, 0):
-    import importlib as import_fn
+    import importlib
+
+    import_fn = importlib.__import__
 else:
     import_fn = __import__
 
