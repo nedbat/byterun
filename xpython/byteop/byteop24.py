@@ -19,7 +19,9 @@ import sys
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 if PYTHON_VERSION_TRIPLE >= (3, 0):
-    import importlib
+    import importlib as import_fn
+else:
+    import_fn = __import__
 
 from xpython.byteop.byteop import (
     ByteOpBase,
@@ -519,14 +521,9 @@ class ByteOp24(ByteOpBase):
         """
         frame = self.vm.frame
 
-        if PYTHON_VERSION_TRIPLE > (2, 7):
-            module = importlib.__import__(
-                name, frame.f_globals, frame.f_locals, fromlist=None, level=0
-            )
-        else:
-            module = __import__(
-                name, frame.f_globals, frame.f_locals, fromlist=None, level=0
-            )
+        module = import_fn(
+            name, frame.f_globals, frame.f_locals, fromlist=None, level=0
+        )
 
         # FIXME: generalize this
         if name in sys.builtin_module_names:
