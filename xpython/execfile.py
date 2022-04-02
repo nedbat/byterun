@@ -15,6 +15,7 @@ from xdis.version_info import (
 )
 
 from xpython.vm import format_instruction, PyVM, PyVMUncaughtException
+from xpython.stdlib.builtins import make_compatible_builtins
 from xpython.vmtrace import PyVMTraced
 from xpython.version_info import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
 
@@ -88,6 +89,8 @@ def exec_code_object(
             )
             callback("fatal", 0, "fatalOpcode", 0, -1, event_arg, [], vm)
     else:
+        if python_version != PYTHON_VERSION_TRIPLE[:2]:
+            make_compatible_builtins(BUILTINS, python_version)
         vm = PyVM(python_version, is_pypy, format_instruction_func=format_instruction)
         try:
             vm.run_code(code, f_globals=env)
