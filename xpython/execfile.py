@@ -262,9 +262,6 @@ def run_python_file(
                 python_version = PYTHON_VERSION_TRIPLE
 
         except (IOError, ImportError):
-            from trepan.api import debug
-
-            debug()
             raise NoSourceError("No file to run: %r" % filename)
 
         # Execute the source file.
