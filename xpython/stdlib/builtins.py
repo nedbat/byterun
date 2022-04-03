@@ -54,6 +54,13 @@ def apply(f: Callable, args=None, kwargs=None) -> Any:
     return f(*args, **kwargs)
 
 
+def breakpoint(*args, **kwargs):
+    """
+    Python Python 3.8- breakpoint (compare) for Python 3.x
+    """
+    print("Not implmeneted yet")
+
+
 def cmp(x, y) -> int:
     """
     Python 1-2.x cmp (compare) for Python 3.x
@@ -68,9 +75,9 @@ def coerce(x, y) -> tuple:
     """
     Python 1-2.x coerce for Python 3.x
     """
-    if not isinstance(x, numeric_type):
+    if not isinstance(x, numeric_types):
         raise TypeError("number coercion failed")
-    if not isinstance(y, numeric_type):
+    if not isinstance(y, numeric_types):
         raise TypeError("number coercion failed")
         raise TypeError
     # Leave unchanged and other operations do the coercion
@@ -95,6 +102,7 @@ class OverflowWarning(RuntimeError):
 compatable_fns = {
     "apply": apply,  # Python 1.x-2.x
     "basestring": str,  # Python 1.x-2.x
+    "breakpoint": breakpoint,  # Python 1.x-3.7
     "buffer": memoryview,  # Python 1.x-2.x
     "cmp": cmp,  # Python 1.x-2.x
     "coerce": coerce,  # Python 1.x-2.x
