@@ -226,8 +226,8 @@ def run_python_file(
                 )
                 if python_version[:2] not in supported_versions:
                     raise WrongBytecodeError(
-                        "We only support byte code for %s: %r is %2.1f bytecode"
-                        % (mess, filename, python_version)
+                        "We only support byte code for %s: %r is %s bytecode"
+                        % (mess, filename, version_tuple_to_str(python_version))
                     )
                 main_mod.__file__ = code.co_filename
                 make_compatible_builtins(main_mod.__builtins__.__dict__, python_version)
