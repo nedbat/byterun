@@ -224,7 +224,7 @@ across different versions of Python. Specifically, you can't rely on
 Python's `dis <https://docs.python.org/3/library/dis.html>`_ module if
 you expect to run a bytecode other than the bytecode that the
 interpreter is running, or run newer "wordcode" bytecode on a
-"byte"-oriented byteocde, or vice versa.
+"byte"-oriented bytecode, or vice versa.
 
 In contrast, *x-python* there is a clear distinction between the
 version being interpreted and the version of Python that is
