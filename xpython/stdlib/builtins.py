@@ -26,6 +26,8 @@ def make_compatible_builtins(builtins: dict, target_python: tuple):
     This is needed when doing cross-bytecode interpretation
     because the list of builtin functions varies between different Python versions.
     """
+    if not type(target_python) is tuple:
+        target_python=(int(str(target_python)[0]),int(str(target_python)[2]))
     short_name = f"builtins_{target_python[0]}{target_python[1]}"
     import_name = f"xpython.stdlib.{short_name}"
     try:

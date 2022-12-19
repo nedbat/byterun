@@ -101,10 +101,10 @@ def exec_code_object(
 def get_supported_versions(is_pypy, is_bytecode):
     if is_bytecode:
         supported_versions = SUPPORTED_BYTECODE
-        mess = "Python 2.4 .. 2.7, 3.2 .. 3.9"
+        mess = "Python 2.4 .. 2.7, 3.2 .. 3.10"
     else:
         supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON
-        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.9"
+        mess = "PYPY 2.7, 3.2, 3.5 and 3.6" if is_pypy else "CPython 2.7, 3.2 .. 3.10"
     return supported_versions, mess
 
 
@@ -302,10 +302,10 @@ def run_python_string(
 
     try:
         supported_versions, mess = get_supported_versions(IS_PYPY, is_bytecode=False)
-        if PYTHON_VERSION not in supported_versions:
+        if PYTHON_VERSION_TRIPLE[:2] not in supported_versions:
             raise CannotCompileError(
                 "We need %s to compile source code; you are running %s"
-                % (mess, PYTHON_VERSION)
+                % (mess, version_tuple_to_str())
             )
 
         # `compile` still needs the last line to be clean,
