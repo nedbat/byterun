@@ -150,6 +150,7 @@ class PyVM(object):
         self.last_exception = None
         self.last_traceback_limit = None
         self.last_traceback = None
+        python_version=PYTHON_VERSION_TRIPLE
         self.version = python_version
         self.is_pypy = is_pypy
         self.format_instruction = format_instruction_func
