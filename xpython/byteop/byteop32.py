@@ -32,14 +32,9 @@ def fmt_make_function(vm, arg=None, repr=repr):
     name = fn_item if isinstance(fn_item, str) else fn_item.co_name
     return " (%s)" % name
 
-
 # FIXME: in the future we can get this from xdis
-def parse_fn_counts(argc: int) -> tuple:
-    annotate_args = ((argc >> 16) & 0x7FFF) - 1
-    if argc >= 0x1000:
-        annotate_args -= 1
-
-    return ((argc & 0xFF), (argc >> 8) & 0xFF, annotate_args)
+def parse_fn_counts(argc):
+    return ((argc & 0xFF), (argc >> 8) & 0xFF)
 
 
 class ByteOp32(ByteOp27):
@@ -54,17 +49,15 @@ class ByteOp32(ByteOp27):
 
     # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7
-    def MAKE_FUNCTION(self, argc: int):
+    def MAKE_FUNCTION(self, argc):
         """
         Creates a new function object, sets its __closure__ slot, and
         pushes it on the stack. TOS is the code associated with the
         function, TOS1 the tuple containing cells for the closure’s
         free variables. The function also has argc default parameters,
         which are found below the cells.
-
         """
-        rest, default_count = divmod(argc, 256)
-        annotate_count, kw_default_count = divmod(rest, 256)
+        default_count, kw_default_count = parse_fn_counts(argc)
 
         code = self.vm.pop()
         name = code.co_name
@@ -131,19 +124,42 @@ class ByteOp32(ByteOp27):
         """
         Creates a new function object, sets its ``__closure__`` slot, and
         pushes it on the stack. TOS is the code qualified name of the
-        function, TOS is the the code associated with the function and
-        TOS1 is the tuple containing cells for the closure's free
-        variables. The function asl has ``argc`` default parameters,
-        which are found below the cells.
+        function, TOS1 is the code associated with the function
+        and TOS2 is the tuple containing cells for the closure's free
+        variables. args is interpreted as in MAKE_FUNCTION;
+        the annotations and defauits are also in the same order below TOS2
         """
-        if self.version_info[:2] >= (3, 3):
-            name = self.vm.pop()
-        else:
-            name = None
+        default_count, kw_default_count = parse_fn_counts(argc)
+        name = None
         closure, code = self.vm.popn(2)
-        defaults = self.vm.popn(argc)
+
+        if kw_default_count:
+            kw_default_pairs = self.vm.popn(2 * kw_default_count)
+            kwdefaults = dict(
+                kw_default_pairs[i : i + 2] for i in range(0, len(kw_default_pairs), 2)
+            )
+        else:
+            kwdefaults = {}
+
+        if default_count:
+            defaults = self.vm.popn(default_count)
+        else:
+            defaults = tuple()
+
+        # FIXME: DRY with code in MAKE_FUNCTION
+
         globs = self.vm.frame.f_globals
-        fn = Function(name, code, globs, defaults, closure, self.vm)
+
+        fn = Function(
+            name=name,
+            code=code,
+            globs=globs,
+            argdefs=tuple(defaults),
+            closure=None,
+            vm=self.vm,
+            kwdefaults=kwdefaults,
+        )
+
         self.vm.push(fn)
 
     # This opcode disappears starting in 3.5
@@ -203,7 +219,7 @@ class ByteOp32(ByteOp27):
         """Pops TOS from the stack and stores it as the current frames f_locals. This is used in class construction."""
         self.vm.frame.f_locals = self.vm.pop()
 
-    def RAISE_VARARGS(self, argc: int):
+    def RAISE_VARARGS(self, argc):
         """
         Raises an exception. argc indicates the number of arguments to the
         raise statement, ranging from 0 to 3. The handler will find

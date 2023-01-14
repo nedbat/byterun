@@ -5,6 +5,10 @@ from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.pyobj import Function, Generator
 
+# FIXME: in the future we can get this from xdis
+def parse_fn_counts(argc):
+    return ((argc & 0xFF), (argc >> 8) & 0xFF, (argc >> 16) & 0x7FFF)
+
 
 class ByteOp33(ByteOp32):
     def __init__(self, vm):
@@ -16,21 +20,56 @@ class ByteOp33(ByteOp32):
 
     def MAKE_CLOSURE(self, argc):
         """
-        Creates a new function object, sets its __closure__ slot, and
+        Creates a new function object, sets its ``__closure__`` slot, and
         pushes it on the stack. TOS is the code qualified name of the
-        function TOS1 is the code associated with the function
-        and TOS2 is the tuple containing cells for the closure's free
-        variables. args is interpreterd as in MAKE_FONCTION;
-        the annotations and defaulits are also in the same order below TOS2
+        function, TOS is the the code associated with the function and
+        TOS1 is the tuple containing cells for the closure's free
+        variables. The function asl has ``argc`` default parameters,
+        which are found below the cells.
         """
-        if self.version_info[:2] >= (3, 3):
-            name = self.vm.pop()
-        else:
-            name = None
+        default_count, kw_default_count, annotate_count = parse_fn_counts(argc)
         closure, code = self.vm.popn(2)
-        defaults = self.vm.popn(argc)
+        name = self.vm.pop()
+
+
+        if kw_default_count:
+            kw_default_pairs = self.vm.popn(2 * kw_default_count)
+            kwdefaults = dict(
+                kw_default_pairs[i : i + 2] for i in range(0, len(kw_default_pairs), 2)
+            )
+        else:
+            kwdefaults = {}
+
+        if default_count:
+            defaults = self.vm.popn(default_count)
+        else:
+            defaults = tuple()
+
+        if annotate_count:
+            annotate_names = self.vm.pop()
+            # annotate count includes +1 for the above names
+            annotate_objects = self.vm.popn(annotate_count - 1)
+            n = len(annotate_names)
+            assert n == len(annotate_objects)
+            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
+        else:
+            annotations = {}
+
+        # FIXME: DRY with code in MAKE_FUNCTION
+
         globs = self.vm.frame.f_globals
-        fn = Function(name, code, globs, defaults, closure, self.vm)
+
+        fn = Function(
+            name=name,
+            code=code,
+            globs=globs,
+            argdefs=tuple(defaults),
+            closure=None,
+            vm=self.vm,
+            kwdefaults=kwdefaults,
+            annotations=annotations,
+        )
+
         self.vm.push(fn)
 
     # Changed from 3.2; 3.3 adds annotations.
@@ -45,25 +84,10 @@ class ByteOp33(ByteOp32):
         * the code associated with the function (at TOS1 if 3.3+ else at TOS for 3.0..3.2)
         * the qualified name of the function (at TOS if 3.3+)
         """
-        rest, default_count = divmod(argc, 256)
-        annotate_count, kw_default_count = divmod(rest, 256)
+        default_count, kw_default_count, annotate_count = parse_fn_counts(argc)
 
-        if self.version_info[:2] >= (3, 3):
-            name = self.vm.pop()
-            code = self.vm.pop()
-        else:
-            code = self.vm.pop()
-            name = code.co_name
-
-        if annotate_count:
-            annotate_names = self.vm.pop()
-            # annotate count includes +1 for the above names
-            annotate_objects = self.vm.popn(annotate_count - 1)
-            n = len(annotate_names)
-            assert n == len(annotate_objects)
-            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
-        else:
-            annotations = {}
+        code = self.vm.pop()
+        name = code.co_name
 
         if kw_default_count:
             kw_default_pairs = self.vm.popn(2 * kw_default_count)
@@ -77,6 +101,16 @@ class ByteOp33(ByteOp32):
             defaults = self.vm.popn(default_count)
         else:
             defaults = tuple()
+
+        if annotate_count:
+            annotate_names = self.vm.pop()
+            # annotate count includes +1 for the above names
+            annotate_objects = self.vm.popn(annotate_count - 1)
+            n = len(annotate_names)
+            assert n == len(annotate_objects)
+            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
+        else:
+            annotations = {}
 
         # FIXME: DRY with code in byteop3{2,6}.py
 
@@ -123,7 +157,7 @@ class ByteOp33(ByteOp32):
 
     # Python 3.3 docs describe a 3.4 MAKE_FUNCTION but seem to follow pre-3.3
     # conventions (which go back to Python 2.x days).
-    # def MAKE_FUNCTION(self, argc: int):
+    # def MAKE_FUNCTION(self, argc):
 
 
 if __name__ == "__main__":
