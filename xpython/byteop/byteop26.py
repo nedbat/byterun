@@ -6,9 +6,10 @@ Note: this is subclassed so later versions may use operations from here.
 
 import os
 import sys
-import xpython.stdlib
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
+
+import xpython.stdlib
 
 try:
     import importlib
@@ -16,7 +17,7 @@ except ImportError:
     importlib = None
 
 from xpython.byteop.byteop import fmt_binary_op
-from xpython.byteop.byteop24 import fmt_make_function, Version_info
+from xpython.byteop.byteop24 import Version_info, fmt_make_function
 from xpython.byteop.byteop25 import ByteOp25
 from xpython.pyobj import Function
 
@@ -112,17 +113,13 @@ class ByteOp26(ByteOp25):
 
     def MAKE_CLOSURE(self, argc: int):
         """
-        Creates a new function object, sets its func_closure slot, and
+        Creates a new function object, sets its ``func_closure`` slot, and
         pushes it on the stack. TOS is the code associated with the
-        function. If the code object has N free variables, the next N
-        items on the stack are the cells for these variables. The
-        function also has argc default parameters, where are found
-        before the cells.
+        function, TOS1 the tuple containing cells for the closure’s
+        free variables. The function also has ``argc`` default parameters,
+        which are found below the cells.
         """
-        if self.version_info[:2] >= (3, 3):
-            name = self.vm.pop()
-        else:
-            name = None
+        name = None
         closure, code = self.vm.popn(2)
         defaults = self.vm.popn(argc)
         globs = self.vm.frame.f_globals

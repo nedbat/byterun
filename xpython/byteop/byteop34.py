@@ -4,7 +4,8 @@
 import inspect
 import types
 
-from xdis.version_info import PYTHON_VERSION_TRIPLE, IS_PYPY
+from xdis.version_info import IS_PYPY, PYTHON_VERSION_TRIPLE
+
 from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.byteop.byteop33 import ByteOp33

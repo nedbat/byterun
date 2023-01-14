@@ -28,8 +28,8 @@ def make_compatible_builtins(builtins: dict, target_python: tuple):
     """
     if not type(target_python) is tuple:
         target_python=(int(str(target_python)[0]),int(str(target_python)[2]))
-    short_name = f"builtins_{target_python[0]}{target_python[1]}"
-    import_name = f"xpython.stdlib.{short_name}"
+    short_name = "builtins_%s%s" % (target_python[0], target_python[1])
+    import_name = "xpython.stdlib.%s" % short_name
     try:
         module_root = import_fn(import_name)
     except Exception:
@@ -45,7 +45,8 @@ def make_compatible_builtins(builtins: dict, target_python: tuple):
                     builtins[builtin_name] = compatable_fns[builtin_name]
                 else:
                     print(
-                        f"FIXME: add {target_python} compatible builtin function for {builtin_name} for Python {PYTHON_VERSION_TRIPLE[:2]}\n"
+                        "FIXME: add %s-compatible builtin function for %s Python %s\n" %
+                        (target_python, target_python, PYTHON_VERSION_TRIPLE[:2])
                     )
 
 

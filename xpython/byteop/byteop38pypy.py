@@ -1,7 +1,7 @@
 """Bytecode Interpreter operations for PyPy 3.8
 """
-from xpython.byteop.byteop38 import ByteOp38
 from xpython.byteop.byteop37pypy import ByteOp37PyPy
+from xpython.byteop.byteop38 import ByteOp38
 from xpython.byteop.byteoppypy import ByteOpPyPy
 
 

@@ -33,6 +33,15 @@ def fmt_make_function(vm, arg=None, repr=repr):
     return " (%s)" % name
 
 
+# FIXME: in the future we can get this from xdis
+def parse_fn_counts(argc: int) -> tuple:
+    annotate_args = ((argc >> 16) & 0x7FFF) - 1
+    if argc >= 0x1000:
+        annotate_args -= 1
+
+    return ((argc & 0xFF), (argc >> 8) & 0xFF, annotate_args)
+
+
 class ByteOp32(ByteOp27):
     def __init__(self, vm):
         super(ByteOp32, self).__init__(vm)
@@ -40,38 +49,25 @@ class ByteOp32(ByteOp27):
         self.version = "3.2.6 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         self.version_info = Version_info(3, 2, 6, "final", 0)
 
+    def convert_native_to_Function(self, frame, func):
+        assert inspect.isfunction(func) or isinstance(func, Function)
+
     # Changed from 2.7
     # 3.2 has kwdefaults that aren't allowed in 2.7
     def MAKE_FUNCTION(self, argc: int):
         """
-        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of:
+        Creates a new function object, sets its __closure__ slot, and
+        pushes it on the stack. TOS is the code associated with the
+        function, TOS1 the tuple containing cells for the closure’s
+        free variables. The function also has argc default parameters,
+        which are found below the cells.
 
-        * argc & 0xFF default argument objects in positional order
-        * (argc >> 8) & 0xFF pairs of name and default argument, with the name just below the object on the stack, for keyword-only parameters
-        * (argc >> 16) & 0x7FFF parameter annotation objects
-        * a tuple listing the parameter names for the annotations (only if there are ony annotation objects)
-        * the code associated with the function (at TOS1 if 3.3+ else at TOS for 3.0..3.2)
-        * the qualified name of the function (at TOS if 3.3+)
         """
         rest, default_count = divmod(argc, 256)
         annotate_count, kw_default_count = divmod(rest, 256)
 
-        if self.version_info[:2] >= (3, 3):
-            name = self.vm.pop()
-            code = self.vm.pop()
-        else:
-            code = self.vm.pop()
-            name = code.co_name
-
-        if annotate_count:
-            annotate_names = self.vm.pop()
-            # annotate count includes +1 for the above names
-            annotate_objects = self.vm.popn(annotate_count - 1)
-            n = len(annotate_names)
-            assert n == len(annotate_objects)
-            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
-        else:
-            annotations = {}
+        code = self.vm.pop()
+        name = code.co_name
 
         if kw_default_count:
             kw_default_pairs = self.vm.popn(2 * kw_default_count)
@@ -98,7 +94,6 @@ class ByteOp32(ByteOp27):
             closure=None,
             vm=self.vm,
             kwdefaults=kwdefaults,
-            annotations=annotations,
         )
 
         self.vm.push(fn)
@@ -131,6 +126,25 @@ class ByteOp32(ByteOp27):
     def LOAD_BUILD_CLASS(self):
         """Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class."""
         self.vm.push(__build_class__)
+
+    def MAKE_CLOSURE(self, argc):
+        """
+        Creates a new function object, sets its ``__closure__`` slot, and
+        pushes it on the stack. TOS is the code qualified name of the
+        function, TOS is the the code associated with the function and
+        TOS1 is the tuple containing cells for the closure's free
+        variables. The function asl has ``argc`` default parameters,
+        which are found below the cells.
+        """
+        if self.version_info[:2] >= (3, 3):
+            name = self.vm.pop()
+        else:
+            name = None
+        closure, code = self.vm.popn(2)
+        defaults = self.vm.popn(argc)
+        globs = self.vm.frame.f_globals
+        fn = Function(name, code, globs, defaults, closure, self.vm)
+        self.vm.push(fn)
 
     # This opcode disappears starting in 3.5
     def WITH_CLEANUP(self):

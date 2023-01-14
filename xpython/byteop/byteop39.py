@@ -7,12 +7,10 @@
 
 """Bytecode Interpreter operations for Python 3.9
 """
-from xpython.byteop.byteop24 import Version_info
-from xpython.byteop.byteop38 import ByteOp38
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.byteop.byteop36 import ByteOp36
-from xpython.byteop.byteop24 import ByteOp24
-
+from xpython.byteop.byteop38 import ByteOp38
 
 # Gone in 3.8
 del ByteOp24.END_FINALLY

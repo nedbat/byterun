@@ -11,11 +11,11 @@ Version_info = namedtuple("version_info", "major minor micro releaselevel serial
 # FIXME: we should use:
 # from copy import deepcopy
 
-import operator
 import logging
-import six
+import operator
 import sys
 
+import six
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 if PYTHON_VERSION_TRIPLE >= (3, 0):

@@ -9,13 +9,12 @@
 import inspect
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
-from xpython.byteop.byteop24 import ByteOp24, Version_info
 
-from xpython.byteop.byteop24 import Version_info
+from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop36 import (
     COMPREHENSION_FN_NAMES,
-    MAKE_FUNCTION_SLOTS,
     MAKE_FUNCTION_SLOT_NAMES,
+    MAKE_FUNCTION_SLOTS,
 )
 from xpython.byteop.byteop39 import ByteOp39
 from xpython.pyobj import Function

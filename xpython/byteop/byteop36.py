@@ -8,6 +8,7 @@
 import inspect
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
+
 from xpython.byteop.byteop24 import ByteOp24, Version_info
 from xpython.byteop.byteop35 import ByteOp35
 from xpython.pyobj import Function

@@ -6,9 +6,8 @@
 # See the documentation for the full license.
 """Bytecode Interpreter operations for Python 3.8
 """
-from xpython.byteop.byteop37 import ByteOp37
 from xpython.byteop.byteop24 import ByteOp24, Version_info
-
+from xpython.byteop.byteop37 import ByteOp37
 
 # Gone in 3.8
 del ByteOp24.BREAK_LOOP
