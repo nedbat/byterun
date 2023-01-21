@@ -135,6 +135,9 @@ class SuperWrappedClass(object):
         self.__orig_init__ = wrapped_class.__init__
         self.__init__ = self.init
 
+    def __repr__(self):
+        return f"<super: {self.wrapped_class}>"
+
     def init(self, *args, **kwargs):
         return self.__orig_init__(self, *args, **kwargs)
 
