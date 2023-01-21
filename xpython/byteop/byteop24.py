@@ -854,7 +854,7 @@ class ByteOp24(ByteOpBase):
             return self.call_function(argc, var_args=[], keyword_args={})
         except TypeError as exc:
             tb = self.vm.last_traceback = traceback_from_frame(self.vm.frame)
-            self.vm.last_exception = (TypeError, exc.args, tb)
+            self.vm.last_exception = (TypeError, exc, tb)
             return "exception"
 
     def CALL_FUNCTION_VAR(self, argc: int):

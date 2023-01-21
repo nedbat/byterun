@@ -12,7 +12,8 @@ from typing import Any, Callable
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
 from xpython.pyobj import Function
-from xpython.builtins import build_class
+from xpython.builtins import build_class, builtin_super
+from xpython.builtins import build_class, builtin_super
 
 log = logging.getLogger(__name__)
 
@@ -303,6 +304,12 @@ class ByteOpBase(object):
             and self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]
         ):
             log.debug("calling native function %s" % func.__name__)
+        elif (
+            inspect.isclass(func)
+        ):
+            if func.__name__ == "super":
+                pos_args = [self.vm.frame] + pos_args
+                func = builtin_super
 
         retval = func(*pos_args, **named_args)
         self.vm.push(retval)

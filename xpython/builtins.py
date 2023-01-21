@@ -4,8 +4,10 @@ A place to implement built-in functions.
 We use the bytecode for these when doing cross-version interpreting
 """
 
+from typing import Any
+
 from xpython.pyobj import Function, Cell, make_cell
-from xdis import codeType2Portable, PYTHON_VERSION, IS_PYPY
+from xdis import codeType2Portable, PYTHON_VERSION_TRIPLE, IS_PYPY
 
 
 def func_code(func):
@@ -56,7 +58,7 @@ def build_class(opc, func, name, *bases, **kwds):
     python_implementation = "PyPy" if IS_PYPY else "CPython"
 
     if not (
-        opc.version == PYTHON_VERSION
+        opc.version_tuple == PYTHON_VERSION_TRIPLE[:2]
         and python_implementation == opc.python_implementation
     ):
         # convert code to xdis's portable code type.
@@ -108,6 +110,33 @@ def build_class(opc, func, name, *bases, **kwds):
         cell.set(cls)
     return cls
 
+
+# FIXME: change to return a true Proxy object.
+def builtin_super(self: Any, typ = None, obj = None):
+    """
+    super() but first argument is filled in via interpreter
+    """
+    if typ is None:
+        cells = self.cells
+        if hasattr(cells, "__class__"):
+            cell = cells["__class__"]
+        elif hasattr(cells, "__classcell__"):
+            cell = cells["__classcell__"]
+        else:
+            # ??? FIXME
+            return None
+        return SuperWrappedClass(cell.get().__mro__[1])
+    # ??? FIXME
+    return None
+
+class SuperWrappedClass(object):
+    def __init__(self, wrapped_class):
+        self.wrapped_class = wrapped_class
+        self.__orig_init__ = wrapped_class.__init__
+        self.__init__ = self.init
+
+    def init(self, *args, **kwargs):
+        return self.__orig_init__(self, *args, **kwargs)
 
 # From Pypy 3.6
 # def find_metaclass(bases, namespace, globals, builtin):

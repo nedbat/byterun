@@ -3,6 +3,7 @@ Compatiability of built-in functions between different Python versions
 """
 
 from typing import Any, Callable
+
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 if PYTHON_VERSION_TRIPLE >= (3, 0):
@@ -27,7 +28,7 @@ def make_compatible_builtins(builtins: dict, target_python: tuple):
     because the list of builtin functions varies between different Python versions.
     """
     if not type(target_python) is tuple:
-        target_python=(int(str(target_python)[0]),int(str(target_python)[2]))
+        target_python = (int(str(target_python)[0]), int(str(target_python)[2]))
     short_name = "builtins_%s%s" % (target_python[0], target_python[1])
     import_name = "xpython.stdlib.%s" % short_name
     try:
@@ -45,8 +46,8 @@ def make_compatible_builtins(builtins: dict, target_python: tuple):
                     builtins[builtin_name] = compatable_fns[builtin_name]
                 else:
                     print(
-                        "FIXME: add %s-compatible builtin function for %s Python %s\n" %
-                        (target_python, target_python, PYTHON_VERSION_TRIPLE[:2])
+                        "FIXME: add %s-compatible builtin function for %s Python %s\n"
+                        % (target_python, target_python, PYTHON_VERSION_TRIPLE[:2])
                     )
 
 
@@ -92,7 +93,6 @@ def execfile(path: str):
     Python 1-2.x execfile for Python 3.x
     """
     exec(compile(open(path).read()))
-
 
 class OverflowWarning(RuntimeError):
     """A Python 1.x - 2.6 RuntimeError."""

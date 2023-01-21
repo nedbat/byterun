@@ -93,7 +93,7 @@ class PyVMTraced(PyVM):
         self.event_flags = event_flags
         self.callback = callback
         # Add a new opcode to allow us high-speed breakpoints
-        def_op(self.opc.l, "BRKPT", BREAKPOINT_OP, 0, 0)
+        def_op(self.opc.loc, "BRKPT", BREAKPOINT_OP, 0, 0)
 
     def add_breakpoint(self, frame, offset):
         """Adds a breakpoint at `offset` of `frame`. This is done by modifying the bytecode opcode
@@ -283,8 +283,6 @@ class PyVMTraced(PyVM):
 
             pass  # while True
 
-        # TODO: handle generator exception state
-
         callback = frame.f_trace or self.callback
         if why == "exception":
             if (
@@ -298,7 +296,7 @@ class PyVMTraced(PyVM):
                     byte_name,
                     byte_code,
                     line_number,
-                    None,
+                    intArg,
                     self.last_exception,
                     self,
                 )
@@ -309,7 +307,7 @@ class PyVMTraced(PyVM):
                     byte_name,
                     byte_code,
                     line_number,
-                    None,
+                    intArg,
                     self.return_value,
                     self,
                 )
@@ -319,7 +317,10 @@ class PyVMTraced(PyVM):
 
         if why == "exception":
             if self.last_exception and self.last_exception[0]:
-                six.reraise(*self.last_exception)
+                # For now we are dropping the traceback; ".with_excpetion(self.last_exception[2])
+                raise self.last_exception[1]
+                # Older code which may be of use sometimes
+                # six.reraise(*self.last_exception)
             else:
                 raise PyVMError("Borked exception recording")
             # if self.exception and .... ?
