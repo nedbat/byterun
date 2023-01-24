@@ -112,31 +112,51 @@ def build_class(opc, func, name, *bases, **kwds):
 
 
 # FIXME: change to return a true Proxy object.
-def builtin_super(self: Any, typ = None, obj = None):
+def builtin_super(self: Any, typ=None, obj = None):
     """
     super() but first argument is filled in via interpreter
     """
-    if typ is None:
-        cells = self.cells
-        if hasattr(cells, "__class__"):
-            cell = cells["__class__"]
-        elif hasattr(cells, "__classcell__"):
-            cell = cells["__classcell__"]
-        else:
-            # ??? FIXME
-            return None
-        return SuperWrappedClass(cell.get().__mro__[1])
-    # ??? FIXME
+    cells = self.cells
+    if hasattr(cells, "__class__"):
+        cell = cells["__class__"]
+    elif hasattr(cells, "__classcell__"):
+        cell = cells["__classcell__"]
+
+    start_class=cell.get()
+    return WrappedSuperClass(start_class, typ, obj)
+
     return None
 
-class SuperWrappedClass(object):
-    def __init__(self, wrapped_class):
-        self.wrapped_class = wrapped_class
-        self.__orig_init__ = wrapped_class.__init__
+class WrappedSuperClass(object):
+    """
+    builtin "super" object return type. This is a
+    proxy object that delegates method calls to a parent or sibling class of ``type``.
+    See https://docs.python.org/3.7/library/functions.html#super
+    """
+    def __init__(self, start_class, typ, obj: Any):
+
+        if obj is not None:
+            assert isinstance(obj, typ)
+
+        self.type_given = typ is not None
+        if self.type_given:
+            start_class = typ
+        self.start_class = start_class
+        self.superclass = start_class.__mro__[1]
+        self.__orig_init__ = self.superclass.__init__
         self.__init__ = self.init
+        self.object = obj
+        self.type = typ
+
 
     def __repr__(self):
-        return f"<super: {self.wrapped_class}>"
+        if not self.type_given is None and self.object is None:
+            obj_str = "NULL"
+        elif self.object is not None:
+            obj_str = f"<{self.object.__class__.__name__} object>"
+        else:
+            obj_str = repr(self.type)
+        return f"<super: {self.start_class}, {obj_str}>"
 
     def init(self, *args, **kwargs):
         return self.__orig_init__(self, *args, **kwargs)
