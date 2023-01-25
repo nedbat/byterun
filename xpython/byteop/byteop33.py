@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 """Byte Interpreter operations for Python 3.3
 """
+
+from xpython.byteop.byteop import parse_fn_counts_30_35
 from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.pyobj import Function, Generator
-
-# FIXME: in the future we can get this from xdis
-def parse_fn_counts(argc):
-    return ((argc & 0xFF), (argc >> 8) & 0xFF, (argc >> 16) & 0x7FFF)
-
 
 class ByteOp33(ByteOp32):
     def __init__(self, vm):
@@ -16,7 +13,6 @@ class ByteOp33(ByteOp32):
         self.version = "3.3.7 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         self.version_info = Version_info(3, 3, 7, "final", 0)
 
-    # Right now 3.3 is largely the same as 3.2 here. How nice!
 
     def MAKE_CLOSURE(self, argc):
         """
@@ -27,10 +23,9 @@ class ByteOp33(ByteOp32):
         variables. The function asl has ``argc`` default parameters,
         which are found below the cells.
         """
-        default_count, kw_default_count, annotate_count = parse_fn_counts(argc)
-        closure, code = self.vm.popn(2)
-        name = self.vm.pop()
-
+        default_count, kw_default_count, annotate_count = parse_fn_counts_30_35(argc)
+        code, name = self.vm.popn(2)
+        closure = self.vm.pop()
 
         if kw_default_count:
             kw_default_pairs = self.vm.popn(2 * kw_default_count)
@@ -47,11 +42,10 @@ class ByteOp33(ByteOp32):
 
         if annotate_count:
             annotate_names = self.vm.pop()
-            # annotate count includes +1 for the above names
-            annotate_objects = self.vm.popn(annotate_count - 1)
+            annotate_types = self.vm.popn(annotate_count)
             n = len(annotate_names)
-            assert n == len(annotate_objects)
-            annotations = {annotate_names[i]: annotate_objects[i] for i in range(n)}
+            assert n == len(annotate_types)
+            annotations = {annotate_names[i]: annotate_types[i] for i in range(n)}
         else:
             annotations = {}
 
@@ -64,7 +58,7 @@ class ByteOp33(ByteOp32):
             code=code,
             globs=globs,
             argdefs=tuple(defaults),
-            closure=None,
+            closure=closure,
             vm=self.vm,
             kwdefaults=kwdefaults,
             annotations=annotations,
@@ -84,7 +78,7 @@ class ByteOp33(ByteOp32):
         * the code associated with the function (at TOS1 if 3.3+ else at TOS for 3.0..3.2)
         * the qualified name of the function (at TOS if 3.3+)
         """
-        default_count, kw_default_count, annotate_count = parse_fn_counts(argc)
+        default_count, kw_default_count, annotate_count = parse_fn_counts_30_35(argc)
 
         code = self.vm.pop()
         name = code.co_name
