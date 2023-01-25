@@ -80,6 +80,9 @@ class ByteOp33(ByteOp32):
         """
         default_count, kw_default_count, annotate_count = parse_fn_counts_30_35(argc)
 
+        # The string function name does not seem to be used.
+        # In the 3.4, it is dropped.
+        self.vm.pop()
         code = self.vm.pop()
         name = code.co_name
 
