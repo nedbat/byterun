@@ -33,36 +33,7 @@ def _missing_arguments_before_34(f_name, argnames, pos, values):
         )
     )
 
-
-if PYTHON_VERSION_TRIPLE >= (3, 3):
-    from inspect import (
-        FullArgSpec,
-        Parameter,
-        Signature,
-        _NonUserDefinedCallables,
-        _void,
-        signature,
-    )
-
-    if PYTHON_VERSION_TRIPLE >= (3, 4):
-        from inspect import (
-            _missing_arguments,
-            _signature_bound_method,
-            _signature_from_builtin,
-            _signature_fromstr,
-            _signature_get_partial,
-            _signature_get_user_defined_method,
-            _signature_is_builtin,
-            _too_many,
-            unwrap,
-        )
-    else:
-        _missing_arguments = _missing_arguments_before_34
-    pass
-else:
-    from xpython.stdlib.inspectfor32 import FullArgSpec, Parameter, Signature
-
-    _missing_arguments = _missing_arguments_before_34
+if PYTHON_VERSION_TRIPLE < (3, 4):
 
     def _too_many(f_name, args, kwonly, varargs, defcount, given, values):
         atleast = len(args) - defcount
@@ -95,6 +66,37 @@ else:
                 "was" if given == 1 and not kwonly_given else "were",
             )
         )
+
+
+if PYTHON_VERSION_TRIPLE >= (3, 3):
+    from inspect import (
+        FullArgSpec,
+        Parameter,
+        Signature,
+        _NonUserDefinedCallables,
+        _void,
+        signature,
+    )
+
+    if PYTHON_VERSION_TRIPLE >= (3, 4):
+        from inspect import (
+            _missing_arguments,
+            _signature_bound_method,
+            _signature_from_builtin,
+            _signature_fromstr,
+            _signature_get_partial,
+            _signature_get_user_defined_method,
+            _signature_is_builtin,
+            _too_many,
+            unwrap,
+        )
+    else:
+        _missing_arguments = _missing_arguments_before_34
+    pass
+else:
+    from xpython.stdlib.inspectfor32 import FullArgSpec, Parameter, Signature
+
+    _missing_arguments = _missing_arguments_before_34
 
     pass
 
