@@ -20,5 +20,5 @@ check-nosetests:
 	$(PYTHON) -V && SKIP_COMPAT=$(SKIP_COMPAT) nosetests --stop $(o)
 
 #: Run all tests, excluding those that need pyenv
-check check-version-bytecode:
+check-version-bytecode:
 	$(BASH) ./test-single-version.sh
