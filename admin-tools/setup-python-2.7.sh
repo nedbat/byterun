@@ -1,5 +1,5 @@
 #!/bin/bash
-PYTHON_VERSION=2.7.16
+PYTHON_VERSION=2.7.18
 pyenv local $PYTHON_VERSION
 
 owd=$(pwd)
