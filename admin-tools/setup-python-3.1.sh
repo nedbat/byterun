@@ -11,7 +11,7 @@ fi
 mydir=$(dirname $bs)
 fulldir=$(readlink -f $mydir)
 cd $fulldir/..
-(cd ../python-xdis/admin-toos/setup-python-3.1 && git pull)
+(cd ../python-xdis && . ./admin-tools/setup-python-3.0 && git pull)
 git checkout python-3.1-to-3.2
 cd $owd
 rm -v */.python-version >/dev/null 2>&1 || true
