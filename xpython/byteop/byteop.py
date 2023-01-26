@@ -280,8 +280,8 @@ class ByteOpBase(object):
                     isinstance(init_fn, Function)
                     or self.is_pypy
                     or self.version_info[:2] != PYTHON_VERSION_TRIPLE[:2]
-                ) and PYTHON_VERSION_TRIPLE >= (3, 4):
-                    # 3.4+ __build_class__() works only on bytecode that matches the CPython interpeter,
+                ) and PYTHON_VERSION_TRIPLE >= (3, 3):
+                    # 3.3+ __build_class__() works only on bytecode that matches the CPython interpeter,
                     # so use Darius' version instead.
                     # Down the line we will try to do this universally, but it is tricky:
                     retval = build_class(self.vm.opc, *pos_args, **named_args)
