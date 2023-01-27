@@ -66,9 +66,3 @@ class TestWithStatement(vmtest.VmTestCase):
                 assert s == "iwor"
                 """
             )
-
-        if PYTHON_VERSION_TRIPLE >= (3, 3):
-
-            # "yield from" is not in 3.2-
-            def test_generator_with_context_manager(self):
-                self.do_one()

@@ -234,8 +234,10 @@ def run_python_file(
 
                 if source_is_older(code.co_filename, filename):
                     print(
-                        f"warning source file {code.co_filename} is newer than bytecode {filename}"
+                        f"Warning: source file {code.co_filename} is newer than bytecode {filename}"
                     )
+                    # Hack to update test code. Remove when we have a standalone program to fix.
+                    # os.system(f"/bin/bash ./add-single-test.sh {code.co_filename}")
                     pass
 
             else:
