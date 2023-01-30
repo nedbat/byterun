@@ -156,7 +156,7 @@ class WrappedSuperClass(object):
             obj_str = f"<{self.object.__class__.__name__} object>"
         else:
             obj_str = repr(self.type)
-        return f"<super: {self.start_class}, {obj_str}>"
+        return f"<super: <class '{self.start_class.__name__}'>, {obj_str}>"
 
     def init(self, *args, **kwargs):
         return self.__orig_init__(self, *args, **kwargs)
