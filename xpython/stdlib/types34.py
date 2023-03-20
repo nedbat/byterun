@@ -3,11 +3,15 @@
 """
 Define names for built-in types that aren't directly accessible as a builtin.
 """
+import collections.abc as _collections_abc
+import functools as _functools
 import sys
-from xpython.stdlib.inspect3 import xCallable, isfunction, isgeneratorfunction
-from xdis import CO_COROUTINE, CO_ITERABLE_COROUTINE, CO_GENERATOR, PYTHON_VERSION
 from types import GeneratorType
 
+from xdis.util import CO_COROUTINE, CO_GENERATOR, CO_ITERABLE_COROUTINE
+from xdis.version_info import PYTHON_VERSION_TRIPLE
+
+from xpython.stdlib.inspect3 import isfunction, isgeneratorfunction, xCallable
 
 # Iterators in Python aren't a matter of type but of protocol.  A large
 # and changing number of builtin types implement *some* flavor of
@@ -25,7 +29,7 @@ CodeType = type(_f.__code__)
 MappingProxyType = type(type.__dict__)
 SimpleNamespace = type(sys.implementation)
 
-if PYTHON_VERSION > 3.4:
+if PYTHON_VERSION_TRIPLE > (3, 4):
     exec(
         """
 async def _c(): pass
@@ -181,10 +185,6 @@ class DynamicClassAttribute:
         result = type(self)(self.fget, self.fset, fdel, self.__doc__)
         result.overwrite_doc = self.overwrite_doc
         return result
-
-
-import functools as _functools
-import collections.abc as _collections_abc
 
 
 class _GeneratorWrapper:
