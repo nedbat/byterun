@@ -3,7 +3,7 @@ This can be used in a debugger or profiler.
 """
 
 import six
-from xdis import PYTHON_VERSION, IS_PYPY, codeType2Portable
+from xdis import PYTHON_VERSION_TRIPLE, IS_PYPY, codeType2Portable
 
 # We will add a new "DEBUG" opcode
 from xdis.opcodes.base import def_op
@@ -78,7 +78,7 @@ class PyVMTraced(PyVM):
     def __init__(
         self,
         callback,
-        python_version=PYTHON_VERSION,
+        python_version=PYTHON_VERSION_TRIPLE,
         is_pypy=IS_PYPY,
         vmtest_testing=False,
         event_flags=PyVMEVENT_ALL,

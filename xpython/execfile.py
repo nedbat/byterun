@@ -1,34 +1,31 @@
 """Execute files of Python code."""
 
+import imp
+import mimetypes
 import os
 import os.path as osp
 import sys
 import tokenize
-import mimetypes
-from typing import Optional
-from xdis import load_module
-from xdis.version_info import (
-    IS_PYPY,
-    PYTHON_VERSION,
-    PYTHON_VERSION_TRIPLE,
-    version_tuple_to_str,
-)
-
-from xpython.vm import format_instruction, PyVM, PyVMUncaughtException
-from xpython.stdlib.builtins import make_compatible_builtins
-from xpython.vmtrace import PyVMTraced
-from xpython.version_info import SUPPORTED_PYTHON, SUPPORTED_BYTECODE, SUPPORTED_PYPY
-
 # To silence the "import imp" DeprecationWarning below
 import warnings
+from typing import Optional
+
+from xdis import load_module
+from xdis.version_info import (IS_PYPY, PYTHON_VERSION_TRIPLE,
+                               version_tuple_to_str)
+
+from xpython.stdlib.builtins import make_compatible_builtins
+from xpython.version_info import (SUPPORTED_BYTECODE, SUPPORTED_PYPY,
+                                  SUPPORTED_PYTHON)
+from xpython.vm import PyVM, PyVMUncaughtException, format_instruction
+from xpython.vmtrace import PyVMTraced
 
 warnings.filterwarnings("ignore")
-import imp
 
 # This code is ripped off from coverage.py.  Define things it expects.
 try:
     open_source = tokenize.open  # pylint: disable=E1101
-except:
+except Exception:
 
     def open_source(fname):
         """Open a source file the best way."""
@@ -315,7 +312,7 @@ def run_python_string(
         if not source or source[-1] != "\n":
             source += "\n"
         code = compile(source, fake_path, "exec")
-        python_version = PYTHON_VERSION
+        python_version = PYTHON_VERSION_TRIPLE
 
         # Execute the source string.
         exec_code_object(
