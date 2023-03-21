@@ -54,7 +54,7 @@ COMPREHENSION_FN_NAMES = frozenset(
 )
 
 
-class Function(object):
+class Function:
     """Function(name, code, globals, argdefs, closure, vm,  kwdefaults={},
                 annotations={}, doc=None, qualname=None)
 
@@ -100,8 +100,8 @@ class Function(object):
         code,
         globs,
         argdefs,
-        closure=None,
-        vm=None,
+        closure,
+        vm,
         kwdefaults={},
         annotations={},
         doc=None,
@@ -392,6 +392,9 @@ class Frame(object):
         self.stack = []
         self.f_trace = None
 
+        # event args is used in tracing/debugging callback.
+        self.event_flags = None
+
         # brkpt is a mapping bytecode offset to the opcode value that was
         # smasshed by overwriting it with the pseudo opcode BRKPT.
         # After a breakpoint is serviced, this opcode needs to be run.
@@ -438,8 +441,8 @@ class Frame(object):
                     self.cells[var] = closure[i]
                 else:
                     # FIXME: this branch is probably wrong.
-                    # Also check all calls of Frame and make_frame() in vm to ensure we pass a function's
-                    # closure attribute.
+                    # Also check all calls of Frame and make_frame() in vm to ensure we
+                    # pass a function's closure attribute.
                     assert isinstance(f_back.cells[i], Cell), "f_back.cells[%d]: %r" % (
                         i,
                         f_back.cells[i],
@@ -565,7 +568,8 @@ class Generator(object):
 
 if __name__ == "__main__":
     frame = Frame(
-        traceback_from_frame.__code__, globals(), locals(), None, PYTHON_VERSION
+        traceback_from_frame.__code__, globals(), locals(), None,
+        PYTHON_VERSION_TRIPLE
     )
     print(frame)
 

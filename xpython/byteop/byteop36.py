@@ -193,7 +193,6 @@ class ByteOp36(ByteOp35):
 
         fn_vm = Function(
             name=name,
-            qualname=qualname,
             code=code,
             globs=globs,
             argdefs=slot["defaults"],
@@ -201,6 +200,7 @@ class ByteOp36(ByteOp35):
             vm=self.vm,
             kwdefaults=slot["kwdefaults"],
             annotations=slot["annotations"],
+            qualname=qualname,
         )
 
         if argc == 0 and code.co_name in COMPREHENSION_FN_NAMES:

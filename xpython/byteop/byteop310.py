@@ -81,12 +81,12 @@ class ByteOp310(ByteOp39):
 
         fn_vm = Function(
             name=name,
-            qualname=qualname,
             code=code,
             globs=globs,
             argdefs=slot["defaults"],
             closure=slot["closure"],
             vm=self.vm,
+            qualname=qualname,
             kwdefaults=slot["kwdefaults"],
             annotations=annotations,
         )
