@@ -33,7 +33,7 @@ except Exception:
 
 
 class CannotCompileError(Exception):
-    """For raising errors when we have a Compile eror."""
+    """For raising errors when we have a Compile error."""
 
     pass
 

@@ -56,7 +56,7 @@ class ByteOp27(ByteOp26):
 
         try:
             func = getattr(method, self.method_func_access)
-        except:
+        except Exception:
             func = method
 
         if inspect.isfunction(func):
@@ -82,7 +82,7 @@ class ByteOp27(ByteOp26):
     # (3.0 doesn't have have MAP, although it has SET
     # which is what is below.)
 
-    # The descripitons of these is weird becase values are
+    # The descripitons of these is weird because values are
     # peeked and not popped. Probably has something to do with
     # the way comprehensions work.
     def SET_ADD(self, count):
@@ -127,7 +127,7 @@ class ByteOp27(ByteOp26):
                 exit_method = self.convert_method_native_func(
                     self.vm.frame, context_manager.__exit__
                 )
-            except:
+            except Exception:
                 exit_method = context_manager.__exit__
         else:
             exit_method = context_manager.__exit__

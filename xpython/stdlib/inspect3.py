@@ -4,9 +4,8 @@
 import functools
 import types
 from inspect import isclass, ismethod
-from xdis import CO_GENERATOR, CO_COROUTINE
 
-from xdis import COMPILER_FLAG_BIT
+from xdis import CO_COROUTINE, CO_GENERATOR, COMPILER_FLAG_BIT
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 
@@ -33,17 +32,18 @@ def _missing_arguments_before_34(f_name, argnames, pos, values):
         )
     )
 
+
 if PYTHON_VERSION_TRIPLE < (3, 4):
 
     def _too_many(f_name, args, kwonly, varargs, defcount, given, values):
-        atleast = len(args) - defcount
+        at_least = len(args) - defcount
         kwonly_given = len([arg for arg in kwonly if arg in values])
         if varargs:
-            plural = atleast != 1
-            sig = "at least %d" % (atleast,)
+            plural = at_least != 1
+            sig = "at least %d" % (at_least,)
         elif defcount:
             plural = True
-            sig = "from %d to %d" % (atleast, len(args))
+            sig = "from %d to %d" % (at_least, len(args))
         else:
             plural = len(args) != 1
             sig = str(len(args))
@@ -150,7 +150,6 @@ class MyParameter(Parameter):
     """
 
     def __init__(self, name, kind, default=_empty, annotation=_empty):
-
         if kind not in (
             POSITIONAL_ONLY,
             POSITIONAL_OR_KEYWORD,
@@ -507,7 +506,6 @@ def _signature_from_function(cls, func):
 def _signature_from_callable(
     obj, follow_wrapper_chains=True, skip_bound_arg=True, sigcls=None
 ):
-
     """Private helper function to get signature for arbitrary
     callable objects.
     """
@@ -749,7 +747,7 @@ def _main():
         print("Can't get info for builtin modules.")
         exit(1)
 
-    from inspect import getsourcefile, getsource, findsource
+    from inspect import findsource, getsource, getsourcefile
 
     if args.details:
         print("Target: %s" % target)

@@ -8,8 +8,8 @@ def get_byteop(vm, python_version, is_pypy):
     """Get Python byteop for given integer Python version, e.g. 2.7, 3.2, 3.5..., and the
     platform is_pypy. vm.VMError will be raised if we can't find a suitable version.
     """
-    if not type(python_version) is tuple:
-        python_version=(int(str(python_version)[0]),int(str(python_version)[2]))
+    if type(python_version) is not tuple:
+        python_version = (int(str(python_version)[0]), int(str(python_version)[2]))
     python_version = python_version[:2]
     if python_version < (3, 0):
         if python_version >= (2, 6):

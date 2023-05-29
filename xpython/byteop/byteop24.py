@@ -127,7 +127,7 @@ class ByteOp24(ByteOpBase):
         return " (%s)" % vm.peek(1)
 
     def BRKPT(self):
-        """Psuedo opcode: breakpoint. We added this. TODO: call callback, then run
+        """Pseudo opcode: breakpoint. We added this. TODO: call callback, then run
         instruction that should have gotten run.
         """
         vm = self.vm
@@ -374,7 +374,7 @@ class ByteOp24(ByteOpBase):
         # Note: type() wants to only create new-style classes, while
         # bases might include only old-style classes. This will
         # trigger this error: TypeError: a new-style class can't have
-        # only classic bases So what we'll do is thow in "object" so
+        # only classic bases So what we'll do is throw in "object" so
         # there is at least one new-style class.
         try:
             klass = type(name, bases, methods)
@@ -563,7 +563,7 @@ class ByteOp24(ByteOpBase):
 
         self.vm.push(getattr(mod, name))
 
-    ## Jumps
+    # Jumps
 
     def JUMP_FORWARD(self, jump_offset):
         """Increments bytecode counter by jump.
@@ -670,7 +670,7 @@ class ByteOp24(ByteOpBase):
         the_map[key] = val
         self.vm.push(the_map)
 
-    ## some (but not all) Names
+    # some (but not all) Names
 
     def LOAD_FAST(self, name):
         """

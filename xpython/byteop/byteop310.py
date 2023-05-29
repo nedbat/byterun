@@ -10,7 +10,7 @@ import inspect
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
-from xpython.byteop.byteop24 import ByteOp24, Version_info
+from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop36 import (
     COMPREHENSION_FN_NAMES,
     MAKE_FUNCTION_SLOT_NAMES,
@@ -34,7 +34,8 @@ class ByteOp310(ByteOp39):
         the consumed stack must consist of values if the argument
         carries a specified flag value
 
-        * 0x01 a tuple of default values for positional-only and positional-or-keyword parameters in positional order
+        * 0x01 a tuple of default values for positional-only and positional-or-keyword
+          parameters in positional order
         * 0x02 a dictionary of the default values for the keyword-only parameters
                the key is the parameter name and the value is the default value
         * 0x04 a tuple of strings containing parameters  annotations
@@ -42,7 +43,8 @@ class ByteOp310(ByteOp39):
           the code associated with the function (at TOS1)
         * the qualified name of the function (at TOS)
 
-        Changed from version 3.6: Flag value 0x04 is a tuple of strings instead of dictionary
+        Changed from version 3.6: Flag value 0x04 is a tuple of strings instead of
+        dictionary
         """
         qualname = self.vm.pop()
         name = qualname.split(".")[-1]
@@ -156,7 +158,7 @@ class ByteOp310(ByteOp39):
         determines the error message. The legal kinds are 0 for
         generator, 1 for coroutine, and 2 for async generator.
         """
-        generator = self.vm.pop()
+        self.vm.pop()
         # if generator is None:
         #     raise self.vm.PyVMError("GEN_START TOS is None")
         # FIXME

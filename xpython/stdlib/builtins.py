@@ -1,5 +1,5 @@
 """
-Compatiability of built-in functions between different Python versions
+Compatibility of built-in functions between different Python versions.
 """
 
 from typing import Any, Callable
@@ -7,10 +7,10 @@ from typing import Any, Callable
 from xdis.version_info import PYTHON_VERSION_TRIPLE
 
 if PYTHON_VERSION_TRIPLE >= (3, 0):
+    import importlib
     from builtins import input
     from functools import reduce
     from imp import reload
-    import importlib
 
     import_fn = importlib.__import__
     from io import open
@@ -27,7 +27,7 @@ def make_compatible_builtins(builtins: dict, target_python: tuple):
     This is needed when doing cross-bytecode interpretation
     because the list of builtin functions varies between different Python versions.
     """
-    if not type(target_python) is tuple:
+    if type(target_python) is not tuple:
         target_python = (int(str(target_python)[0]), int(str(target_python)[2]))
     short_name = "builtins_%s%s" % (target_python[0], target_python[1])
     import_name = "xpython.stdlib.%s" % short_name
@@ -62,7 +62,7 @@ def breakpoint(*args, **kwargs):
     """
     Python Python 3.8- breakpoint (compare) for Python 3.x
     """
-    print("Not implmeneted yet")
+    print("Not implimeneted yet")
 
 
 def cmp(x, y) -> int:
@@ -93,6 +93,7 @@ def execfile(path: str):
     Python 1-2.x execfile for Python 3.x
     """
     exec(compile(open(path).read()))
+
 
 class OverflowWarning(RuntimeError):
     """A Python 1.x - 2.6 RuntimeError."""

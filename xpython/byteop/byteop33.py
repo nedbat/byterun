@@ -7,12 +7,12 @@ from xpython.byteop.byteop24 import Version_info
 from xpython.byteop.byteop32 import ByteOp32
 from xpython.pyobj import Function, Generator
 
+
 class ByteOp33(ByteOp32):
     def __init__(self, vm):
         super(ByteOp33, self).__init__(vm)
         self.version = "3.3.7 (default, Oct 27 1955, 00:00:00)\n[x-python]"
         self.version_info = Version_info(3, 3, 7, "final", 0)
-
 
     def MAKE_CLOSURE(self, argc):
         """
@@ -69,13 +69,17 @@ class ByteOp33(ByteOp32):
     # Changed from 3.2; 3.3 adds annotations.
     def MAKE_FUNCTION(self, argc):
         """
-        Pushes a new function object on the stack. From bottom to top, the consumed stack must consist of:
+        Pushes a new function object on the stack. From bottom to top, the consumed
+        stack must consist of:
 
         * argc & 0xFF default argument objects in positional order
-        * (argc >> 8) & 0xFF pairs of name and default argument, with the name just below the object on the stack, for keyword-only parameters
+        * (argc >> 8) & 0xFF pairs of name and default argument, with the name just
+          below the object on the stack, for keyword-only parameters
         * (argc >> 16) & 0x7FFF parameter annotation objects
-        * a tuple listing the parameter names for the annotations (only if there are ony annotation objects)
-        * the code associated with the function (at TOS1 if 3.3+ else at TOS for 3.0..3.2)
+        * a tuple listing the parameter names for the annotations (only if there are
+          only annotation objects)
+        * the code associated with the function (at TOS1 if 3.3+ else at TOS for
+          3.0..3.2)
         * the qualified name of the function (at TOS if 3.3+)
         """
         default_count, kw_default_count, annotate_count = parse_fn_counts_30_35(argc)

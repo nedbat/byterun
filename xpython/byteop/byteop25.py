@@ -42,7 +42,7 @@ class ByteOp25(ByteOp24):
         # The code here does some weird stack manipulation: the __exit__ function
         # is buried in the stack, and where depends on what's on top of it.
         # Pull out the exit function, and leave the rest in place.
-        # In Python 3.x this is fixed up so that the __exit__ funciton os TOS
+        # In Python 3.x this is fixed up so that the __exit__ function is TOS
         v = w = None
         u = self.vm.top()
         if u is None:

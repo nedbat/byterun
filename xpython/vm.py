@@ -97,7 +97,7 @@ def format_instruction(
     vm=None,
 ):
     """Formats an instruction. What's a little different here is that in
-    contast to Python's `dis`, or a colorized version of that, used in
+    contrast to Python's `dis`, or a colorized version of that, used in
     `trepan3k` we may have access to the frame eval stack and therefore
     can show operands in a nicer way.
 
@@ -199,7 +199,7 @@ class PyVM(object):
             raise PyVMError("Peek value must be greater than 0")
         try:
             return self.frame.stack[-n]
-        except:
+        except Exception:
             return 0
 
     def pop(self, i=0):
@@ -553,7 +553,7 @@ class PyVM(object):
                     )
                 why = bytecode_fn(*arguments)
 
-        except:
+        except Exception:
             # Deal with exceptions encountered while executing the op.
             self.last_exception = sys.exc_info()
 
@@ -753,7 +753,7 @@ class PyVM(object):
         self.in_exception_processing = False
         return self.return_value
 
-    ## Operators
+    # Operators
 
     def sliceOperator(self, op):
         start = 0
@@ -766,15 +766,15 @@ class PyVM(object):
         elif count == 3:
             end = self.pop()
             start = self.pop()
-        l = self.pop()
+        slice_len = self.pop()
         if end is None:
-            end = len(l)
+            end = len(slice_len)
         if op.startswith("STORE_"):
-            l[start:end] = self.pop()
+            slice_len[start:end] = self.pop()
         elif op.startswith("DELETE_"):
-            del l[start:end]
+            del slice_len[start:end]
         else:
-            self.push(l[start:end])
+            self.push(slice_len[start:end])
 
 
 if __name__ == "__main__":

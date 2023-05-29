@@ -72,6 +72,7 @@ def pretty_event_flags(flags):
     names.reverse()
     return "%s (%s)" % (result, " | ".join(names))
 
+
 class PyVMTraced(PyVM):
     def __init__(
         self,

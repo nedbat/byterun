@@ -7,11 +7,10 @@ import sys
 from collections import namedtuple
 from inspect import ismethod
 
-from xdis import iscode, COMPILER_FLAG_BIT
-
 # For the kinds of specific opcode use we need,
-# all 2.x opcodes are compatibile with what is in 2.7
+# all 2.x opcodes are compatible with what is in 2.7
 import xdis.opcodes.opcode_27 as opc
+from xdis import COMPILER_FLAG_BIT, iscode
 
 ArgSpec = namedtuple("ArgSpec", "args varargs keywords defaults")
 

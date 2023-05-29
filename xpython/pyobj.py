@@ -40,11 +40,11 @@ def make_cell(value):
 # Python 3.x does this but it also shows junk at the end.
 Traceback = collections.namedtuple("_Traceback", "tb_frame tb_lasti tb_lineno tb_next")
 try:
-    _Traceback.tb_frame.__doc__ = "frame object at this level"
-    _Traceback.tb_lasti.__doc__ = "index of last attempted instruction in bytecode"
-    _Traceback.tb_lineno.__doc__ = "current line number in Python source code"
-    _Traceback.tb_next.__doc__ = "next inner traceback object (called by this level)"
-except:
+    Traceback.tb_frame.__doc__ = "frame object at this level"
+    Traceback.tb_lasti.__doc__ = "index of last attempted instruction in bytecode"
+    Traceback.tb_lineno.__doc__ = "current line number in Python source code"
+    Traceback.tb_next.__doc__ = "next inner traceback object (called by this level)"
+except Exception:
     pass
 
 
@@ -163,7 +163,7 @@ class Function:
             assert annotations == {}
             assert kwdefaults == {}
 
-        # In Python 3.x is varous generators and list comprehensions have a .0 arg
+        # In Python 3.x is various generators and list comprehensions have a .0 arg
         # but inspect doesn't show that. In the various MAKE_FUNCTION routines,
         # we will detect this and store True in this field when appropriate.
         if not argdefs and self.__name__.split(".")[-1] in COMPREHENSION_FN_NAMES:
@@ -187,7 +187,7 @@ class Function:
         # alternatives, but overall more of this needs to be done.
         #
         # The intent in providing native functions is for use in type
-        # testing, mostly. The functios should not be run, since that defeats our
+        # testing, mostly. The functions should not be run, since that defeats our
         # ability to trace functions.
         kw = {"argdefs": self.func_defaults}
         if closure:
@@ -196,7 +196,7 @@ class Function:
         if not isinstance(code, types.CodeType) and hasattr(code, "to_native"):
             try:
                 code = code.to_native()
-            except:
+            except Exception:
                 pass
 
         if isinstance(code, types.CodeType):
@@ -209,7 +209,7 @@ class Function:
                     self._func.__kwdefaults__ = kwdefaults
                     self._func.__annotations__ = annotations
                     pass
-            except:
+            except Exception:
                 self._func = None
         else:
             # cross version interpreting... FIXME: fix this up
@@ -455,7 +455,7 @@ class Frame(object):
         self.generator = None
         self.version = version
 
-        # These are sentinal or bogus values to start out.
+        # These are sentinel or bogus values to start out.
         # eval_frame will adjust inst_index.
         self.inst_index = -1
         self.fallthrough = False

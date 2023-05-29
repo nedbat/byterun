@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Copyright (C) 2020-2022 Rocky Bernstein
+"""Copyright (C) 2020-2023 Rocky Bernstein
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
@@ -18,7 +18,7 @@ from xpython.pyobj import (
     Generator,
 )
 
-from xpython.version import __version__
+from xpython.version import __version__  # noqa
 from xpython.vm import PyVM, PyVMError, PyVMRuntimeError
 from xpython.vmtrace import PyVMTraced, pretty_event_flags
 
@@ -32,5 +32,6 @@ __all__ = [
     "PyVMRuntimeError",
     "PyVMTraced",
     "Traceback",
-    "pretty_event_flags" "traceback_from_frame",
+    "pretty_event_flags",
+    "traceback_from_frame",
 ]

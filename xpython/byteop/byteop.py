@@ -5,14 +5,16 @@ Note: this is subclassed. Later versions use operations from here.
 """
 
 import inspect
-import operator
 import logging
+import operator
 import sys
 from typing import Any, Callable, Tuple
 
 from xdis.version_info import PYTHON_VERSION_TRIPLE, version_tuple_to_str
-from xpython.pyobj import Function
+
 from xpython.builtins import build_class, builtin_super
+from xpython.pyobj import Function
+
 
 # FIXME: in the future we can get this from xdis
 def parse_fn_counts_30_35(argc: int) -> Tuple[int, int, int]:
@@ -20,7 +22,7 @@ def parse_fn_counts_30_35(argc: int) -> Tuple[int, int, int]:
     In Python 3.0 to 3.5 MAKE_CLOSURE and MAKE_FUNCTION encode
     arguments counts of positional, default + named, and annotation
     arguments a particular kind of encoding where each of
-    the entry a a packe byted value of the lower 24 bits
+    the entry a a packed byted value of the lower 24 bits
     of ``argc``.  The high bits of argc may have come from
     an EXTENDED_ARG instruction. Here, we unpack the values
     from the ``argc`` int and return a triple of the
@@ -108,7 +110,7 @@ def fmt_unary_op(vm, arg=None, repr=repr):
     # We need to check the length because sometimes in a return event
     # (as opposed to a
     # a RETURN_VALUE callback can* the value has been popped, and if the
-    # return valuse was the only one on the stack, it will be empty here.
+    # return values was the only one on the stack, it will be empty here.
     if len(vm.frame.stack):
         return " (%s)" % (repr(vm.top()),)
     else:
@@ -193,7 +195,6 @@ class ByteOpBase(object):
             # and more reliable:
             #   func == exec
             elif func.__name__ == "exec":
-
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
                         "exec() builtin should have 1..3 positional arguments; got %d"
@@ -233,7 +234,6 @@ class ByteOpBase(object):
                         self.cross_bytecode_exec_warning_shown = True
 
             elif func == eval:
-
                 if not 1 <= len(pos_args) <= 3:
                     raise self.vm.PyVMError(
                         "eval() builtin should have 1..3 positional arguments; got %d"
@@ -281,9 +281,10 @@ class ByteOpBase(object):
                     or self.is_pypy
                     or self.version_info[:2] != PYTHON_VERSION_TRIPLE[:2]
                 ) and PYTHON_VERSION_TRIPLE >= (3, 3):
-                    # 3.3+ __build_class__() works only on bytecode that matches the CPython interpeter,
-                    # so use Darius' version instead.
-                    # Down the line we will try to do this universally, but it is tricky:
+                    # 3.3+ __build_class__() works only on bytecode
+                    # that matches the CPython interpreter, so use
+                    # Darius' version instead.  Down the line we will
+                    # try to do this universally, but it is tricky:
                     retval = build_class(self.vm.opc, *pos_args, **named_args)
                     self.vm.push(retval)
                     return
@@ -324,9 +325,7 @@ class ByteOpBase(object):
             and self.version_info[:2] == PYTHON_VERSION_TRIPLE[:2]
         ):
             log.debug("calling native function %s" % func.__name__)
-        elif (
-            inspect.isclass(func)
-        ):
+        elif inspect.isclass(func):
             if func.__name__ == "super":
                 pos_args = [self.vm.frame] + pos_args
                 func = builtin_super
