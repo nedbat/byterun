@@ -66,7 +66,8 @@ class ByteOp32(ByteOp27):
         self.vm.unwind_block(block)
 
     def LOAD_BUILD_CLASS(self):
-        """Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class."""
+        """Pushes builtins.__build_class__() onto the stack. It is
+        later called by CALL_FUNCTION to construct a class."""
         self.vm.push(__build_class__)
 
     def MAKE_CLOSURE(self, argc: int):

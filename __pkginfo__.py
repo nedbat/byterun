@@ -1,5 +1,7 @@
 import sys
 
+import os.path as osp
+
 author = "Rocky Bernstein, Ned Batchelder, Paul Swartz, Allison Kaptur and others"
 author_email = "rb@dustyfeet.com"
 entry_points = {"console_scripts": ["xpython=xpython.__main__:main"]}
@@ -10,9 +12,6 @@ entry_points = {"console_scripts": ["xpython=xpython.__main__:main"]}
 # 3.2            | pip     | 8.1.2        |
 # 3.3            | pip     | 10.0.1       |
 # 3.4            | pip     | 19.1.1       |
-
-import os.path as osp
-
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -32,7 +31,7 @@ PYTHON_VERSION_TRIPLE = tuple(sys.version_info[:3])
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 supported_versions = SUPPORTED_PYPY if IS_PYPY else SUPPORTED_PYTHON  # noqa
-mess = "PYPY 2.7, 3.2, 3.5-3.7" if IS_PYPY else "CPython 2.7, 3.2 .. 3.10"
+mess = "PYPY 2.7, 3.2, 3.5-3.7" if IS_PYPY else "CPython 2.7, 3.2 .. 3.11"
 
 if PYTHON_VERSION_TRIPLE[:2] not in supported_versions:
     python = "PyPy " if IS_PYPY else "C"
