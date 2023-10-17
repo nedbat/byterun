@@ -10,7 +10,10 @@ if PYTHON_VERSION_TRIPLE >= (3, 0):
     import importlib
     from builtins import input
     from functools import reduce
-    from imp import reload
+    if PYTHON_VERSION_TRIPLE >= (3, 4):
+        from importlib import reload
+    else:
+        from imp import reload
 
     import_fn = importlib.__import__
     from io import open

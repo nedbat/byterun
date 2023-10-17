@@ -18,6 +18,7 @@ from xdis import (
     next_offset,
 )
 from xdis.op_imports import get_opcode_module
+from xdis.opcodes.opcode_311 import _nb_ops
 
 from xpython.pyobj import Frame, Block, Traceback, traceback_from_frame
 from xpython.byteop import get_byteop
@@ -26,7 +27,8 @@ PY2 = not PYTHON3
 log = logging.getLogger(__name__)
 
 if PYTHON3:
-    byteint = lambda b: b
+    def byteint(b):
+        return b
 else:
     byteint = ord
 
@@ -523,7 +525,11 @@ class PyVM(object):
             if bytecode_name.startswith("UNARY_"):
                 byteop.unaryOperator(bytecode_name[6:])
             elif bytecode_name.startswith("BINARY_"):
-                byteop.binaryOperator(bytecode_name[7:])
+                if self.version < (3, 11):
+                    byteop.binaryOperator(bytecode_name[7:])
+                else:
+                    byteop.binaryOperator(_nb_ops[int_arg][0][3:])
+
             elif bytecode_name.startswith("INPLACE_"):
                 byteop.inplaceOperator(bytecode_name[8:])
             elif "SLICE+" in bytecode_name:
